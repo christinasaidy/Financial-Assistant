@@ -1,5 +1,5 @@
 from app.application.auth.dtos import LoginRequest, LoginResponse, RegisterRequest, UserResponse
-from app.application.auth.ports import PasswordHasher, TokenService, UserRepository
+from app.application.auth.interfaces import PasswordHasher, TokenService, UserRepository
 from app.domain.users.errors import InvalidCredentials, InvalidEmail, InvalidToken
 from app.domain.users.user import normalize_email, validate_password
 

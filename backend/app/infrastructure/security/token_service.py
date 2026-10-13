@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 
-from app.application.auth.ports import AccessToken
+from app.application.auth.interfaces import AccessToken
 from app.domain.users.errors import InvalidToken
 
 MIN_SECRET_LENGTH = 32
