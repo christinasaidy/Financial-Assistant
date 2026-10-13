@@ -89,6 +89,10 @@ class GeminiReceiptExtractor:
             answer = response.json()["candidates"][0]["content"]["parts"][0]["text"]
             # parse_float=str keeps money exact: the text goes straight to Decimal, never through float.
             data = json.loads(answer, parse_float=str)
+        except httpx.HTTPStatusError as exc:
+            # The response body says why (bad model name, quota, invalid request). It never contains the API key.
+            detail = exc.response.text[:500]
+            raise ExtractionFailed(f"Gemini returned HTTP {exc.response.status_code}: {detail}") from exc
         except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
-            raise ExtractionFailed("The vision model did not return a usable answer") from exc
+            raise ExtractionFailed(f"The vision model did not return a usable answer ({type(exc).__name__})") from exc
         return parse_extraction(data)

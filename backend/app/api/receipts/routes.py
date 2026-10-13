@@ -4,6 +4,7 @@ from app.api.container import Container
 from app.api.dependencies import get_container, get_current_user_id
 from app.api.receipts.schemas import ConfirmBody, ReceiptOut, ReceiptSummaryOut
 from app.application.receipts.dtos import UploadReceiptRequest
+from app.domain.receipts.files import MAX_FILE_BYTES
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 
@@ -17,9 +18,10 @@ def upload(
 ) -> ReceiptSummaryOut:
     """Store the file and return straight away. The receipt is read in the background:
     poll `GET /receipts/{id}` until its status is `needs_review` or `failed`."""
-    view = container.receipts.upload(
-        user_id, UploadReceiptRequest(content=file.file.read(), content_type=file.content_type)
-    )
+    # Read one byte past the limit at most: enough for the service to see the file is too
+    # large, without loading an arbitrarily big upload into memory.
+    content = file.file.read(MAX_FILE_BYTES + 1)
+    view = container.receipts.upload(user_id, UploadReceiptRequest(content=content, content_type=file.content_type))
     background.add_task(container.receipts.process, user_id, view.receipt.id)
     return ReceiptSummaryOut.from_receipt(view.receipt)
 

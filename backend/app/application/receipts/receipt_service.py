@@ -1,15 +1,18 @@
+import logging
 from collections.abc import Sequence
 from dataclasses import replace
 
 from app.application.receipts.dtos import ConfirmReceiptRequest, ReceiptView, UploadReceiptRequest, to_view
 from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.shared.unit_of_work import UnitOfWork, UnitOfWorkFactory
-from app.domain.receipts.errors import DuplicateReceipt, InvalidReceipt, ReceiptNotFound
+from app.domain.receipts.errors import DuplicateReceipt, ExtractionFailed, InvalidReceipt, ReceiptNotFound
 from app.domain.receipts.extraction import ExtractedReceipt, to_draft_lines
 from app.domain.receipts.files import content_type_for, extension_for, file_hash, validate_size
 from app.domain.receipts.normalization import normalize_product_name
-from app.domain.receipts.receipt import Receipt, validate_confirmation
+from app.domain.receipts.receipt import Receipt, validate_confirmation, validate_draft
 from app.domain.receipts.status import ReceiptStatus, can_transition, transition
+
+logger = logging.getLogger(__name__)
 
 MAX_EXTRACTION_ATTEMPTS = 2  # one retry, then the receipt is marked failed and manual entry is offered
 
@@ -62,20 +65,27 @@ class ReceiptService:
             file_path = receipt.file_path
 
         # The model call is slow, so it runs outside any database transaction.
-        extracted = self._extract(file_path, [category.name for category in categories])
+        extracted = self._extract(receipt_id, file_path, [category.name for category in categories])
+        if extracted is None:
+            self._mark_failed(user_id, receipt_id)
+            return
 
-        with self._uow(user_id) as work:
-            if extracted is None:
-                work.receipts.set_status(receipt_id, ReceiptStatus.FAILED)
-                return
-            names = [name for line in extracted.lines if (name := normalize_product_name(line.normalized_name))]
-            lines = to_draft_lines(
-                extracted,
-                category_history=work.receipts.category_history(names),
-                category_ids_by_name={category.name.lower(): category.id for category in categories},
-            )
-            vendor_id = work.vendors.find_by_name(extracted.vendor_name) if extracted.vendor_name else None
-            work.receipts.save_extraction(receipt_id, extracted, vendor_id, lines)
+        # From here the receipt is `processing`. Whatever goes wrong, it must end as `failed`
+        # so the user can still enter it by hand, never stay stuck.
+        try:
+            with self._uow(user_id) as work:
+                names = [name for line in extracted.lines if (name := normalize_product_name(line.normalized_name))]
+                lines = to_draft_lines(
+                    extracted,
+                    category_history=work.receipts.category_history(names),
+                    category_ids_by_name={category.name.lower(): category.id for category in categories},
+                )
+                validate_draft(extracted.total, lines)  # e.g. an absurd amount the model invented
+                vendor_id = work.vendors.find_by_name(extracted.vendor_name) if extracted.vendor_name else None
+                work.receipts.save_extraction(receipt_id, extracted, vendor_id, lines)
+        except Exception:
+            logger.exception("Could not save the draft for receipt %s; marking it failed", receipt_id)
+            self._mark_failed(user_id, receipt_id)
 
     # --- review ---
 
@@ -158,16 +168,29 @@ class ReceiptService:
             receipt.id, vendor_id, request.receipt_date, currency, request.total, request.primary_category_id, lines
         )
 
-    def _extract(self, file_path: str, category_names: Sequence[str]) -> ExtractedReceipt | None:
+    def _mark_failed(self, user_id: int, receipt_id: int) -> None:
+        with self._uow(user_id) as work:
+            work.receipts.set_status(receipt_id, ReceiptStatus.FAILED)
+
+    def _extract(self, receipt_id: int, file_path: str, category_names: Sequence[str]) -> ExtractedReceipt | None:
         # Any failure here must end as status `failed`, never as a receipt stuck in `processing`.
         try:
             content = self._storage.read(file_path)
             content_type = content_type_for(file_path)
         except Exception:
+            logger.exception("Could not read the stored file for receipt %s", receipt_id)
             return None
-        for _ in range(MAX_EXTRACTION_ATTEMPTS):
+        for attempt in range(1, MAX_EXTRACTION_ATTEMPTS + 1):
             try:
                 return self._extractor.extract(content, content_type, category_names)
-            except Exception:
-                continue
+            except Exception as exc:
+                # An ExtractionFailed already says what went wrong; anything else is a bug worth a traceback.
+                logger.warning(
+                    "Extraction attempt %s of %s failed for receipt %s: %s",
+                    attempt,
+                    MAX_EXTRACTION_ATTEMPTS,
+                    receipt_id,
+                    exc,
+                    exc_info=not isinstance(exc, ExtractionFailed),
+                )
         return None

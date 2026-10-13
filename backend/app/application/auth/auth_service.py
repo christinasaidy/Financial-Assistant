@@ -41,7 +41,11 @@ class AuthService:
 
     def authenticate(self, token: str) -> int:
         """The user id a bearer token belongs to. Raises InvalidToken if it cannot be trusted."""
-        return self._tokens.verify(token)
+        user_id = self._tokens.verify(token)
+        # A token outlives its account by up to an hour, so check the account is still there.
+        if self._users.get_by_id(user_id) is None:
+            raise InvalidToken("Account no longer exists")
+        return user_id
 
     def get_current_user(self, user_id: int) -> UserResponse:
         user = self._users.get_by_id(user_id)

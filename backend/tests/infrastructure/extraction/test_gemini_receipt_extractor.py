@@ -64,3 +64,9 @@ def test_network_errors_become_extraction_failed():
 
     with pytest.raises(ExtractionFailed):
         extractor_answering(handler).extract(b"x", "image/png", [])
+
+
+def test_an_http_error_says_what_the_api_answered():
+    reply = httpx.Response(404, text='{"error": {"message": "model not found"}}')
+    with pytest.raises(ExtractionFailed, match="HTTP 404.*model not found"):
+        extractor_answering(lambda request: reply).extract(b"x", "image/png", [])

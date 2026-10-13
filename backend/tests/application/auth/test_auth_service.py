@@ -80,3 +80,12 @@ def test_token_for_a_deleted_account_is_rejected(auth, users):
     users.delete(user.id)
     with pytest.raises(InvalidToken):
         auth.get_current_user(user.id)
+
+
+def test_authenticate_rejects_a_valid_token_once_the_account_is_gone(auth, users):
+    user = auth.register(RegisterRequest("a@b.com", "correct-horse"))
+    token = auth.login(LoginRequest("a@b.com", "correct-horse")).access_token
+    assert auth.authenticate(token) == user.id
+    users.delete(user.id)
+    with pytest.raises(InvalidToken):
+        auth.authenticate(token)
