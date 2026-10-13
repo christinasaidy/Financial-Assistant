@@ -12,7 +12,13 @@ VALID = {
     "currency": "usd",
     "total": "12.50",
     "lines": [
-        {"description": "LABAN 1L", "normalized_name": "laban", "size_amount": 1, "size_unit": "l", "line_total": "2.50"},
+        {
+            "description": "LABAN 1L",
+            "normalized_name": "laban",
+            "size_amount": 1,
+            "size_unit": "l",
+            "line_total": "2.50",
+        },
         {"description": "   ", "line_total": 1},  # blank lines are dropped
     ],
 }

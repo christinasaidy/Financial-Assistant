@@ -302,7 +302,10 @@ def upgrade() -> None:
     # Categories: everyone sees the shared defaults, but only changes their own. Not FORCEd so
     # the owner can seed shared defaults in migrations.
     op.execute("ALTER TABLE categories ENABLE ROW LEVEL SECURITY")
-    op.execute("CREATE POLICY categories_select ON categories FOR SELECT USING (user_id IS NULL OR user_id = app_user_id())")
+    op.execute(
+        "CREATE POLICY categories_select ON categories FOR SELECT "
+        "USING (user_id IS NULL OR user_id = app_user_id())"
+    )
     op.execute("CREATE POLICY categories_insert ON categories FOR INSERT WITH CHECK (user_id = app_user_id())")
     op.execute(
         "CREATE POLICY categories_update ON categories FOR UPDATE "

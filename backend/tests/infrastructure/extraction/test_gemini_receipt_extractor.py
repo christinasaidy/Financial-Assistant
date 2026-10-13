@@ -26,7 +26,9 @@ def test_sends_the_file_and_parses_the_answer():
         seen["url"] = str(request.url)
         seen["key"] = request.headers["x-goog-api-key"]
         seen["body"] = json.loads(request.content)
-        return gemini_reply('{"vendor_name": "Spinneys", "total": 2.10, "lines": [{"description": "laban", "line_total": 2.10}]}')
+        return gemini_reply(
+            '{"vendor_name": "Spinneys", "total": 2.10, "lines": [{"description": "laban", "line_total": 2.10}]}'
+        )
 
     receipt = extractor_answering(handler).extract(b"image-bytes", "image/jpeg", ["Groceries", "Dining"])
 

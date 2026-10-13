@@ -46,7 +46,9 @@ def test_unsigned_alg_none_token_is_rejected():
 def test_token_missing_required_claims_is_rejected():
     no_exp = jwt.encode({"sub": "1", "iat": datetime.now(UTC)}, SECRET, algorithm="HS256")
     non_numeric_sub = jwt.encode(
-        {"sub": "abc", "iat": datetime.now(UTC), "exp": datetime.now(UTC) + timedelta(hours=1)}, SECRET, algorithm="HS256"
+        {"sub": "abc", "iat": datetime.now(UTC), "exp": datetime.now(UTC) + timedelta(hours=1)},
+        SECRET,
+        algorithm="HS256",
     )
     for token in (no_exp, non_numeric_sub, "garbage"):
         with pytest.raises(InvalidToken):

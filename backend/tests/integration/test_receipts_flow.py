@@ -179,13 +179,15 @@ def test_a_confirmed_receipt_can_be_corrected(client, alice):
     client.post(f"/receipts/{receipt_id}/confirm", json=confirm_body(), headers=alice)
     corrected = client.post(f"/receipts/{receipt_id}/confirm", json=confirm_body(total="7.00", lines=[]), headers=alice)
     assert corrected.status_code == 200
-    assert (corrected.json()["status"], corrected.json()["total"], corrected.json()["lines"]) == ("confirmed", "7.00", [])
+    receipt = corrected.json()
+    assert (receipt["status"], receipt["total"], receipt["lines"]) == ("confirmed", "7.00", [])
 
 
 def test_category_memory_suggests_what_the_user_confirmed_before(client, alice):
     dining = category_id(client, alice, "Dining")
     first = upload(client, alice, content=b"first").json()["id"]
-    body = confirm_body(lines=[{"description": "LABAN", "normalized_name": "laban", "line_total": "2.50", "category_id": dining}])
+    line = {"description": "LABAN", "normalized_name": "laban", "line_total": "2.50", "category_id": dining}
+    body = confirm_body(lines=[line])
     assert client.post(f"/receipts/{first}/confirm", json=body, headers=alice).status_code == 200
 
     second = upload(client, alice, content=b"second").json()["id"]
@@ -212,7 +214,8 @@ def test_failed_extraction_is_retried_once_then_entered_by_hand(client, alice, e
 
 
 def test_manual_entry_creates_a_confirmed_receipt_without_a_file(client, alice):
-    response = client.post("/receipts/manual", json=confirm_body(currency="LBP", total="450000", lines=[]), headers=alice)
+    body = confirm_body(currency="LBP", total="450000", lines=[])
+    response = client.post("/receipts/manual", json=body, headers=alice)
     assert response.status_code == 201
     receipt = response.json()
     assert (receipt["status"], receipt["has_file"], receipt["currency"], receipt["total"]) == (

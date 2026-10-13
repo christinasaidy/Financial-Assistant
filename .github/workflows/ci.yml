@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (lint, migrations, tests)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Throwaway values for the CI database only. Real secrets live in backend/.env, which is not in git.
+    env:
+      OWNER_PASSWORD: ci_owner_pw
+      APP_PASSWORD: ci_app_pw
+      READONLY_PASSWORD: ci_readonly_pw
+      DATABASE_URL: postgresql+psycopg://app_user:ci_app_pw@localhost:5432/expense_tracker
+      MIGRATION_DATABASE_URL: postgresql+psycopg://expense_owner:ci_owner_pw@localhost:5432/expense_tracker
+      READONLY_DATABASE_URL: postgresql+psycopg://ai_readonly:ci_readonly_pw@localhost:5432/expense_tracker
+      JWT_SECRET: ci-only-signing-key-not-used-anywhere-else-0123456789
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      # The same script used on a developer machine: the database and its three roles.
+      - name: Create database and roles
+        env:
+          PGPASSWORD: postgres
+        run: >-
+          psql -h localhost -U postgres -v ON_ERROR_STOP=1
+          -v owner_pw="$OWNER_PASSWORD" -v app_pw="$APP_PASSWORD" -v ro_pw="$READONLY_PASSWORD"
+          -f db/init.sql
+
+      - name: Run migrations
+        run: alembic upgrade head
+
+      # Runs as the non-owner app role, so the row-level security tests are real.
+      # Fails if domain + application coverage drops below 70% (scope section 9.1).
+      - name: Tests
+        run: >-
+          pytest
+          --cov=app/domain --cov=app/application
+          --cov-report=term-missing:skip-covered
+          --cov-fail-under=70
+
+      - name: Check the migration can be reversed and re-applied
+        run: |
+          alembic downgrade base
+          alembic upgrade head

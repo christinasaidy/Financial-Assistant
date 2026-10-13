@@ -29,7 +29,8 @@ def add_line(conn, receipt_id: int, user_id: int, **extra) -> int:
     columns = {"receipt_id": receipt_id, "user_id": user_id, "description": "laban", "line_total": 3, **extra}
     names = ", ".join(columns)
     params = ", ".join(f":{c}" for c in columns)
-    return conn.execute(text(f"INSERT INTO receipt_items ({names}) VALUES ({params}) RETURNING id"), columns).scalar_one()
+    statement = text(f"INSERT INTO receipt_items ({names}) VALUES ({params}) RETURNING id")
+    return conn.execute(statement, columns).scalar_one()
 
 
 def count(conn, table: str) -> int:
@@ -38,7 +39,8 @@ def count(conn, table: str) -> int:
 
 def test_app_role_does_not_own_tables_or_bypass_rls(engine):
     with engine.connect() as conn:
-        owners = conn.execute(text("SELECT DISTINCT tableowner FROM pg_tables WHERE schemaname = 'public'")).scalars().all()
+        owners_query = text("SELECT DISTINCT tableowner FROM pg_tables WHERE schemaname = 'public'")
+        owners = conn.execute(owners_query).scalars().all()
         role = conn.execute(text("SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")).one()
     assert "app_user" not in owners
     assert tuple(role) == (False, False)
@@ -82,7 +84,8 @@ def test_cannot_modify_or_delete_another_users_rows(as_user, alice, bob):
     assert (updated, deleted) == (0, 0)
 
     with as_user(alice) as conn:
-        assert conn.execute(text("SELECT name FROM vendors WHERE id = :id"), {"id": vendor}).scalar_one() == "Alice only"
+        name = conn.execute(text("SELECT name FROM vendors WHERE id = :id"), {"id": vendor}).scalar_one()
+        assert name == "Alice only"
 
 
 def test_line_cannot_attach_to_another_users_receipt(as_user, alice, bob):

@@ -44,6 +44,7 @@ def test_unknown_category_name_and_no_history_means_no_suggestion():
 
 
 def test_line_without_a_name_gets_no_memory_suggestion():
-    line = draft(ExtractedLine(description="x", line_total=Decimal(1), category="Dining"), history={"laban": [GROCERIES]})
+    extracted = ExtractedLine(description="x", line_total=Decimal(1), category="Dining")
+    line = draft(extracted, history={"laban": [GROCERIES]})
     assert line.normalized_name is None
     assert line.category_id == DINING

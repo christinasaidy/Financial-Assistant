@@ -1,5 +1,6 @@
 """Integration tests run against the real PostgreSQL database as the runtime `app_user` role."""
 
+import os
 import uuid
 from contextlib import contextmanager
 
@@ -18,6 +19,8 @@ def engine():
         with engine.connect():
             pass
     except OperationalError:
+        if os.environ.get("CI"):  # in CI a missing database is a failure, never a silent skip
+            raise
         pytest.skip("PostgreSQL is not reachable with DATABASE_URL; skipping integration tests")
     return engine
 
