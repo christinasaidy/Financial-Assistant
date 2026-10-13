@@ -17,10 +17,10 @@ def upload(
 ) -> ReceiptSummaryOut:
     """Store the file and return straight away. The receipt is read in the background:
     poll `GET /receipts/{id}` until its status is `needs_review` or `failed`."""
-    view = container.receipts.upload.execute(
+    view = container.receipts.upload(
         user_id, UploadReceiptRequest(content=file.file.read(), content_type=file.content_type)
     )
-    background.add_task(container.receipts.process.execute, user_id, view.receipt.id)
+    background.add_task(container.receipts.process, user_id, view.receipt.id)
     return ReceiptSummaryOut.from_receipt(view.receipt)
 
 
@@ -30,14 +30,14 @@ def create_manual(
     user_id: int = Depends(get_current_user_id),
     container: Container = Depends(get_container),
 ) -> ReceiptOut:
-    return ReceiptOut.from_view(container.receipts.create_manual.execute(user_id, body.to_request()))
+    return ReceiptOut.from_view(container.receipts.create_manual(user_id, body.to_request()))
 
 
 @router.get("", response_model=list[ReceiptSummaryOut])
 def list_receipts(
     user_id: int = Depends(get_current_user_id), container: Container = Depends(get_container)
 ) -> list[ReceiptSummaryOut]:
-    return [ReceiptSummaryOut.from_receipt(receipt) for receipt in container.receipts.list_all.execute(user_id)]
+    return [ReceiptSummaryOut.from_receipt(receipt) for receipt in container.receipts.list_all(user_id)]
 
 
 @router.get("/{receipt_id}", response_model=ReceiptOut)
@@ -46,7 +46,7 @@ def get_receipt(
     user_id: int = Depends(get_current_user_id),
     container: Container = Depends(get_container),
 ) -> ReceiptOut:
-    return ReceiptOut.from_view(container.receipts.get.execute(user_id, receipt_id))
+    return ReceiptOut.from_view(container.receipts.get(user_id, receipt_id))
 
 
 @router.post("/{receipt_id}/confirm", response_model=ReceiptOut)
@@ -57,7 +57,7 @@ def confirm(
     container: Container = Depends(get_container),
 ) -> ReceiptOut:
     """Save the reviewed values. Also used to correct a receipt that is already confirmed."""
-    return ReceiptOut.from_view(container.receipts.confirm.execute(user_id, receipt_id, body.to_request()))
+    return ReceiptOut.from_view(container.receipts.confirm(user_id, receipt_id, body.to_request()))
 
 
 @router.delete("/{receipt_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -66,5 +66,5 @@ def delete(
     user_id: int = Depends(get_current_user_id),
     container: Container = Depends(get_container),
 ) -> Response:
-    container.receipts.delete.execute(user_id, receipt_id)
+    container.receipts.delete(user_id, receipt_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -18,4 +18,4 @@ def get_current_user_id(
     """The id of the signed-in user, taken from a verified bearer token."""
     if credentials is None:
         raise InvalidToken("Not authenticated")
-    return container.auth.tokens.verify(credentials.credentials)
+    return container.auth.authenticate(credentials.credentials)

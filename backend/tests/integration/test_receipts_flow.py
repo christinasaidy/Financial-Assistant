@@ -259,7 +259,7 @@ def test_confirm_is_all_or_nothing(client, container, sign_in, engine, monkeypat
 def test_a_receipt_still_being_read_cannot_be_confirmed(client, container, sign_in):
     alice, alice_id = sign_in()
     # Upload through the use case only, so the background step has not run yet.
-    view = container.receipts.upload.execute(alice_id, UploadReceiptRequest(b"not-read-yet", "image/png"))
+    view = container.receipts.upload(alice_id, UploadReceiptRequest(b"not-read-yet", "image/png"))
     response = client.post(f"/receipts/{view.receipt.id}/confirm", json=confirm_body(), headers=alice)
     assert response.status_code == 409
 
