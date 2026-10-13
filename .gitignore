@@ -8,5 +8,7 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 backend/uploads/
+.coverage
+.ruff_cache/
 
 agent_documentation/
