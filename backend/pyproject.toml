@@ -1,0 +1,33 @@
+[project]
+name = "expense-tracker-backend"
+version = "0.1.0"
+description = "FastAPI backend for the receipt-based expense tracker"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy>=2.0",
+    "alembic",
+    "psycopg[binary]",
+    "pydantic-settings",
+    "argon2-cffi",
+    "PyJWT",
+    "python-multipart",
+    "httpx",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
