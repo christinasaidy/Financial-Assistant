@@ -4,10 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api.app import create_app
-from app.api.container import AuthServices, Container
-from app.application.auth.get_current_user import GetCurrentUser
-from app.application.auth.login import Login
-from app.application.auth.register_user import RegisterUser
+from app.api.container import Container
+from app.application.auth.auth_service import AuthService
 from app.infrastructure.security.token_service import JwtTokenService
 from tests.fakes import FakeHasher, InMemoryUserRepository
 
@@ -16,14 +14,8 @@ SECRET = "t" * 40
 
 @pytest.fixture
 def client():
-    users, hasher, tokens = InMemoryUserRepository(), FakeHasher(), JwtTokenService(SECRET)
-    auth = AuthServices(
-        register_user=RegisterUser(users, hasher),
-        login=Login(users, hasher, tokens),
-        get_current_user=GetCurrentUser(users),
-        tokens=tokens,
-    )
-    # Only the auth routes are exercised here, so the other feature groups are stand-ins.
+    auth = AuthService(InMemoryUserRepository(), FakeHasher(), JwtTokenService(SECRET))
+    # Only the auth routes are exercised here, so the other services are stand-ins.
     return TestClient(create_app(Container(auth=auth, receipts=Mock(), categories=Mock())))
 
 

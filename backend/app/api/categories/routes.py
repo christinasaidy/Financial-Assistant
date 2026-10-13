@@ -17,4 +17,4 @@ class CategoryOut(BaseModel):
 def list_categories(
     user_id: int = Depends(get_current_user_id), container: Container = Depends(get_container)
 ) -> list[CategoryOut]:
-    return [CategoryOut(**vars(category)) for category in container.categories.list_all.execute(user_id)]
+    return [CategoryOut(**vars(category)) for category in container.categories.list_all(user_id)]
