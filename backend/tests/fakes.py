@@ -1,6 +1,6 @@
-"""In-memory stand-ins for the ports, so use cases and the API can be tested without a database."""
+"""In-memory stand-ins for the interfaces, so services and the API can be tested without a database."""
 
-from app.application.auth.ports import StoredCredentials
+from app.application.auth.interfaces import StoredCredentials
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered

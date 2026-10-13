@@ -9,7 +9,7 @@ from app.api.app import create_app
 from app.api.container import Container
 from app.application.auth.auth_service import AuthService
 from app.application.categories.category_service import CategoryService
-from app.application.receipts.ports import FileStorage, ReceiptExtractor
+from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.receipts.receipt_service import ReceiptService
 from app.infrastructure.config import Settings
 from app.infrastructure.database.connection import create_db_engine

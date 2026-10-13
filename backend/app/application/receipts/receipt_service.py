@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from dataclasses import replace
 
 from app.application.receipts.dtos import ConfirmReceiptRequest, ReceiptView, UploadReceiptRequest, to_view
-from app.application.receipts.ports import FileStorage, ReceiptExtractor
+from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.shared.unit_of_work import UnitOfWork, UnitOfWorkFactory
 from app.domain.receipts.errors import DuplicateReceipt, InvalidReceipt, ReceiptNotFound
 from app.domain.receipts.extraction import ExtractedReceipt, to_draft_lines

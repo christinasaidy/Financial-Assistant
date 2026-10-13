@@ -1,7 +1,7 @@
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import IntegrityError
 
-from app.application.auth.ports import StoredCredentials
+from app.application.auth.interfaces import StoredCredentials
 from app.domain.users.errors import EmailAlreadyRegistered
 from app.domain.users.user import User
 
