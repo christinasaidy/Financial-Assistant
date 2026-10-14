@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.categories.category_service import CategoryService
+from app.application.notifications.notification_service import NotificationService
 from app.application.receipts.receipt_service import ReceiptService
 from app.application.spending.spending_service import SpendingService
 
@@ -16,3 +17,4 @@ class Container:
     categories: CategoryService
     spending: SpendingService
     budgets: BudgetService
+    notifications: NotificationService

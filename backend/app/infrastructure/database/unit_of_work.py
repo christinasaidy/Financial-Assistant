@@ -6,6 +6,7 @@ from sqlalchemy import Connection, Engine
 from app.infrastructure.database.budget_repository import SqlBudgetRepository
 from app.infrastructure.database.category_repository import SqlCategoryRepository
 from app.infrastructure.database.connection import user_scoped_connection
+from app.infrastructure.database.notification_repository import SqlNotificationRepository
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
 from app.infrastructure.database.vendor_repository import SqlVendorRepository
 
@@ -18,6 +19,7 @@ class SqlUnitOfWork:
         self.vendors = SqlVendorRepository(conn)
         self.categories = SqlCategoryRepository(conn)
         self.budgets = SqlBudgetRepository(conn)
+        self.notifications = SqlNotificationRepository(conn)
 
 
 class SqlUnitOfWorkFactory:

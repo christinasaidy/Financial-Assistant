@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.domain.budgets.errors import BudgetNotFound, InvalidBudget
+from app.domain.notifications.errors import NotificationNotFound
 from app.domain.receipts.errors import (
     DuplicateReceipt,
     FileTooLarge,
@@ -27,6 +28,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidToken, status.HTTP_401_UNAUTHORIZED),
     (ReceiptNotFound, status.HTTP_404_NOT_FOUND),
     (BudgetNotFound, status.HTTP_404_NOT_FOUND),
+    (NotificationNotFound, status.HTTP_404_NOT_FOUND),
     (EmailAlreadyRegistered, status.HTTP_409_CONFLICT),
     (DuplicateReceipt, status.HTTP_409_CONFLICT),
     (InvalidStateTransition, status.HTTP_409_CONFLICT),

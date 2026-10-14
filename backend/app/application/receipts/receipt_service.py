@@ -3,9 +3,11 @@ from collections.abc import Sequence
 from dataclasses import replace
 from decimal import Decimal
 
+from app.application.notifications.budget_alerts import BudgetAlerts
 from app.application.receipts.dtos import ConfirmReceiptRequest, ReceiptView, UploadReceiptRequest, to_view
 from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.shared.unit_of_work import UnitOfWork, UnitOfWorkFactory
+from app.domain.notifications.notification import receipt_failed_notification, receipt_ready_notification
 from app.domain.receipts.errors import DuplicateReceipt, ExtractionFailed, InvalidReceipt, ReceiptNotFound
 from app.domain.receipts.extraction import ExtractedReceipt, to_draft_lines
 from app.domain.receipts.files import content_type_for, extension_for, file_hash, validate_size
@@ -32,11 +34,13 @@ class ReceiptService:
         storage: FileStorage,
         extractor: ReceiptExtractor,
         default_lbp_per_usd: Decimal,
+        alerts: BudgetAlerts,
     ) -> None:
         self._uow = uow
         self._storage = storage
         self._extractor = extractor
         self._default_lbp_per_usd = default_lbp_per_usd  # saved on receipts confirmed without a rate
+        self._alerts = alerts  # budget notifications, checked after anything that changes spending
 
     # --- upload and background reading ---
 
@@ -92,6 +96,7 @@ class ReceiptService:
                 validate_draft(extracted.total, lines)  # e.g. an absurd amount the model invented
                 vendor_id = work.vendors.find_by_name(extracted.vendor_name) if extracted.vendor_name else None
                 work.receipts.save_extraction(receipt_id, extracted, vendor_id, lines)
+                work.notifications.add(receipt_ready_notification(receipt_id, extracted.vendor_name))
         except Exception:
             logger.exception("Could not save the draft for receipt %s; marking it failed", receipt_id)
             self._mark_failed(user_id, receipt_id)
@@ -141,6 +146,7 @@ class ReceiptService:
             if receipt is None:
                 raise ReceiptNotFound
             work.receipts.delete(receipt_id)
+            self._alerts.check(work)
         # Only after the row is really gone, so a failed delete never loses the image.
         if receipt.file_path:
             self._storage.delete(receipt.file_path)
@@ -193,10 +199,14 @@ class ReceiptService:
             rate,
             rate_source,
         )
+        self._alerts.check(work)  # covers confirming, correcting and manual entry
 
     def _mark_failed(self, user_id: int, receipt_id: int) -> None:
         with self._uow(user_id) as work:
             work.receipts.set_status(receipt_id, ReceiptStatus.FAILED)
+            receipt = work.receipts.get(receipt_id)
+            if receipt is not None:
+                work.notifications.add(receipt_failed_notification(receipt_id, receipt.created_at.date()))
 
     def _extract(self, receipt_id: int, file_path: str, category_names: Sequence[str]) -> ExtractedReceipt | None:
         # Any failure here must end as status `failed`, never as a receipt stuck in `processing`.

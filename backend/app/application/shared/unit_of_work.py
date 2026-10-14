@@ -9,6 +9,7 @@ from typing import Protocol
 
 from app.application.budgets.interfaces import BudgetRepository
 from app.application.categories.interfaces import CategoryRepository
+from app.application.notifications.interfaces import NotificationRepository
 from app.application.receipts.interfaces import ReceiptRepository, VendorRepository
 
 
@@ -17,6 +18,7 @@ class UnitOfWork(Protocol):
     vendors: VendorRepository
     categories: CategoryRepository
     budgets: BudgetRepository
+    notifications: NotificationRepository
 
 
 class UnitOfWorkFactory(Protocol):
