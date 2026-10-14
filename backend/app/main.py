@@ -13,7 +13,10 @@ from app.api.app import create_app
 from app.api.container import Container
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
+from app.application.budgets.budget_status import BudgetStatusCalculator
 from app.application.categories.category_service import CategoryService
+from app.application.notifications.budget_alerts import BudgetAlerts
+from app.application.notifications.notification_service import NotificationService
 from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.receipts.receipt_service import ReceiptService
 from app.application.spending.spending_service import SpendingService
@@ -48,16 +51,20 @@ def build_container(
             else UnavailableReceiptExtractor()
         )
 
+    budget_status = BudgetStatusCalculator(settings.default_lbp_per_usd, today)
+    alerts = BudgetAlerts(budget_status)
+
     return Container(
         auth=AuthService(
             users=SqlUserRepository(engine),
             hasher=Argon2PasswordHasher(),
             tokens=JwtTokenService(settings.jwt_secret, settings.jwt_expire_minutes),
         ),
-        receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd),
+        receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd, alerts),
         categories=CategoryService(uow),
         spending=SpendingService(uow, settings.default_lbp_per_usd),
-        budgets=BudgetService(uow, settings.default_lbp_per_usd, today),
+        budgets=BudgetService(uow, budget_status, alerts),
+        notifications=NotificationService(uow),
     )
 
 
