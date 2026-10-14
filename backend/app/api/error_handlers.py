@@ -10,6 +10,7 @@ from app.domain.receipts.errors import (
     UnsupportedFileType,
 )
 from app.domain.shared.errors import DomainError
+from app.domain.shared.exchange_rate import InvalidExchangeRate
 from app.domain.users.errors import (
     EmailAlreadyRegistered,
     InvalidCredentials,
@@ -32,6 +33,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidEmail, 422),
     (WeakPassword, 422),
     (InvalidReceipt, 422),
+    (InvalidExchangeRate, 422),
 ]
 _DEFAULT_STATUS = status.HTTP_400_BAD_REQUEST
 

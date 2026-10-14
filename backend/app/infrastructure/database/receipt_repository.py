@@ -18,7 +18,8 @@ UNIQUE_VIOLATION = "23505"
 # A draft has no vendor row yet, so its vendor name comes from the stored extraction.
 _SELECT_RECEIPT = """
     SELECT r.id, r.status, COALESCE(v.name, r.raw_extraction ->> 'vendor_name') AS vendor_name,
-           r.receipt_date, r.currency, r.total, r.primary_category_id, r.file_path, r.created_at
+           r.receipt_date, r.currency, r.total, r.primary_category_id, r.file_path, r.created_at,
+           r.exchange_rate_used
     FROM receipts r
     LEFT JOIN vendors v ON v.id = r.vendor_id
 """
@@ -57,28 +58,53 @@ class SqlReceiptRepository:
         row = self._conn.execute(text(_SELECT_RECEIPT + " WHERE r.id = :id"), {"id": receipt_id}).one_or_none()
         if row is None:
             return None
-        line_rows = self._conn.execute(
+        return _to_receipt(row, self._lines_by_receipt([receipt_id]).get(receipt_id, ()))
+
+    def list_confirmed_between(self, start: date, end: date) -> list[Receipt]:
+        rows = self._conn.execute(
             text(
-                "SELECT id, description, line_total, quantity, unit_price, normalized_name, "
-                "size_amount, size_unit, category_id FROM receipt_items WHERE receipt_id = :id ORDER BY id"
+                _SELECT_RECEIPT
+                + " WHERE r.status = 'confirmed' AND r.receipt_date >= :start AND r.receipt_date < :end"
+                " ORDER BY r.receipt_date, r.id"
             ),
-            {"id": receipt_id},
+            {"start": start, "end": end},
         ).all()
-        lines = tuple(
-            ReceiptLine(
-                id=line.id,
-                description=line.description,
-                line_total=line.line_total,
-                quantity=line.quantity,
-                unit_price=line.unit_price,
-                normalized_name=line.normalized_name,
-                size_amount=line.size_amount,
-                size_unit=line.size_unit,
-                category_id=line.category_id,
+        lines = self._lines_by_receipt([row.id for row in rows])
+        return [_to_receipt(row, lines.get(row.id, ())) for row in rows]
+
+    def count_with_status(self, status: ReceiptStatus) -> int:
+        return self._conn.execute(
+            text("SELECT count(*) FROM receipts WHERE status = :status"), {"status": status.value}
+        ).scalar_one()
+
+    def _lines_by_receipt(self, receipt_ids: Sequence[int]) -> dict[int, tuple[ReceiptLine, ...]]:
+        """The lines of several receipts in one query, grouped by receipt."""
+        if not receipt_ids:
+            return {}
+        rows = self._conn.execute(
+            text(
+                "SELECT receipt_id, id, description, line_total, quantity, unit_price, normalized_name, "
+                "size_amount, size_unit, category_id FROM receipt_items "
+                "WHERE receipt_id = ANY(:ids) ORDER BY receipt_id, id"
+            ),
+            {"ids": list(receipt_ids)},
+        ).all()
+        grouped: dict[int, list[ReceiptLine]] = {}
+        for line in rows:
+            grouped.setdefault(line.receipt_id, []).append(
+                ReceiptLine(
+                    id=line.id,
+                    description=line.description,
+                    line_total=line.line_total,
+                    quantity=line.quantity,
+                    unit_price=line.unit_price,
+                    normalized_name=line.normalized_name,
+                    size_amount=line.size_amount,
+                    size_unit=line.size_unit,
+                    category_id=line.category_id,
+                )
             )
-            for line in line_rows
-        )
-        return _to_receipt(row, lines)
+        return {receipt_id: tuple(lines) for receipt_id, lines in grouped.items()}
 
     def list_all(self) -> list[Receipt]:
         rows = self._conn.execute(
@@ -124,13 +150,18 @@ class SqlReceiptRepository:
         total: Decimal,
         primary_category_id: int | None,
         lines: Sequence[ReceiptLine],
+        lbp_per_usd: Decimal,
+        rate_source: str | None,
     ) -> None:
         self._conn.execute(
             text(
                 """
                 UPDATE receipts
                 SET status = 'confirmed', vendor_id = :vendor_id, receipt_date = :receipt_date,
-                    currency = :currency, total = :total, primary_category_id = :category_id, updated_at = now()
+                    currency = :currency, total = :total, primary_category_id = :category_id,
+                    exchange_rate_used = :rate,
+                    exchange_rate_source = COALESCE(:rate_source, exchange_rate_source),
+                    updated_at = now()
                 WHERE id = :id
                 """
             ),
@@ -141,6 +172,8 @@ class SqlReceiptRepository:
                 "currency": currency.value,
                 "total": total,
                 "category_id": primary_category_id,
+                "rate": lbp_per_usd,
+                "rate_source": rate_source,
             },
         )
         self._replace_lines(receipt_id, lines)
@@ -211,4 +244,5 @@ def _to_receipt(row, lines: tuple[ReceiptLine, ...]) -> Receipt:
         file_path=row.file_path,
         created_at=row.created_at,
         lines=lines,
+        lbp_per_usd=row.exchange_rate_used,
     )

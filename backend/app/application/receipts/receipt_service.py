@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Sequence
 from dataclasses import replace
+from decimal import Decimal
 
 from app.application.receipts.dtos import ConfirmReceiptRequest, ReceiptView, UploadReceiptRequest, to_view
 from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
@@ -11,6 +12,7 @@ from app.domain.receipts.files import content_type_for, extension_for, file_hash
 from app.domain.receipts.normalization import normalize_product_name
 from app.domain.receipts.receipt import Receipt, validate_confirmation, validate_draft
 from app.domain.receipts.status import ReceiptStatus, can_transition, transition
+from app.domain.shared.exchange_rate import validate_rate
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +26,17 @@ class ReceiptService:
     together or not at all, and always as the given user.
     """
 
-    def __init__(self, uow: UnitOfWorkFactory, storage: FileStorage, extractor: ReceiptExtractor) -> None:
+    def __init__(
+        self,
+        uow: UnitOfWorkFactory,
+        storage: FileStorage,
+        extractor: ReceiptExtractor,
+        default_lbp_per_usd: Decimal,
+    ) -> None:
         self._uow = uow
         self._storage = storage
         self._extractor = extractor
+        self._default_lbp_per_usd = default_lbp_per_usd  # saved on receipts confirmed without a rate
 
     # --- upload and background reading ---
 
@@ -162,10 +171,27 @@ class ReceiptService:
             )
             for line in request.lines
         ]
+        # The rate is saved on the receipt so it is always converted at the rate of its own time.
+        if request.lbp_per_usd is not None:
+            rate, rate_source = request.lbp_per_usd, "user"
+        elif receipt.lbp_per_usd is not None:  # a correction keeps the rate saved the first time
+            rate, rate_source = receipt.lbp_per_usd, None
+        else:
+            rate, rate_source = self._default_lbp_per_usd, "default"
+        validate_rate(rate)
+
         vendor_name = (request.vendor_name or "").strip()
         vendor_id = work.vendors.find_or_create(vendor_name) if vendor_name else None
         work.receipts.save_confirmed(
-            receipt.id, vendor_id, request.receipt_date, currency, request.total, request.primary_category_id, lines
+            receipt.id,
+            vendor_id,
+            request.receipt_date,
+            currency,
+            request.total,
+            request.primary_category_id,
+            lines,
+            rate,
+            rate_source,
         )
 
     def _mark_failed(self, user_id: int, receipt_id: int) -> None:

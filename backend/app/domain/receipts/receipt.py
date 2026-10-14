@@ -39,6 +39,8 @@ class Receipt:
     file_path: str | None
     created_at: datetime
     lines: tuple[ReceiptLine, ...] = ()
+    # LBP per USD saved when the receipt was confirmed, so it is converted at the rate of its own time.
+    lbp_per_usd: Decimal | None = None
 
     @property
     def lines_total(self) -> Decimal:

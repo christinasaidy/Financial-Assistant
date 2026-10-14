@@ -16,7 +16,7 @@ SECRET = "t" * 40
 def client():
     auth = AuthService(InMemoryUserRepository(), FakeHasher(), JwtTokenService(SECRET))
     # Only the auth routes are exercised here, so the other services are stand-ins.
-    return TestClient(create_app(Container(auth=auth, receipts=Mock(), categories=Mock())))
+    return TestClient(create_app(Container(auth=auth, receipts=Mock(), categories=Mock(), spending=Mock())))
 
 
 def register(client, email="a@b.com", password="correct-horse"):

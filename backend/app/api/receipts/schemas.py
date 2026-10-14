@@ -27,6 +27,8 @@ class ConfirmBody(BaseModel):
     total: Decimal
     primary_category_id: int | None = None
     lines: list[LineIn] = []
+    # LBP per USD. Leave it out to keep the saved rate, or to use today's default on a new receipt.
+    lbp_per_usd: Decimal | None = None
 
     def to_request(self) -> ConfirmReceiptRequest:
         return ConfirmReceiptRequest(
@@ -36,6 +38,7 @@ class ConfirmBody(BaseModel):
             total=self.total,
             primary_category_id=self.primary_category_id,
             lines=[ReceiptLine(**line.model_dump()) for line in self.lines],
+            lbp_per_usd=self.lbp_per_usd,
         )
 
 
@@ -59,6 +62,7 @@ class ReceiptSummaryOut(BaseModel):
     currency: str | None
     total: Decimal | None
     primary_category_id: int | None
+    lbp_per_usd: Decimal | None
     has_file: bool
     created_at: datetime
 
@@ -92,6 +96,7 @@ def _summary_fields(receipt: Receipt) -> dict[str, object]:
         "currency": receipt.currency.value if receipt.currency else None,
         "total": receipt.total,
         "primary_category_id": receipt.primary_category_id,
+        "lbp_per_usd": receipt.lbp_per_usd,
         "has_file": receipt.file_path is not None,
         "created_at": receipt.created_at,
     }

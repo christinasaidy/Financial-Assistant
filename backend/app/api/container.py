@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from app.application.auth.auth_service import AuthService
 from app.application.categories.category_service import CategoryService
 from app.application.receipts.receipt_service import ReceiptService
+from app.application.spending.spending_service import SpendingService
 
 
 @dataclass(frozen=True)
@@ -12,3 +13,4 @@ class Container:
     auth: AuthService
     receipts: ReceiptService
     categories: CategoryService
+    spending: SpendingService
