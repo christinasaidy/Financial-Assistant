@@ -37,10 +37,18 @@ class ReceiptRepository(Protocol):
         total: Decimal,
         primary_category_id: int | None,
         lines: Sequence[ReceiptLine],
+        lbp_per_usd: Decimal,
+        rate_source: str | None,
     ) -> None:
-        """Replace the receipt's values and lines with the confirmed ones."""
+        """Replace the receipt's values and lines with the confirmed ones.
+        `rate_source` is "user" or "default"; None keeps the source already saved."""
 
     def delete(self, receipt_id: int) -> None: ...
+
+    def list_confirmed_between(self, start: date, end: date) -> list[Receipt]:
+        """Confirmed receipts dated from `start` up to but not including `end`, with their lines."""
+
+    def count_with_status(self, status: ReceiptStatus) -> int: ...
 
     def category_history(self, normalized_names: Sequence[str]) -> dict[str, list[int]]:
         """For each name, the categories the user confirmed for it before, oldest first."""

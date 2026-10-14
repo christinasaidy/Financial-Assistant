@@ -21,6 +21,8 @@ class ConfirmReceiptRequest:
     total: Decimal
     primary_category_id: int | None
     lines: Sequence[ReceiptLine] = ()
+    # LBP per USD for this receipt. None keeps the rate already saved, or uses today's default.
+    lbp_per_usd: Decimal | None = None
 
 
 @dataclass(frozen=True)

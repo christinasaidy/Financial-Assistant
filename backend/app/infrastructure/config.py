@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,3 +24,7 @@ class Settings(BaseSettings):
     # and the user enters the receipt by hand.
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-2.5-flash"
+
+    # Today's exchange rate, in LBP per USD. It is saved on each receipt when it is confirmed, so
+    # changing it later never changes old receipts. Update it when the rate moves.
+    default_lbp_per_usd: Decimal = Decimal("89500")
