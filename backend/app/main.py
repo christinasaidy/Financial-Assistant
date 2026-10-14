@@ -4,12 +4,15 @@ Run with:  uvicorn app.main:app --reload
 """
 
 import logging
+from collections.abc import Callable
+from datetime import date
 
 from fastapi import FastAPI
 
 from app.api.app import create_app
 from app.api.container import Container
 from app.application.auth.auth_service import AuthService
+from app.application.budgets.budget_service import BudgetService
 from app.application.categories.category_service import CategoryService
 from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.receipts.receipt_service import ReceiptService
@@ -29,8 +32,9 @@ def build_container(
     settings: Settings,
     extractor: ReceiptExtractor | None = None,
     storage: FileStorage | None = None,
+    today: Callable[[], date] = date.today,
 ) -> Container:
-    """Wire the real implementations. Tests pass their own extractor and storage."""
+    """Wire the real implementations. Tests pass their own extractor, storage and today's date."""
     if not settings.jwt_secret:
         raise RuntimeError("JWT_SECRET is not set (see backend/.env.example)")
 
@@ -53,6 +57,7 @@ def build_container(
         receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd),
         categories=CategoryService(uow),
         spending=SpendingService(uow, settings.default_lbp_per_usd),
+        budgets=BudgetService(uow, settings.default_lbp_per_usd, today),
     )
 
 

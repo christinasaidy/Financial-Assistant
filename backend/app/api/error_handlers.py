@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
+from app.domain.budgets.errors import BudgetNotFound, InvalidBudget
 from app.domain.receipts.errors import (
     DuplicateReceipt,
     FileTooLarge,
@@ -25,6 +26,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidCredentials, status.HTTP_401_UNAUTHORIZED),
     (InvalidToken, status.HTTP_401_UNAUTHORIZED),
     (ReceiptNotFound, status.HTTP_404_NOT_FOUND),
+    (BudgetNotFound, status.HTTP_404_NOT_FOUND),
     (EmailAlreadyRegistered, status.HTTP_409_CONFLICT),
     (DuplicateReceipt, status.HTTP_409_CONFLICT),
     (InvalidStateTransition, status.HTTP_409_CONFLICT),
@@ -34,6 +36,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (WeakPassword, 422),
     (InvalidReceipt, 422),
     (InvalidExchangeRate, 422),
+    (InvalidBudget, 422),
 ]
 _DEFAULT_STATUS = status.HTTP_400_BAD_REQUEST
 

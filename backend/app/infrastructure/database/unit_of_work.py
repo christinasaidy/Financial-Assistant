@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from sqlalchemy import Connection, Engine
 
+from app.infrastructure.database.budget_repository import SqlBudgetRepository
 from app.infrastructure.database.category_repository import SqlCategoryRepository
 from app.infrastructure.database.connection import user_scoped_connection
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
@@ -16,6 +17,7 @@ class SqlUnitOfWork:
         self.receipts = SqlReceiptRepository(conn)
         self.vendors = SqlVendorRepository(conn)
         self.categories = SqlCategoryRepository(conn)
+        self.budgets = SqlBudgetRepository(conn)
 
 
 class SqlUnitOfWorkFactory:
