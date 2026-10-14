@@ -3,6 +3,8 @@
 Run with:  uvicorn app.main:app --reload
 """
 
+import logging
+
 from fastapi import FastAPI
 
 from app.api.app import create_app
@@ -53,6 +55,8 @@ def build_container(
 
 
 def build_app(settings: Settings | None = None) -> FastAPI:
+    # Show the app's own log messages (e.g. why a receipt could not be read) next to uvicorn's.
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     return create_app(build_container(settings or Settings()))
 
 

@@ -58,7 +58,12 @@ def parse_extraction(data: object) -> ExtractedReceipt:
     try:
         receipt = _Receipt.model_validate(data)
     except ValidationError as exc:
-        raise ExtractionFailed("The model's output did not match the receipt schema") from exc
+        first = exc.errors()[0]
+        where = ".".join(str(part) for part in first["loc"]) or "(root)"
+        raise ExtractionFailed(
+            f"The model's output did not match the receipt schema: {where}: {first['msg']} "
+            f"({exc.error_count()} problem(s))"
+        ) from exc
     return ExtractedReceipt(
         vendor_name=(receipt.vendor_name or "").strip() or None,
         receipt_date=receipt.receipt_date,

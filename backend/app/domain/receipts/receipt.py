@@ -63,6 +63,17 @@ def validate_line(line: ReceiptLine) -> None:
             raise InvalidReceipt(f"Size unit must be one of: {', '.join(BASE_UNITS)}")
 
 
+def validate_draft(total: Decimal | None, lines: Sequence[ReceiptLine]) -> None:
+    """Check that values read by the vision model can be stored as a draft.
+
+    A draft may have gaps (no date, no total), but any value it does have must be sane.
+    """
+    if total is not None and not 0 <= total <= MAX_AMOUNT:
+        raise InvalidReceipt("Total is out of range")
+    for line in lines:
+        validate_line(line)
+
+
 def validate_confirmation(currency: str, total: Decimal, lines: Sequence[ReceiptLine]) -> Currency:
     """Check the values a user confirms. Returns the currency as a domain value."""
     try:

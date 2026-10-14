@@ -55,3 +55,8 @@ def test_minimal_output_is_accepted():
 def test_output_that_breaks_the_schema_is_rejected(bad):
     with pytest.raises(ExtractionFailed):
         parse_extraction(bad)
+
+
+def test_a_schema_error_says_which_field_was_wrong():
+    with pytest.raises(ExtractionFailed, match=r"lines\.0\.line_total"):
+        parse_extraction({"lines": [{"description": "x", "line_total": "abc"}]})

@@ -298,3 +298,46 @@ def test_categories_lists_the_shared_defaults(client, alice):
     categories = client.get("/categories", headers=alice).json()
     assert {"Groceries", "Dining"} <= {c["name"] for c in categories}
     assert all(c["is_shared"] for c in categories)
+
+
+def test_unstorable_model_output_fails_the_receipt_instead_of_leaving_it_stuck(client, alice, extractor):
+    # An amount far beyond what the database column can hold.
+    extractor.result = ExtractedReceipt(
+        total=Decimal("1e20"), lines=(ExtractedLine(description="x", line_total=Decimal(1)),)
+    )
+    receipt_id = upload(client, alice).json()["id"]
+    assert client.get(f"/receipts/{receipt_id}", headers=alice).json()["status"] == "failed"
+    # ...and the user can still enter it by hand.
+    assert client.post(f"/receipts/{receipt_id}/confirm", json=confirm_body(), headers=alice).status_code == 200
+
+
+def test_an_error_while_saving_the_draft_fails_the_receipt_and_is_logged(client, alice, monkeypatch, caplog):
+    def fail(self, *args):
+        raise RuntimeError("database went away")
+
+    monkeypatch.setattr(SqlReceiptRepository, "save_extraction", fail)
+    receipt_id = upload(client, alice).json()["id"]
+    monkeypatch.undo()
+
+    assert client.get(f"/receipts/{receipt_id}", headers=alice).json()["status"] == "failed"
+    assert "Could not save the draft" in caplog.text
+    assert "database went away" in caplog.text
+
+
+def test_each_failed_extraction_attempt_is_logged(client, alice, extractor, caplog):
+    extractor.result = None
+    upload(client, alice)
+    assert caplog.text.count("Extraction attempt") == 2
+    assert "The receipt could not be read" in caplog.text
+
+
+def test_a_token_for_a_deleted_account_is_refused(client, sign_in, engine):
+    headers, user_id = sign_in()
+    assert client.get("/receipts", headers=headers).status_code == 200
+
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id})
+
+    assert client.get("/receipts", headers=headers).status_code == 401
+    assert upload(client, headers).status_code == 401
+    assert client.get("/categories", headers=headers).status_code == 401
