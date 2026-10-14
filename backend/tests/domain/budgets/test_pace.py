@@ -11,14 +11,16 @@ def test_projects_linearly_to_month_end():
     assert not result.low_confidence
 
 
-def test_low_confidence_early_in_the_month():
-    result = project_month_end(Decimal("40"), days_elapsed=3, days_in_month=30)
-    assert result.low_confidence
+def test_low_confidence_for_the_first_seven_days_including_day_seven():
+    # Agreed with the user: days 1-7 are low-confidence, day 8 onwards is not.
+    assert project_month_end(Decimal("40"), days_elapsed=1, days_in_month=30).low_confidence
+    assert project_month_end(Decimal("40"), days_elapsed=7, days_in_month=30).low_confidence
+    assert not project_month_end(Decimal("40"), days_elapsed=8, days_in_month=30).low_confidence
 
 
-def test_confidence_threshold_is_configurable():
-    result = project_month_end(Decimal("40"), 3, 30, min_days_for_confidence=3)
-    assert not result.low_confidence
+def test_low_confidence_period_is_configurable():
+    assert project_month_end(Decimal("40"), 3, 30, low_confidence_days=3).low_confidence
+    assert not project_month_end(Decimal("40"), 4, 30, low_confidence_days=3).low_confidence
 
 
 @pytest.mark.parametrize(

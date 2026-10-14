@@ -80,16 +80,18 @@ def test_valid_line_with_size_is_accepted(as_user, alice):
         add_line(conn, receipt, alice, size_amount=250, size_unit="ml", quantity=3, unit_price=1.5, line_total=4.5)
 
 
-def test_one_budget_per_category_month_and_currency(as_user, alice):
+def test_one_budget_per_category_and_month_whatever_the_currency(as_user, alice):
+    # Migration 0002 (agreed 2026-10-14): a budget counts both currencies, so a second one in another
+    # currency for the same category and month is refused.
     insert = text(
         "INSERT INTO budgets (user_id, category_id, month, currency, limit_amount) "
-        "VALUES (:u, (SELECT id FROM categories WHERE name = 'Groceries'), '2026-10-01', :cur, 100)"
+        "VALUES (:u, (SELECT id FROM categories WHERE name = 'Groceries'), :month, :cur, 100)"
     )
     with as_user(alice) as conn:
-        conn.execute(insert, {"u": alice, "cur": "USD"})
-        conn.execute(insert, {"u": alice, "cur": "LBP"})  # another currency is fine
+        conn.execute(insert, {"u": alice, "month": "2026-10-01", "cur": "USD"})
+        conn.execute(insert, {"u": alice, "month": "2026-11-01", "cur": "USD"})  # another month is fine
     with pytest.raises(DBAPIError) as err, as_user(alice) as conn:
-        conn.execute(insert, {"u": alice, "cur": "USD"})
+        conn.execute(insert, {"u": alice, "month": "2026-10-01", "cur": "LBP"})
     assert sqlstate(err) == UNIQUE_VIOLATION
 
 

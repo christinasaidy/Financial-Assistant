@@ -7,6 +7,7 @@ together or not at all, and all of them run as the given user (row-level securit
 from contextlib import AbstractContextManager
 from typing import Protocol
 
+from app.application.budgets.interfaces import BudgetRepository
 from app.application.categories.interfaces import CategoryRepository
 from app.application.receipts.interfaces import ReceiptRepository, VendorRepository
 
@@ -15,6 +16,7 @@ class UnitOfWork(Protocol):
     receipts: ReceiptRepository
     vendors: VendorRepository
     categories: CategoryRepository
+    budgets: BudgetRepository
 
 
 class UnitOfWorkFactory(Protocol):
