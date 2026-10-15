@@ -50,6 +50,9 @@ class ReceiptRepository(Protocol):
 
     def count_with_status(self, status: ReceiptStatus) -> int: ...
 
+    def existing_ids(self, receipt_ids: Sequence[int]) -> set[int]:
+        """Which of these receipts still exist for this user."""
+
     def category_history(self, normalized_names: Sequence[str]) -> dict[str, list[int]]:
         """For each name, the categories the user confirmed for it before, oldest first."""
 

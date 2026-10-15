@@ -12,3 +12,19 @@ class QueryFailed(DomainError):
     """An allowed query that the database could not run (a wrong column name, a timeout, ...)."""
 
     default_message = "The query could not be run"
+
+
+class InvalidQuestion(DomainError):
+    default_message = "Type a question"
+
+
+class ConversationNotFound(DomainError):
+    default_message = "Conversation not found"
+
+
+class MessageNotFound(DomainError):
+    default_message = "Message not found"
+
+
+class CannotRateQuestion(DomainError):
+    default_message = "Only the assistant's answers can be rated"

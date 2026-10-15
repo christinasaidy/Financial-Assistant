@@ -74,7 +74,7 @@ def build_container(
         spending=SpendingService(uow, settings.default_lbp_per_usd),
         budgets=BudgetService(uow, budget_status, alerts),
         notifications=NotificationService(uow),
-        assistant=AssistantService(SqlGlotGuard(), query_runner),
+        assistant=AssistantService(uow, SqlGlotGuard(), query_runner),
     )
 
 
