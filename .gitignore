@@ -10,3 +10,5 @@ __pycache__/
 backend/uploads/
 
 agent_documentation/
+# Real receipt photos used for local testing; never commit them.
+backend/sample_receipts/

@@ -1,12 +1,16 @@
 import base64
 import json
-from collections.abc import Sequence
+import logging
+import time
+from collections.abc import Callable, Sequence
 
 import httpx
 
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.infrastructure.extraction.parsing import parse_extraction
+
+logger = logging.getLogger(__name__)
 
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
@@ -61,11 +65,33 @@ RESPONSE_SCHEMA = {
 }
 
 
+# Google answers 429 (rate limit) and 5xx (often "high demand") for a while and then recovers, so these are
+# worth waiting for. Anything else (a wrong request, a retired model) will not get better by trying again.
+RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+DEFAULT_WAITS = (2.0, 5.0)  # seconds before the 2nd and 3rd attempt with the same model
+
+
+class _Retryable(Exception):
+    """A temporary failure: worth waiting and trying the same model again."""
+
+
 class GeminiReceiptExtractor:
-    def __init__(self, api_key: str, model: str, client: httpx.Client | None = None) -> None:
+    """Reads a receipt with Gemini. Each model is tried up to three times when Google is overloaded or slow,
+    waiting a little longer each time; if it still fails, the next model in `models` is tried."""
+
+    def __init__(
+        self,
+        api_key: str,
+        models: str | Sequence[str],
+        client: httpx.Client | None = None,
+        waits: Sequence[float] = DEFAULT_WAITS,
+        sleep: Callable[[float], None] = time.sleep,
+    ) -> None:
         self._api_key = api_key
-        self._url = API_URL.format(model=model)
+        self._models = [models] if isinstance(models, str) else [model for model in models if model]
         self._client = client or httpx.Client(timeout=60)
+        self._waits = tuple(waits)
+        self._sleep = sleep
 
     def extract(self, content: bytes, content_type: str, category_names: Sequence[str]) -> ExtractedReceipt:
         body = {
@@ -83,16 +109,44 @@ class GeminiReceiptExtractor:
                 "responseSchema": RESPONSE_SCHEMA,
             },
         }
+        failures: list[str] = []
+        for model in self._models:
+            for attempt, wait in enumerate((0.0, *self._waits), start=1):
+                if wait:
+                    self._sleep(wait)
+                try:
+                    data = self._ask(model, body)
+                except _Retryable as exc:
+                    failures.append(f"{model} attempt {attempt}: {exc}")
+                    logger.warning("Gemini %s attempt %s failed, will retry: %s", model, attempt, exc)
+                    continue
+                except ExtractionFailed as exc:
+                    failures.append(f"{model}: {exc}")
+                    logger.warning("Gemini %s failed, trying the next model if any: %s", model, exc)
+                    break  # retrying the same model will not help
+                # Only a usable answer gets here. If it does not match the schema, another model would
+                # not be more trustworthy, so parse_extraction's ExtractionFailed is raised as is.
+                return parse_extraction(data)
+        raise ExtractionFailed("Gemini could not read the receipt: " + " | ".join(failures)[:1500])
+
+    def _ask(self, model: str, body: dict) -> object:
         try:
-            response = self._client.post(self._url, headers={"x-goog-api-key": self._api_key}, json=body)
-            response.raise_for_status()
+            response = self._client.post(
+                API_URL.format(model=model), headers={"x-goog-api-key": self._api_key}, json=body
+            )
+        except (httpx.TimeoutException, httpx.NetworkError) as exc:
+            raise _Retryable(type(exc).__name__) from exc
+        except httpx.HTTPError as exc:
+            raise ExtractionFailed(f"The vision model did not return a usable answer ({type(exc).__name__})") from exc
+        if response.status_code >= 400:
+            # The body says why (overloaded, quota, retired model). It never contains the API key.
+            message = f"HTTP {response.status_code}: {response.text[:500]}"
+            if response.status_code in RETRYABLE_STATUS:
+                raise _Retryable(message)
+            raise ExtractionFailed(f"Gemini returned {message}")
+        try:
             answer = response.json()["candidates"][0]["content"]["parts"][0]["text"]
             # parse_float=str keeps money exact: the text goes straight to Decimal, never through float.
-            data = json.loads(answer, parse_float=str)
-        except httpx.HTTPStatusError as exc:
-            # The response body says why (bad model name, quota, invalid request). It never contains the API key.
-            detail = exc.response.text[:500]
-            raise ExtractionFailed(f"Gemini returned HTTP {exc.response.status_code}: {detail}") from exc
-        except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as exc:
+            return json.loads(answer, parse_float=str)
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise ExtractionFailed(f"The vision model did not return a usable answer ({type(exc).__name__})") from exc
-        return parse_extraction(data)
