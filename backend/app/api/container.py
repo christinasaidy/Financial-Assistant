@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from app.application.assistant.assistant_service import AssistantService
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.categories.category_service import CategoryService
@@ -18,3 +19,4 @@ class Container:
     spending: SpendingService
     budgets: BudgetService
     notifications: NotificationService
+    assistant: AssistantService
