@@ -48,3 +48,10 @@ ALTER DEFAULT PRIVILEGES FOR ROLE expense_owner IN SCHEMA public
     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
 ALTER DEFAULT PRIVILEGES FOR ROLE expense_owner IN SCHEMA public
     GRANT USAGE, SELECT ON SEQUENCES TO app_user;
+
+-- Row-level security reads the current user from `app.user_id`. Only the owner and the app role may
+-- call set_config(), so the assistant's generated SQL (run as ai_readonly) cannot switch to another
+-- user's id. ai_readonly sets the user with SET LOCAL, which cannot appear inside a SELECT.
+-- (Also available on its own as db/restrict_set_config.sql.)
+REVOKE EXECUTE ON FUNCTION pg_catalog.set_config(text, text, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION pg_catalog.set_config(text, text, boolean) TO expense_owner, app_user;

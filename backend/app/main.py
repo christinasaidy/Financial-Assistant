@@ -11,6 +11,7 @@ from fastapi import FastAPI
 
 from app.api.app import create_app
 from app.api.container import Container
+from app.application.assistant.assistant_service import AssistantService
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.budgets.budget_status import BudgetStatusCalculator
@@ -22,12 +23,14 @@ from app.application.receipts.receipt_service import ReceiptService
 from app.application.spending.spending_service import SpendingService
 from app.infrastructure.config import Settings
 from app.infrastructure.database.connection import create_db_engine
+from app.infrastructure.database.readonly_query_runner import SqlReadOnlyQueryRunner, UnavailableQueryRunner
 from app.infrastructure.database.unit_of_work import SqlUnitOfWorkFactory
 from app.infrastructure.database.user_repository import SqlUserRepository
 from app.infrastructure.extraction.gemini_receipt_extractor import GeminiReceiptExtractor
 from app.infrastructure.extraction.unavailable_receipt_extractor import UnavailableReceiptExtractor
 from app.infrastructure.security.password_hasher import Argon2PasswordHasher
 from app.infrastructure.security.token_service import JwtTokenService
+from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 
 
@@ -52,6 +55,12 @@ def build_container(
         )
 
     budget_status = BudgetStatusCalculator(settings.default_lbp_per_usd, today)
+    # Generated SQL runs through its own read-only role (ai_readonly), never the app's connection.
+    query_runner = (
+        SqlReadOnlyQueryRunner(create_db_engine(settings.readonly_database_url))
+        if settings.readonly_database_url
+        else UnavailableQueryRunner()
+    )
     alerts = BudgetAlerts(budget_status)
 
     return Container(
@@ -65,6 +74,7 @@ def build_container(
         spending=SpendingService(uow, settings.default_lbp_per_usd),
         budgets=BudgetService(uow, budget_status, alerts),
         notifications=NotificationService(uow),
+        assistant=AssistantService(SqlGlotGuard(), query_runner),
     )
 
 
