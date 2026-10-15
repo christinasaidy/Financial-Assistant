@@ -77,6 +77,14 @@ class SqlReceiptRepository:
             text("SELECT count(*) FROM receipts WHERE status = :status"), {"status": status.value}
         ).scalar_one()
 
+    def existing_ids(self, receipt_ids: Sequence[int]) -> set[int]:
+        if not receipt_ids:
+            return set()
+        rows = self._conn.execute(
+            text("SELECT id FROM receipts WHERE id = ANY(:ids)"), {"ids": list(receipt_ids)}
+        ).scalars()
+        return set(rows)
+
     def _lines_by_receipt(self, receipt_ids: Sequence[int]) -> dict[int, tuple[ReceiptLine, ...]]:
         """The lines of several receipts in one query, grouped by receipt."""
         if not receipt_ids:

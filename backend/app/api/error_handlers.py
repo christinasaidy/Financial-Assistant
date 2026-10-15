@@ -1,6 +1,14 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
+from app.domain.assistant.errors import (
+    CannotRateQuestion,
+    ConversationNotFound,
+    InvalidQuestion,
+    MessageNotFound,
+    QueryFailed,
+    UnsafeQuery,
+)
 from app.domain.budgets.errors import BudgetNotFound, InvalidBudget
 from app.domain.notifications.errors import NotificationNotFound
 from app.domain.receipts.errors import (
@@ -29,6 +37,8 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (ReceiptNotFound, status.HTTP_404_NOT_FOUND),
     (BudgetNotFound, status.HTTP_404_NOT_FOUND),
     (NotificationNotFound, status.HTTP_404_NOT_FOUND),
+    (ConversationNotFound, status.HTTP_404_NOT_FOUND),
+    (MessageNotFound, status.HTTP_404_NOT_FOUND),
     (EmailAlreadyRegistered, status.HTTP_409_CONFLICT),
     (DuplicateReceipt, status.HTTP_409_CONFLICT),
     (InvalidStateTransition, status.HTTP_409_CONFLICT),
@@ -39,6 +49,10 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidReceipt, 422),
     (InvalidExchangeRate, 422),
     (InvalidBudget, 422),
+    (InvalidQuestion, 422),
+    (CannotRateQuestion, 422),
+    (UnsafeQuery, 422),
+    (QueryFailed, 422),
 ]
 _DEFAULT_STATUS = status.HTTP_400_BAD_REQUEST
 
