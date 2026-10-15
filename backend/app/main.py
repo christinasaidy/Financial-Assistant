@@ -49,7 +49,7 @@ def build_container(
     storage = storage or LocalFileStorage(settings.upload_dir)
     if extractor is None:
         extractor = (
-            GeminiReceiptExtractor(settings.gemini_api_key, settings.gemini_model)
+            GeminiReceiptExtractor(settings.gemini_api_key, [settings.gemini_model, settings.gemini_fallback_model])
             if settings.gemini_api_key
             else UnavailableReceiptExtractor()
         )

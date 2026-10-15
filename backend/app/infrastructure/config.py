@@ -23,7 +23,11 @@ class Settings(BaseSettings):
     # Vision model for reading receipts. Without a key every upload ends as `failed`
     # and the user enters the receipt by hand.
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    # gemini-2.5-flash is closed to new API keys (checked 2026-10-15). 3.5-flash-lite read the sample receipts
+    # correctly and answered reliably while the larger models were often overloaded.
+    gemini_model: str = "gemini-3.5-flash-lite"
+    # Optional second model, tried if the first keeps failing (e.g. "gemini-3.5-flash").
+    gemini_fallback_model: str | None = None
 
     # Today's exchange rate, in LBP per USD. It is saved on each receipt when it is confirmed, so
     # changing it later never changes old receipts. Update it when the rate moves.
