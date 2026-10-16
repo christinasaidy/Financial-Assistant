@@ -9,7 +9,7 @@ from app.application.receipts.interfaces import FileStorage, ReceiptExtractor
 from app.application.shared.unit_of_work import UnitOfWork, UnitOfWorkFactory
 from app.domain.notifications.notification import receipt_failed_notification, receipt_ready_notification
 from app.domain.receipts.errors import DuplicateReceipt, ExtractionFailed, InvalidReceipt, ReceiptNotFound
-from app.domain.receipts.extraction import ExtractedReceipt, to_draft_lines
+from app.domain.receipts.extraction import ExtractedReceipt, rounded_for_storage, to_draft_lines
 from app.domain.receipts.files import content_type_for, extension_for, file_hash, validate_size
 from app.domain.receipts.normalization import normalize_product_name
 from app.domain.receipts.receipt import Receipt, validate_confirmation, validate_draft
@@ -86,6 +86,7 @@ class ReceiptService:
         # From here the receipt is `processing`. Whatever goes wrong, it must end as `failed`
         # so the user can still enter it by hand, never stay stuck.
         try:
+            extracted = rounded_for_storage(extracted)
             with self._uow(user_id) as work:
                 names = [name for line in extracted.lines if (name := normalize_product_name(line.normalized_name))]
                 lines = to_draft_lines(

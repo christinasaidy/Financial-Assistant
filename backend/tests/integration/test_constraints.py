@@ -30,7 +30,17 @@ def test_confirmed_receipt_needs_date_currency_and_total(as_user, alice):
 
 def test_confirmed_receipt_with_all_fields_is_accepted(as_user, alice):
     with as_user(alice) as conn:
+        add_receipt(
+            conn, alice, status="confirmed", receipt_date="2026-10-01", currency="LBP", total=450000,
+            exchange_rate_used=89500,
+        )  # fmt: skip
+
+
+def test_a_confirmed_receipt_must_have_an_exchange_rate(as_user, alice):
+    # Migration 0005: the assistant's USD views divide by the rate, so it can never be missing.
+    with pytest.raises(DBAPIError) as err, as_user(alice) as conn:
         add_receipt(conn, alice, status="confirmed", receipt_date="2026-10-01", currency="LBP", total=450000)
+    assert sqlstate(err) == CHECK_VIOLATION
 
 
 def test_duplicate_file_hash_is_rejected_per_user_but_allowed_across_users(as_user, alice, bob):

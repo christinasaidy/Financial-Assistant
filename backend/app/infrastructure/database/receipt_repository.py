@@ -15,9 +15,12 @@ from app.domain.shared.currency import Currency
 
 UNIQUE_VIOLATION = "23505"
 
-# A draft has no vendor row yet, so its vendor name comes from the stored extraction.
+# A draft has no vendor row yet, so its vendor name comes from the stored extraction. Once confirmed, the
+# reviewed vendor is final: a vendor the user cleared stays empty (2026-10-15 code review).
 _SELECT_RECEIPT = """
-    SELECT r.id, r.status, COALESCE(v.name, r.raw_extraction ->> 'vendor_name') AS vendor_name,
+    SELECT r.id, r.status,
+           CASE WHEN r.status = 'confirmed' THEN v.name
+                ELSE COALESCE(v.name, r.raw_extraction ->> 'vendor_name') END AS vendor_name,
            r.receipt_date, r.currency, r.total, r.primary_category_id, r.file_path, r.created_at,
            r.exchange_rate_used
     FROM receipts r

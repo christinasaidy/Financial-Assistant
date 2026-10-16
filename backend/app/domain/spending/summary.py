@@ -21,6 +21,7 @@ from app.domain.receipts.categorization import CategoryId, effective_category
 from app.domain.receipts.receipt import Receipt
 from app.domain.shared.currency import Currency
 from app.domain.shared.exchange_rate import convert
+from app.domain.spending.errors import InvalidMonth
 
 CENT = Decimal("0.01")
 
@@ -34,8 +35,15 @@ class Breakdown:
     receipt_count: int
 
 
+# Years the app accepts. 0000-01 is not a real date and 9999-12 has no "next month" to end at,
+# so both used to crash instead of being refused (2026-10-15 code review).
+MIN_YEAR, MAX_YEAR = 1900, 9998
+
+
 def month_range(year: int, month: int) -> tuple[date, date]:
     """The first day of the month and the first day of the next one (end is exclusive)."""
+    if not (MIN_YEAR <= year <= MAX_YEAR and 1 <= month <= 12):
+        raise InvalidMonth
     start = date(year, month, 1)
     end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
     return start, end

@@ -1,13 +1,14 @@
 """What the vision model returns for a receipt, and how it becomes draft lines for review."""
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from decimal import Decimal
 
 from app.domain.receipts.categorization import suggest_category
 from app.domain.receipts.normalization import normalize_product_name, normalize_size
 from app.domain.receipts.receipt import ReceiptLine
+from app.domain.shared.decimals import MONEY_PLACES, QUANTITY_PLACES, rounded
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,25 @@ class ExtractedReceipt:
     currency: str | None = None
     total: Decimal | None = None
     lines: tuple[ExtractedLine, ...] = ()
+
+
+def rounded_for_storage(extracted: ExtractedReceipt) -> ExtractedReceipt:
+    """Round what the model read to the precision the database stores (money 2 places, quantities and
+    sizes 3). Unlike typed input, this is rounded rather than refused, because the user reviews it next."""
+    return replace(
+        extracted,
+        total=rounded(extracted.total, MONEY_PLACES) if extracted.total is not None else None,
+        lines=tuple(
+            replace(
+                line,
+                line_total=rounded(line.line_total, MONEY_PLACES),
+                quantity=rounded(line.quantity, QUANTITY_PLACES),
+                unit_price=rounded(line.unit_price, MONEY_PLACES) if line.unit_price is not None else None,
+                size_amount=rounded(line.size_amount, QUANTITY_PLACES) if line.size_amount is not None else None,
+            )
+            for line in extracted.lines
+        ),
+    )
 
 
 def to_draft_lines(

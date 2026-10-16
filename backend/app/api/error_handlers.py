@@ -21,6 +21,7 @@ from app.domain.receipts.errors import (
 )
 from app.domain.shared.errors import DomainError
 from app.domain.shared.exchange_rate import InvalidExchangeRate
+from app.domain.spending.errors import InvalidMonth
 from app.domain.users.errors import (
     EmailAlreadyRegistered,
     InvalidCredentials,
@@ -49,6 +50,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidReceipt, 422),
     (InvalidExchangeRate, 422),
     (InvalidBudget, 422),
+    (InvalidMonth, 422),
     (InvalidQuestion, 422),
     (CannotRateQuestion, 422),
     (UnsafeQuery, 422),
