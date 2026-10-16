@@ -6,7 +6,13 @@ from datetime import date
 from decimal import Decimal
 
 from app.domain.receipts.categorization import suggest_category
-from app.domain.receipts.normalization import normalize_product_name, normalize_size
+from app.domain.receipts.normalization import (
+    clean_extracted_name,
+    match_known_name,
+    name_key,
+    normalize_brand,
+    normalize_size,
+)
 from app.domain.receipts.receipt import ReceiptLine
 from app.domain.shared.decimals import MONEY_PLACES, QUANTITY_PLACES, rounded
 
@@ -21,6 +27,7 @@ class ExtractedLine:
     size_amount: Decimal | None = None
     size_unit: str | None = None
     category: str | None = None  # a category name suggested by the model
+    brand: str | None = None
 
 
 @dataclass(frozen=True)
@@ -67,17 +74,20 @@ def to_draft_lines(
     extracted: ExtractedReceipt,
     category_history: Mapping[str, Sequence[int]],
     category_ids_by_name: Mapping[str, int],
+    known_names: Sequence[str] = (),
 ) -> tuple[ReceiptLine, ...]:
     """Normalise extracted lines and choose each one's suggested category.
 
-    Category memory comes first: the category the user most often confirmed for the same
-    normalized name. Only when there is no history does the model's own suggestion apply.
+    The name loses size words, and if it has the same words as one of the user's `known_names` (most recently
+    used first) it takes that spelling, so the same product keeps one name. `category_history` is keyed by
+    `name_key`: category memory is the category the user most often confirmed for the same words, in any order.
+    Only when there is no history does the model's own suggestion apply.
     """
     lines = []
     for line in extracted.lines:
-        name = normalize_product_name(line.normalized_name)
+        name = match_known_name(clean_extracted_name(line.normalized_name), known_names)
         size_amount, size_unit = _stored_size(line.size_amount, line.size_unit)
-        category_id = suggest_category(category_history.get(name, ())) if name else None
+        category_id = suggest_category(category_history.get(name_key(name), ())) if name else None
         if category_id is None and line.category:
             category_id = category_ids_by_name.get(line.category.strip().lower())
         lines.append(
@@ -87,6 +97,7 @@ def to_draft_lines(
                 quantity=line.quantity,
                 unit_price=line.unit_price,
                 normalized_name=name,
+                brand=normalize_brand(line.brand),
                 size_amount=size_amount,
                 size_unit=size_unit,
                 category_id=category_id,

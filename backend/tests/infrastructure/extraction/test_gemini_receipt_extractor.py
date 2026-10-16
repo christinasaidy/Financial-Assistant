@@ -158,3 +158,35 @@ def test_an_empty_fallback_setting_is_ignored():
     handler, asked = replies(gemini_reply(GOOD))
     extractor_answering(handler, models=["only", None, ""]).extract(b"x", "image/png", [])
     assert asked == ["only"]
+
+
+# --- feature/better-item-names: the user's names are offered for reuse, and a brand is asked for ---
+
+
+def sent_prompt_and_schema(known_names):
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content)
+        return gemini_reply('{"lines": [{"description": "BARILLA SPAGHETTI", "line_total": 3.18, "brand": "barilla"}]}')
+
+    receipt = extractor_answering(handler).extract(b"img", "image/png", ["Groceries"], known_names)
+    _, text_part = seen["body"]["contents"][0]["parts"]
+    return text_part["text"], seen["body"]["generationConfig"]["responseSchema"], receipt
+
+
+def test_the_users_names_are_listed_in_the_prompt_in_order():
+    prompt, _, _ = sent_prompt_and_schema(["milk", "olive oil"])
+    assert 'most recently used first: "milk", "olive oil"' in prompt
+
+
+def test_a_new_user_has_no_names_to_reuse():
+    prompt, _, _ = sent_prompt_and_schema([])
+    assert "most recently used first: (none yet)" in prompt
+
+
+def test_the_brand_is_asked_for_and_read_back():
+    prompt, schema, receipt = sent_prompt_and_schema([])
+    assert "brand" in schema["properties"]["lines"]["items"]["properties"]
+    assert "never guess" in prompt
+    assert receipt.lines[0].brand == "barilla"

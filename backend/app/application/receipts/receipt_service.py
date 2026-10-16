@@ -12,7 +12,13 @@ from app.domain.notifications.notification import receipt_failed_notification, r
 from app.domain.receipts.errors import DuplicateReceipt, ExtractionFailed, InvalidReceipt, ReceiptNotFound
 from app.domain.receipts.extraction import ExtractedReceipt, rounded_for_storage, to_draft_lines
 from app.domain.receipts.files import content_type_for, extension_for, file_hash, validate_size
-from app.domain.receipts.normalization import normalize_product_name
+from app.domain.receipts.normalization import (
+    clean_extracted_name,
+    name_key,
+    names_for_prompt,
+    normalize_brand,
+    normalize_product_name,
+)
 from app.domain.receipts.receipt import Receipt, validate_confirmation, validate_draft
 from app.domain.receipts.status import ReceiptStatus, can_transition, transition
 from app.domain.shared.exchange_rate import validate_rate
@@ -24,6 +30,9 @@ MAX_EXTRACTION_ATTEMPTS = 2  # one retry, then the receipt is marked failed and 
 ORPHAN_MIN_AGE = timedelta(hours=24)
 # The statuses a receipt may be claimed for reading from, as the state machine allows (only `uploaded` today).
 _CLAIMABLE = tuple(status for status in ReceiptStatus if can_transition(status, ReceiptStatus.PROCESSING))
+# How many of the user's item names the model is given to reuse (decision approved 2026-10-16; a judgment that keeps
+# the prompt short, not measured). Twice as many are read, because names longer than 3 words are skipped.
+KNOWN_NAMES_LIMIT = 200
 
 
 class ReceiptService:
@@ -84,9 +93,12 @@ class ReceiptService:
             if claim is None:
                 return
             categories = work.categories.list_all()
+            known_names = names_for_prompt(work.receipts.known_item_names(2 * KNOWN_NAMES_LIMIT), KNOWN_NAMES_LIMIT)
 
         # The model call is slow, so it runs outside any database transaction.
-        extracted = self._extract(receipt_id, claim.file_path, [category.name for category in categories])
+        extracted = self._extract(
+            receipt_id, claim.file_path, [category.name for category in categories], known_names
+        )
         if extracted is None:
             self._mark_failed(user_id, receipt_id, claim.attempt)
             return
@@ -96,11 +108,13 @@ class ReceiptService:
         try:
             extracted = rounded_for_storage(extracted)
             with self._uow(user_id) as work:
-                names = [name for line in extracted.lines if (name := normalize_product_name(line.normalized_name))]
+                names = [clean_extracted_name(line.normalized_name) for line in extracted.lines]
+                keys = [name_key(name) for name in names if name]
                 lines = to_draft_lines(
                     extracted,
-                    category_history=work.receipts.category_history(names),
+                    category_history=work.receipts.category_history(keys),
                     category_ids_by_name={category.name.lower(): category.id for category in categories},
+                    known_names=known_names,
                 )
                 validate_draft(extracted.total, lines)  # e.g. an absurd amount the model invented
                 vendor_id = work.vendors.find_by_name(extracted.vendor_name) if extracted.vendor_name else None
@@ -214,7 +228,8 @@ class ReceiptService:
             replace(
                 line,
                 description=line.description.strip(),
-                normalized_name=normalize_product_name(line.normalized_name),
+                normalized_name=normalize_product_name(line.normalized_name),  # kept as typed, only tidied
+                brand=normalize_brand(line.brand),
             )
             for line in request.lines
         ]
@@ -258,7 +273,9 @@ class ReceiptService:
             assert receipt is not None
             work.notifications.add(receipt_failed_notification(receipt_id, receipt.created_at.date()))
 
-    def _extract(self, receipt_id: int, file_path: str, category_names: Sequence[str]) -> ExtractedReceipt | None:
+    def _extract(
+        self, receipt_id: int, file_path: str, category_names: Sequence[str], known_names: Sequence[str]
+    ) -> ExtractedReceipt | None:
         # Any failure here must end as status `failed`, never as a receipt stuck in `processing`.
         try:
             content = self._storage.read(file_path)
@@ -268,7 +285,7 @@ class ReceiptService:
             return None
         for attempt in range(1, MAX_EXTRACTION_ATTEMPTS + 1):
             try:
-                return self._extractor.extract(content, content_type, category_names)
+                return self._extractor.extract(content, content_type, category_names, known_names)
             except Exception as exc:
                 # An ExtractionFailed already says what went wrong; anything else is a bug worth a traceback.
                 logger.warning(

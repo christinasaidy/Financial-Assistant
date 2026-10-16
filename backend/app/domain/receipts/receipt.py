@@ -25,6 +25,7 @@ class ReceiptLine:
     size_amount: Decimal | None = None
     size_unit: str | None = None
     category_id: int | None = None
+    brand: str | None = None  # the maker as printed, lower case Latin letters ("barilla"); optional
     id: int | None = None
 
 
@@ -59,6 +60,7 @@ def validate_text(value: str | None, what: str) -> None:
 def validate_line(line: ReceiptLine) -> None:
     validate_text(line.description, "Description")
     validate_text(line.normalized_name, "Item name")
+    validate_text(line.brand, "Brand")
     if not line.description.strip():
         raise InvalidReceipt("Every line needs a description")
     _check_places(line.quantity, QUANTITY_PLACES, "Quantity")

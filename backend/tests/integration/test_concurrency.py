@@ -239,7 +239,7 @@ class ScriptedExtractor:
         self.while_reading = while_reading or (lambda: None)
         self.calls = 0
 
-    def extract(self, content, content_type, category_names):
+    def extract(self, content, content_type, category_names, known_names=()):
         self.calls += 1
         self.while_reading()
         if isinstance(self.result, Exception):

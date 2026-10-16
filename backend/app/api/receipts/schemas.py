@@ -18,6 +18,7 @@ class LineIn(BaseModel):
     size_amount: Decimal | None = None
     size_unit: str | None = None
     category_id: int | None = None
+    brand: str | None = None
 
 
 class ConfirmBody(BaseModel):
@@ -52,6 +53,7 @@ class LineOut(BaseModel):
     size_amount: Decimal | None
     size_unit: str | None
     category_id: int | None
+    brand: str | None
 
 
 class ReceiptSummaryOut(BaseModel):

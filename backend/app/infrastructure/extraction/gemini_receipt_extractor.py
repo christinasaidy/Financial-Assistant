@@ -25,15 +25,27 @@ Rules:
 - total: the final amount paid, as a plain number.
 - lines: one entry per purchased product. Do not include tax, discount, subtotal or payment lines.
   - description: the text exactly as printed on the receipt, in its original language.
-  - normalized_name: a short lowercase product name in Latin letters (e.g. "laban", "olive oil").
-    Leave it null if the line is unclear.
+  - normalized_name: what the product IS, as a generic English name of 1 to 3 lowercase words, always the
+    same for the same product. Never include the brand, the size or count, small/large, the fat level or the
+    flavour: "PRESIDENT FULL CREAM MILK 2L" -> "milk", "Strawberry Crepe" -> "crepe", "Large Water" -> "water",
+    "Green Tea" -> "tea". Keep the product type, not the broad family: "penne", not "pasta"; "latte", not
+    "coffee". Translate Arabic and French names into English: "خبز عربي" -> "bread", "FROMAGE RAPE" -> "cheese".
+    Lebanese foods with no English word use exactly these spellings: "manakish" (whatever the topping),
+    "labneh", "laban", "zaatar", "halloumi", "kaak".
+    If the product is the same as one of the user's existing item names listed below, return that name
+    exactly as listed. Leave it null if the line is unclear.
+  - brand: the maker's brand as printed, in lowercase Latin letters (transliterate Arabic), e.g. "barilla",
+    "almarai". A shop's own brand counts. Null when no brand is printed; never guess one. Ingredients are not
+    brands: "Nutella Waffle" has no brand.
   - size_amount and size_unit: the size of ONE unit when it is printed (e.g. 250 and "ml", 1 and "l",
     2 and "kg", 6 and "pcs"). Leave both null when no size is printed. Never guess a size.
   - quantity: how many units were bought (1 if not shown).
   - unit_price: price of one unit if printed, otherwise null.
   - line_total: the amount charged for the line.
   - category: the best match from this list, or null if none fits: {categories}.
-- Use null for anything you cannot read. Never invent values."""
+- Use null for anything you cannot read. Never invent values.
+
+The user's existing item names, most recently used first: {known_names}"""
 
 _NULLABLE_STRING = {"type": "STRING", "nullable": True}
 _NULLABLE_NUMBER = {"type": "NUMBER", "nullable": True}
@@ -57,6 +69,7 @@ RESPONSE_SCHEMA = {
                     "unit_price": _NULLABLE_NUMBER,
                     "line_total": {"type": "NUMBER"},
                     "category": _NULLABLE_STRING,
+                    "brand": _NULLABLE_STRING,
                 },
                 "required": ["description", "line_total"],
             },
@@ -94,13 +107,19 @@ class GeminiReceiptExtractor:
         self._waits = tuple(waits)
         self._sleep = sleep
 
-    def extract(self, content: bytes, content_type: str, category_names: Sequence[str]) -> ExtractedReceipt:
+    def extract(
+        self, content: bytes, content_type: str, category_names: Sequence[str], known_names: Sequence[str] = ()
+    ) -> ExtractedReceipt:
+        prompt = PROMPT.format(
+            categories=", ".join(category_names) or "(none)",
+            known_names=", ".join(f'"{name}"' for name in known_names) or "(none yet)",
+        )
         body = {
             "contents": [
                 {
                     "parts": [
                         {"inline_data": {"mime_type": content_type, "data": base64.b64encode(content).decode()}},
-                        {"text": PROMPT.format(categories=", ".join(category_names) or "(none)")},
+                        {"text": prompt},
                     ]
                 }
             ],

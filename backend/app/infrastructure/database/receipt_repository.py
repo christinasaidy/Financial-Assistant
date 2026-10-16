@@ -27,8 +27,16 @@ _RECEIPT_COLUMNS = """
 _LINE_COLUMNS = """
     li.id AS line_id, li.description AS line_description, li.line_total, li.quantity AS line_quantity,
     li.unit_price AS line_unit_price, li.normalized_name AS line_normalized_name,
-    li.size_amount AS line_size_amount, li.size_unit AS line_size_unit, li.category_id AS line_category_id
+    li.size_amount AS line_size_amount, li.size_unit AS line_size_unit, li.category_id AS line_category_id,
+    li.brand AS line_brand
 """
+# A line's name key in SQL, the same as `normalization.name_key`: its words sorted, joined by one space. Stored
+# names are already lower case with single spaces. COLLATE "C" sorts by code point, as Python's sorted() does
+# (the dev database's own English collation would put "éclair" before "fig"; Python puts it after).
+_NAME_KEY = (
+    "array_to_string(ARRAY(SELECT word FROM unnest(string_to_array(ri.normalized_name, ' ')) AS word "
+    "ORDER BY word COLLATE \"C\"), ' ')"
+)
 _SELECT_RECEIPT = f"SELECT {_RECEIPT_COLUMNS} FROM receipts r LEFT JOIN vendors v ON v.id = r.vendor_id"
 # Each receipt once per line, or once with NULL line columns if it has no lines. See `_with_lines`.
 _SELECT_RECEIPT_WITH_LINES = (
@@ -112,6 +120,7 @@ class SqlReceiptRepository:
                         size_amount=row.line_size_amount,
                         size_unit=row.line_size_unit,
                         category_id=row.line_category_id,
+                        brand=row.line_brand,
                     )
                 )
         return [_to_receipt(row, tuple(lines)) for row, lines in receipts.values()]
@@ -224,26 +233,44 @@ class SqlReceiptRepository:
     def file_paths(self) -> set[str]:
         return set(self._conn.execute(text("SELECT file_path FROM receipts WHERE file_path IS NOT NULL")).scalars())
 
-    def category_history(self, normalized_names: Sequence[str]) -> dict[str, list[int]]:
-        if not normalized_names:
+    def category_history(self, name_keys: Sequence[str]) -> dict[str, list[int]]:
+        if not name_keys:
             return {}
         rows = self._conn.execute(
             text(
-                """
-                SELECT ri.normalized_name, ri.category_id
+                f"""
+                SELECT {_NAME_KEY} AS key, ri.category_id
                 FROM receipt_items ri
                 JOIN receipts r ON r.id = ri.receipt_id
-                WHERE r.status = 'confirmed' AND ri.category_id IS NOT NULL
-                  AND ri.normalized_name = ANY(:names)
+                WHERE r.status = 'confirmed' AND ri.category_id IS NOT NULL AND ri.normalized_name IS NOT NULL
+                  AND {_NAME_KEY} = ANY(:keys)
                 ORDER BY ri.id
                 """
             ),
-            {"names": list(normalized_names)},
+            {"keys": list(name_keys)},
         ).all()
         history: dict[str, list[int]] = {}
         for row in rows:
-            history.setdefault(row.normalized_name, []).append(row.category_id)
+            history.setdefault(row.key, []).append(row.category_id)
         return history
+
+    def known_item_names(self, limit: int) -> list[str]:
+        return list(
+            self._conn.execute(
+                text(
+                    """
+                    SELECT ri.normalized_name
+                    FROM receipt_items ri
+                    JOIN receipts r ON r.id = ri.receipt_id
+                    WHERE r.status = 'confirmed' AND ri.normalized_name IS NOT NULL
+                    GROUP BY ri.normalized_name
+                    ORDER BY max(ri.id) DESC
+                    LIMIT :limit
+                    """
+                ),
+                {"limit": limit},
+            ).scalars()
+        )
 
     def _replace_lines(self, receipt_id: int, lines: Sequence[ReceiptLine]) -> None:
         self._conn.execute(text("DELETE FROM receipt_items WHERE receipt_id = :id"), {"id": receipt_id})
@@ -252,9 +279,9 @@ class SqlReceiptRepository:
         self._conn.execute(
             text(
                 """
-                INSERT INTO receipt_items (receipt_id, user_id, category_id, description, normalized_name,
+                INSERT INTO receipt_items (receipt_id, user_id, category_id, description, normalized_name, brand,
                                            size_amount, size_unit, quantity, unit_price, line_total)
-                VALUES (:receipt_id, app_user_id(), :category_id, :description, :normalized_name,
+                VALUES (:receipt_id, app_user_id(), :category_id, :description, :normalized_name, :brand,
                         :size_amount, :size_unit, :quantity, :unit_price, :line_total)
                 """
             ),
@@ -264,6 +291,7 @@ class SqlReceiptRepository:
                     "category_id": line.category_id,
                     "description": line.description,
                     "normalized_name": line.normalized_name,
+                    "brand": line.brand,
                     "size_amount": line.size_amount,
                     "size_unit": line.size_unit,
                     "quantity": line.quantity,

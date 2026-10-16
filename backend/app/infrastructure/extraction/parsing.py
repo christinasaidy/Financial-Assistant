@@ -21,6 +21,7 @@ class _Line(BaseModel):
     size_amount: Decimal | None = None
     size_unit: str | None = None
     category: str | None = None
+    brand: str | None = None
 
 
 class _Receipt(BaseModel):

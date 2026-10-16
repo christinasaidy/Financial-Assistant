@@ -129,3 +129,8 @@ def test_a_vendor_name_with_a_nul_character_is_refused():
 def test_multilingual_text_and_whitespace_are_valid():
     validate_line(line(description="لبن عيران\t1L", normalized_name="pâté"))
     validate_confirmation("USD", Decimal(1), [], vendor_name="Café Younes – Hamra")
+
+
+def test_a_brand_with_a_nul_character_is_refused():
+    with pytest.raises(InvalidReceipt, match="Brand"):
+        validate_line(line(brand="bar\x00illa"))
