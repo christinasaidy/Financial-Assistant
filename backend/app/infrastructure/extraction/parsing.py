@@ -30,7 +30,7 @@ class _Receipt(BaseModel):
     receipt_date: date | None = None
     currency: Literal["USD", "LBP"] | None = None
     total: Decimal | None = Field(default=None, ge=0)
-    lines: list[_Line] = []
+    lines: list[_Line]  # required, as in the schema sent to Gemini; [] is allowed
 
     # An unreadable date or currency is left empty for the user to fill in on the review
     # screen. It should not throw away an otherwise good extraction.

@@ -6,6 +6,7 @@ Rates are always written as "LBP per 1 USD" (e.g. 89500), the way they are quote
 from decimal import Decimal
 
 from app.domain.shared.currency import Currency
+from app.domain.shared.decimals import RATE_PLACES, fits
 from app.domain.shared.errors import DomainError
 
 MAX_RATE = Decimal("999999999999.999999")  # NUMERIC(18, 6)
@@ -16,7 +17,7 @@ class InvalidExchangeRate(DomainError):
 
 
 def validate_rate(lbp_per_usd: Decimal) -> None:
-    if not 0 < lbp_per_usd <= MAX_RATE:
+    if not fits(lbp_per_usd, RATE_PLACES) or not 0 < lbp_per_usd <= MAX_RATE:
         raise InvalidExchangeRate
 
 

@@ -193,11 +193,19 @@ def test_category_memory_suggests_what_the_user_confirmed_before(client, alice):
     assert laban["category_id"] == dining  # the model said Groceries, the user's own history wins
 
 
-def test_unconfirmed_drafts_do_not_feed_category_memory(client, alice):
-    upload(client, alice, content=b"first")  # stays a draft with the model's Groceries suggestion
+def test_unconfirmed_drafts_do_not_feed_category_memory(client, sign_in, engine):
+    # Code review weakness C: the draft's category must differ from the model's suggestion, otherwise
+    # learning from the draft by mistake would give the same answer and the test could not tell.
+    alice, alice_id = sign_in()
+    first = upload(client, alice, content=b"first").json()["id"]
+    with user_scoped_connection(engine, alice_id) as conn:  # the draft now says Dining for laban
+        conn.execute(
+            text("UPDATE receipt_items SET category_id = :c WHERE receipt_id = :r"),
+            {"c": category_id(client, alice, "Dining"), "r": first},
+        )
     second = upload(client, alice, content=b"second").json()["id"]
     laban = client.get(f"/receipts/{second}", headers=alice).json()["lines"][0]
-    assert laban["category_id"] == category_id(client, alice, "Groceries")
+    assert laban["category_id"] == category_id(client, alice, "Groceries")  # the model's, not the draft's
 
 
 def test_failed_extraction_is_retried_once_then_entered_by_hand(client, alice, extractor):

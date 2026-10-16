@@ -12,7 +12,7 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 
 from app.api.app import create_app
 from app.domain.assistant.errors import QueryFailed, UnsafeQuery
@@ -193,13 +193,50 @@ def test_a_user_only_ever_sees_their_own_rows(container, alice_with_receipts, cl
     assert one_value(container.assistant.run_query(alice, "SELECT COUNT(*) FROM receipts")) == 4
 
 
-def test_the_user_setting_does_not_leak_into_the_next_query(container, raw_runner, alice_with_receipts):
+@pytest.fixture
+def one_connection(settings):
+    """An engine with exactly one database connection, so every use is the same physical connection."""
+    engine = create_engine(settings.readonly_database_url, pool_size=1, max_overflow=0)
+    yield engine
+    engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT COUNT(*) FROM receipts",  # succeeds
+        "SELECT no_such_column FROM receipts",  # fails
+        "SELECT pg_sleep(2)",  # times out (the runner below allows 0.5 s)
+    ],
+    ids=["after success", "after failure", "after timeout"],
+)
+def test_nothing_is_left_on_the_connection_for_the_next_query(one_connection, alice_with_receipts, sql):
+    # Code review weakness A: the old version of this test looked at a different connection pool.
     _, alice = alice_with_receipts
-    container.assistant.run_query(alice, "SELECT COUNT(*) FROM receipts")
-    # A raw query that does not set any user sees nothing.
-    with raw_runner._engine.connect() as conn:
-        conn.execute(text("SET search_path = assistant"))
-        assert conn.execute(text("SELECT COUNT(*) FROM receipts")).scalar_one() == 0
+    runner = SqlReadOnlyQueryRunner(one_connection, timeout_ms=500)
+
+    def connection_state():
+        with one_connection.connect() as conn:
+            return (
+                conn.exec_driver_sql("SELECT pg_backend_pid()").scalar_one(),
+                conn.exec_driver_sql("SELECT current_setting('app.user_id', true)").scalar_one(),
+                conn.exec_driver_sql("SHOW search_path").scalar_one(),
+                conn.exec_driver_sql("SHOW statement_timeout").scalar_one(),
+            )
+
+    before = connection_state()
+    try:
+        runner.run(alice, sql)
+    except QueryFailed:
+        pass
+    after = connection_state()
+
+    assert after[0] == before[0]  # really the same physical connection
+    assert after[1] in ("", None)  # no user left behind
+    assert after[2:] == before[2:]  # search path and time limit back to the role's defaults
+    with one_connection.connect() as conn:  # and an unscoped query on it sees nothing
+        conn.exec_driver_sql("SET search_path = assistant")
+        assert conn.exec_driver_sql("SELECT COUNT(*) FROM receipts").scalar_one() == 0
 
 
 # --- The database role holds even without the checker (second line of defence) ---

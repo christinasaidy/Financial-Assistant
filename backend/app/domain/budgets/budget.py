@@ -15,6 +15,7 @@ from enum import StrEnum
 from app.domain.budgets.errors import InvalidBudget
 from app.domain.receipts.receipt import MAX_AMOUNT
 from app.domain.shared.currency import Currency
+from app.domain.shared.decimals import MONEY_PLACES, fits
 
 NEAR_THRESHOLD = Decimal("0.80")
 
@@ -34,6 +35,8 @@ class Budget:
 
 
 def validate_limit(limit_amount: Decimal) -> None:
+    if not fits(limit_amount, MONEY_PLACES):
+        raise InvalidBudget(f"The budget amount can have at most {MONEY_PLACES} decimal places")
     if not 0 < limit_amount <= MAX_AMOUNT:
         raise InvalidBudget("The budget amount must be greater than zero")
 

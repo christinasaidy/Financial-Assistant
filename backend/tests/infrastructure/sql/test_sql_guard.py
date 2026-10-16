@@ -40,7 +40,19 @@ OTHER_ALLOWED = [
 ]
 
 
-@pytest.mark.parametrize("sql", APPROVED_EXAMPLES + OTHER_ALLOWED)
+LEGITIMATE_CTES = [
+    "WITH t AS (SELECT * FROM receipts) SELECT * FROM t",
+    "WITH a AS (SELECT * FROM receipts), b AS (SELECT * FROM a) SELECT * FROM b",  # a later CTE uses an earlier one
+    "SELECT * FROM (WITH t AS (SELECT * FROM purchases) SELECT * FROM t) s",  # used inside its own subquery
+    "WITH t AS (SELECT * FROM receipts) SELECT * FROM t WHERE receipt_id IN (SELECT receipt_id FROM t)",
+    "WITH RECURSIVE n AS (SELECT 1 AS i UNION ALL SELECT i + 1 FROM n WHERE i < 3) SELECT * FROM n",
+    'WITH "t" AS (SELECT * FROM receipts) SELECT * FROM t',  # quoted lower-case is the same name
+    'SELECT * FROM "receipts"',
+    "SELECT * FROM receipts r WHERE EXISTS (SELECT 1 FROM purchases p WHERE p.receipt_id = r.receipt_id)",
+]
+
+
+@pytest.mark.parametrize("sql", APPROVED_EXAMPLES + OTHER_ALLOWED + LEGITIMATE_CTES)
 def test_allowed_queries_pass(sql):
     checked = guard.check(sql)
     assert checked.upper().startswith(("SELECT", "WITH"))
@@ -84,6 +96,20 @@ REFUSED = {
     "read a file": "SELECT pg_read_file('/etc/passwd') FROM receipts",
     "version": "SELECT version() FROM receipts",
     "dblink": "SELECT * FROM receipts WHERE dblink_exec('x', 'DELETE FROM receipts') = 'x'",
+    # a CTE name used where it is not in scope, so the database would read the real table
+    # (the first one is the exact query from the 2026-10-15 code review)
+    "nested cte leaks out": (
+        "WITH x AS (WITH pg_class AS (SELECT 1) SELECT * FROM pg_class) SELECT relname FROM pg_class"
+    ),
+    "nested cte leaks out, users": "WITH x AS (WITH users AS (SELECT 1) SELECT * FROM users) SELECT * FROM users",
+    "sibling cte's inner name": (
+        "WITH a AS (SELECT 1), b AS (WITH pg_roles AS (SELECT 1) SELECT 1) SELECT * FROM pg_roles"
+    ),
+    "subquery cte used outside": "SELECT * FROM (WITH pg_class AS (SELECT 1) SELECT * FROM pg_class) s, pg_class",
+    "later cte used too early": "WITH a AS (SELECT * FROM pg_class), pg_class AS (SELECT 1) SELECT * FROM a",
+    "cte defined in a where subquery": "SELECT * FROM pg_class WHERE EXISTS (WITH pg_class AS (SELECT 1) SELECT 1)",
+    "quoted name is a different name": 'WITH "PG_CLASS" AS (SELECT 1) SELECT * FROM pg_class',
+    "quoted view name in wrong case": 'SELECT * FROM "Receipts"',
     # not SQL at all
     "garbage": "how much did I spend",
     "empty": "",

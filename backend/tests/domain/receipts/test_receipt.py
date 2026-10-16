@@ -92,3 +92,18 @@ def test_a_draft_may_have_gaps_but_not_impossible_values():
         validate_draft(Decimal(-1), [])
     with pytest.raises(InvalidReceipt):
         validate_draft(Decimal(1), [line(quantity=Decimal("1e9"))])
+
+
+# --- A receipt dated after today is flagged for review (agreed 2026-10-16) ---
+
+
+def test_a_receipt_dated_after_today_is_flagged():
+    today = date(2026, 10, 10)
+    assert review_flags(receipt(receipt_date=date(2026, 10, 25)), today) == ["future_date"]
+    assert review_flags(receipt(receipt_date=date(2026, 10, 10)), today) == []  # today is fine
+    assert review_flags(receipt(receipt_date=date(2026, 10, 5)), today) == []
+    assert review_flags(receipt(receipt_date=None), today) == ["missing_date"]  # missing, not future
+
+
+def test_without_today_the_future_date_check_is_skipped():
+    assert review_flags(receipt(receipt_date=date(2999, 1, 1))) == []

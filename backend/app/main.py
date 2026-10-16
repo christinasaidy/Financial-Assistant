@@ -69,7 +69,7 @@ def build_container(
             hasher=Argon2PasswordHasher(),
             tokens=JwtTokenService(settings.jwt_secret, settings.jwt_expire_minutes),
         ),
-        receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd, alerts),
+        receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd, alerts, today),
         categories=CategoryService(uow),
         spending=SpendingService(uow, settings.default_lbp_per_usd),
         budgets=BudgetService(uow, budget_status, alerts),

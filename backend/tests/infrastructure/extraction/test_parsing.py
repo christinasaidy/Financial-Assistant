@@ -60,3 +60,16 @@ def test_output_that_breaks_the_schema_is_rejected(bad):
 def test_a_schema_error_says_which_field_was_wrong():
     with pytest.raises(ExtractionFailed, match=r"lines\.0\.line_total"):
         parse_extraction({"lines": [{"description": "x", "line_total": "abc"}]})
+
+
+# --- Code review finding 15: `lines` is required, as in the schema sent to Gemini ---
+
+
+@pytest.mark.parametrize("bad", [{}, {"vendor_name": "Spinneys"}, {"something": "else"}])
+def test_an_answer_without_lines_is_not_a_successful_read(bad):
+    with pytest.raises(ExtractionFailed, match="lines"):
+        parse_extraction(bad)
+
+
+def test_an_explicit_empty_list_of_lines_is_still_accepted():
+    assert parse_extraction({"vendor_name": "Spinneys", "total": "5", "lines": []}).lines == ()
