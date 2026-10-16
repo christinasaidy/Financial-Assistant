@@ -107,3 +107,25 @@ def test_a_receipt_dated_after_today_is_flagged():
 
 def test_without_today_the_future_date_check_is_skipped():
     assert review_flags(receipt(receipt_date=date(2999, 1, 1))) == []
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [line(description="laban\x00"), line(normalized_name="la\x00ban"), line(description="\x00")],
+)
+def test_a_line_with_a_nul_character_is_refused(bad):
+    # Second review, finding 2: PostgreSQL text cannot hold U+0000; refuse it before saving, never strip it.
+    with pytest.raises(InvalidReceipt, match="NUL"):
+        validate_line(bad)
+    with pytest.raises(InvalidReceipt, match="NUL"):
+        validate_draft(None, [bad])
+
+
+def test_a_vendor_name_with_a_nul_character_is_refused():
+    with pytest.raises(InvalidReceipt, match="Vendor name"):
+        validate_confirmation("USD", Decimal(1), [], vendor_name="Spin\x00neys")
+
+
+def test_multilingual_text_and_whitespace_are_valid():
+    validate_line(line(description="لبن عيران\t1L", normalized_name="pâté"))
+    validate_confirmation("USD", Decimal(1), [], vendor_name="Café Younes – Hamra")

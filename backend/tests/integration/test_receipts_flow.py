@@ -319,6 +319,31 @@ def test_unstorable_model_output_fails_the_receipt_instead_of_leaving_it_stuck(c
     assert client.post(f"/receipts/{receipt_id}/confirm", json=confirm_body(), headers=alice).status_code == 200
 
 
+def test_extracted_sizes_are_stored_in_base_units_at_full_stored_precision(client, sign_in, extractor, engine):
+    # Second review, finding 1: 0.3333 L was rounded in litres first and stored as 333.000 ml.
+    alice, alice_id = sign_in()
+    sizes = [("0.3333", "L"), ("0.0004", "kg"), ("0.3333", "ml"), ("0.0004", "ml")]
+    extractor.result = ExtractedReceipt(
+        lines=tuple(
+            ExtractedLine(description=f"item {i}", line_total=Decimal(1), size_amount=Decimal(a), size_unit=u)
+            for i, (a, u) in enumerate(sizes)
+        )
+    )
+    receipt_id = upload(client, alice).json()["id"]
+    assert client.get(f"/receipts/{receipt_id}", headers=alice).json()["status"] == "needs_review"
+    with user_scoped_connection(engine, alice_id) as conn:  # what is really in the table, not the API's view
+        stored = conn.execute(
+            text("SELECT size_amount, size_unit FROM receipt_items WHERE receipt_id = :id ORDER BY id"),
+            {"id": receipt_id},
+        ).all()
+    assert [tuple(row) for row in stored] == [
+        (Decimal("333.300"), "ml"),
+        (Decimal("0.400"), "g"),
+        (Decimal("0.333"), "ml"),
+        (None, None),  # too small to store even in ml: dropped, the line kept
+    ]
+
+
 def test_an_error_while_saving_the_draft_fails_the_receipt_and_is_logged(client, alice, monkeypatch, caplog):
     def fail(self, *args):
         raise RuntimeError("database went away")

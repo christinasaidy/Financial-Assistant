@@ -10,6 +10,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
@@ -207,13 +208,24 @@ def one_connection(settings):
         "SELECT COUNT(*) FROM receipts",  # succeeds
         "SELECT no_such_column FROM receipts",  # fails
         "SELECT pg_sleep(2)",  # times out (the runner below allows 0.5 s)
+        "SELECT n FROM generate_series(1, 1000) AS n",  # more rows than the cap: the cursor is left half-read
+        "SELECT 1 / (n - 2) FROM generate_series(1, 10) AS n",  # fails while fetching, not when declared
+        "interrupted",  # stopped by something else between the cursor's DECLARE and FETCH
     ],
-    ids=["after success", "after failure", "after timeout"],
-)
-def test_nothing_is_left_on_the_connection_for_the_next_query(one_connection, alice_with_receipts, sql):
+    ids=["after success", "after failure", "after timeout", "after a capped result", "after a fetch error",
+         "after an interruption"],
+)  # fmt: skip
+def test_nothing_is_left_on_the_connection_for_the_next_query(one_connection, alice_with_receipts, sql, monkeypatch):
     # Code review weakness A: the old version of this test looked at a different connection pool.
     _, alice = alice_with_receipts
     runner = SqlReadOnlyQueryRunner(one_connection, timeout_ms=500)
+    if sql == "interrupted":
+
+        def interrupt(self, size=0):
+            raise RuntimeError("request cancelled")
+
+        monkeypatch.setattr(psycopg.ServerCursor, "fetchmany", interrupt)
+        sql = "SELECT COUNT(*) FROM receipts"
 
     def connection_state():
         with one_connection.connect() as conn:
@@ -222,18 +234,22 @@ def test_nothing_is_left_on_the_connection_for_the_next_query(one_connection, al
                 conn.exec_driver_sql("SELECT current_setting('app.user_id', true)").scalar_one(),
                 conn.exec_driver_sql("SHOW search_path").scalar_one(),
                 conn.exec_driver_sql("SHOW statement_timeout").scalar_one(),
+                conn.exec_driver_sql("SELECT count(*) FROM pg_cursors").scalar_one(),  # open cursors in this session
             )
 
     before = connection_state()
     try:
         runner.run(alice, sql)
-    except QueryFailed:
+    except (QueryFailed, RuntimeError):
         pass
+    monkeypatch.undo()
     after = connection_state()
 
     assert after[0] == before[0]  # really the same physical connection
     assert after[1] in ("", None)  # no user left behind
-    assert after[2:] == before[2:]  # search path and time limit back to the role's defaults
+    assert after[2:] == before[2:]  # search path and time limit back to the role's defaults, and no cursor left open
+    assert after[4] == 0
+    assert runner.run(alice, "SELECT COUNT(*) FROM receipts").rows == [(4,)]  # and the connection still works
     with one_connection.connect() as conn:  # and an unscoped query on it sees nothing
         conn.exec_driver_sql("SET search_path = assistant")
         assert conn.exec_driver_sql("SELECT COUNT(*) FROM receipts").scalar_one() == 0
@@ -284,6 +300,31 @@ def test_results_are_capped_at_200_rows(raw_runner, alice_with_receipts):
     assert (len(result.rows), result.truncated) == (200, True)
 
 
+@pytest.mark.parametrize(("count", "returned", "truncated"), [(0, 0, False), (1, 1, False), (200, 200, False),
+                                                              (201, 200, True), (100000, 200, True)])  # fmt: skip
+def test_row_cap_and_truncation_flag(raw_runner, alice_with_receipts, count, returned, truncated):
+    _, alice = alice_with_receipts
+    result = raw_runner.run(alice, f"SELECT n, n * 2 AS twice FROM generate_series(1, {count}) AS n")
+    assert (len(result.rows), result.truncated) == (returned, truncated)
+    assert result.columns == ["n", "twice"]  # known even when no row comes back
+    assert result.rows[:2] == [(n, n * 2) for n in range(1, min(count, 2) + 1)]
+
+
+def test_rows_beyond_the_cap_are_never_computed(raw_runner, alice_with_receipts):
+    # Second review, finding 6: with an ordinary cursor the database ran the whole query and the driver received
+    # every row before 201 were kept. Row 202 here divides by zero, so it shows the database never produced it.
+    # (The cap bounds the rows produced and sent; a query that must sort or group still reads all its input.)
+    _, alice = alice_with_receipts
+    result = raw_runner.run(alice, "SELECT 1 / (n - 202) AS v FROM generate_series(1, 100000) AS n")
+    assert (len(result.rows), result.truncated) == (200, True)
+
+
+def test_percent_signs_are_not_placeholders(raw_runner, alice_with_receipts):
+    _, alice = alice_with_receipts
+    result = raw_runner.run(alice, "SELECT vendor FROM receipts WHERE vendor ILIKE '%spin%' AND '100%s' <> '%(x)s'")
+    assert result.rows == [("Spinneys",)]
+
+
 @pytest.mark.parametrize(
     "template",
     [
@@ -316,6 +357,35 @@ def test_switching_user_inside_a_query_is_refused_by_the_checker(container, alic
     sql = f"SELECT set_config('app.user_id', '{alice}', true), COUNT(*) FROM receipts"
     with pytest.raises(UnsafeQuery):
         container.assistant.run_query(bob, sql)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT CAST(SUM(total_usd) AS numeric(10, 2)), SUM(total)::double precision FROM receipts",
+        "SELECT vendor::varchar(20), receipt_date::timestamp(0), receipt_date::timestamptz FROM receipts",
+        "SELECT COUNT(*) FROM receipts WHERE receipt_date >= DATE '2026-01-01' - '1 month'::interval",
+        "SELECT initcap(vendor), to_char(receipt_date, 'YYYY-MM'), date_part('year', receipt_date) FROM receipts",
+    ],
+)
+def test_ordinary_casts_and_functions_still_run_after_the_check(container, alice_with_receipts, sql):
+    # Second review, findings 4 and 5: the stricter checker must still let ordinary analytics through, and the SQL
+    # it rebuilds must still be valid PostgreSQL.
+    _, alice = alice_with_receipts
+    assert len(container.assistant.run_query(alice, sql).rows) >= 1
+
+
+def test_catalog_reference_casts_find_objects_without_the_checker_and_are_refused_with_it(
+    container, raw_runner, alice_with_receipts
+):
+    # What the review's cast examples really do: look an object up by name (an oid), reading no table rows.
+    _, alice = alice_with_receipts
+    sql = "SELECT CAST('public.users' AS regclass)::oid"
+    assert isinstance(one_value(raw_runner.run(alice, sql)), int)
+    with pytest.raises(UnsafeQuery, match="type"):
+        container.assistant.run_query(alice, sql)
+    with pytest.raises(UnsafeQuery, match="schema"):
+        container.assistant.run_query(alice, "SELECT public.to_char(CURRENT_DATE, 'YYYY')")
 
 
 def test_a_mistake_in_allowed_sql_is_reported_not_crashed(container, alice_with_receipts):

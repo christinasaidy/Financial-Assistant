@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable, Sequence
 from dataclasses import replace
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from app.application.notifications.budget_alerts import BudgetAlerts
@@ -20,6 +20,10 @@ from app.domain.shared.exchange_rate import validate_rate
 logger = logging.getLogger(__name__)
 
 MAX_EXTRACTION_ATTEMPTS = 2  # one retry, then the receipt is marked failed and manual entry is offered
+# A stored file younger than this may belong to an upload whose receipt is still being saved.
+ORPHAN_MIN_AGE = timedelta(hours=24)
+# The statuses a receipt may be claimed for reading from, as the state machine allows (only `uploaded` today).
+_CLAIMABLE = tuple(status for status in ReceiptStatus if can_transition(status, ReceiptStatus.PROCESSING))
 
 
 class ReceiptService:
@@ -63,27 +67,28 @@ class ReceiptService:
                 receipt_id = work.receipts.create(ReceiptStatus.UPLOADED, path, content_hash)
                 receipt = work.receipts.get(receipt_id)
             except Exception:
-                self._storage.delete(path)  # don't leave a file with no receipt
+                # Raised before the commit, so the transaction rolls back and no receipt points at this file.
+                self._remove_file(path)
                 raise
+        # If the commit itself fails, the file is kept: the receipt may in fact be saved (a connection lost while
+        # committing), and deleting its image would lose it. If not, the orphan clean-up finds the file later.
         assert receipt is not None
         return to_view(receipt, self._today())
 
     def process(self, user_id: int, receipt_id: int) -> None:
         """Read an uploaded receipt with the vision model and save the result as a draft for review."""
         with self._uow(user_id) as work:
-            receipt = work.receipts.get(receipt_id)
-            if receipt is None or receipt.file_path is None:
+            # Checked and claimed in one step, so two calls for the same receipt cannot both read it. The claim
+            # is an attempt number: only this attempt may save a result (second code review, finding 10).
+            claim = work.receipts.claim_for_processing(receipt_id, _CLAIMABLE)
+            if claim is None:
                 return
-            if not can_transition(receipt.status, ReceiptStatus.PROCESSING):
-                return
-            work.receipts.set_status(receipt_id, ReceiptStatus.PROCESSING)
             categories = work.categories.list_all()
-            file_path = receipt.file_path
 
         # The model call is slow, so it runs outside any database transaction.
-        extracted = self._extract(receipt_id, file_path, [category.name for category in categories])
+        extracted = self._extract(receipt_id, claim.file_path, [category.name for category in categories])
         if extracted is None:
-            self._mark_failed(user_id, receipt_id)
+            self._mark_failed(user_id, receipt_id, claim.attempt)
             return
 
         # From here the receipt is `processing`. Whatever goes wrong, it must end as `failed`
@@ -99,18 +104,21 @@ class ReceiptService:
                 )
                 validate_draft(extracted.total, lines)  # e.g. an absurd amount the model invented
                 vendor_id = work.vendors.find_by_name(extracted.vendor_name) if extracted.vendor_name else None
-                work.receipts.save_extraction(receipt_id, extracted, vendor_id, lines)
+                if not work.receipts.save_extraction(receipt_id, claim.attempt, extracted, vendor_id, lines):
+                    # Deleted, finished another way, or claimed by a later attempt while the model was reading.
+                    logger.info("Receipt %s changed while it was being read; this result was discarded", receipt_id)
+                    return
                 work.notifications.add(receipt_ready_notification(receipt_id, extracted.vendor_name))
         except Exception:
             logger.exception("Could not save the draft for receipt %s; marking it failed", receipt_id)
-            self._mark_failed(user_id, receipt_id)
+            self._mark_failed(user_id, receipt_id, claim.attempt)
 
     # --- review ---
 
     def confirm(self, user_id: int, receipt_id: int, request: ConfirmReceiptRequest) -> ReceiptView:
         """Save the reviewed receipt: vendor, receipt values and lines together, or nothing.
         Also used to correct a receipt that is already confirmed."""
-        with self._uow(user_id) as work:
+        with self._uow(user_id, serialized=True) as work:  # moves budgets: see UnitOfWorkFactory
             receipt = work.receipts.get(receipt_id)
             if receipt is None:
                 raise ReceiptNotFound
@@ -121,7 +129,7 @@ class ReceiptService:
 
     def create_manual(self, user_id: int, request: ConfirmReceiptRequest) -> ReceiptView:
         """Fully manual entry: a receipt with no file, typed in and confirmed in one step."""
-        with self._uow(user_id) as work:
+        with self._uow(user_id, serialized=True) as work:  # moves budgets: see UnitOfWorkFactory
             receipt_id = work.receipts.create(ReceiptStatus.NEEDS_REVIEW)
             draft = work.receipts.get(receipt_id)
             assert draft is not None
@@ -145,21 +153,50 @@ class ReceiptService:
             return work.receipts.list_all()
 
     def delete(self, user_id: int, receipt_id: int) -> None:
-        with self._uow(user_id) as work:
+        with self._uow(user_id, serialized=True) as work:  # moves budgets: see UnitOfWorkFactory
             receipt = work.receipts.get(receipt_id)
             if receipt is None:
                 raise ReceiptNotFound
             work.receipts.delete(receipt_id)
             self._alerts.check(work)
-        # Only after the row is really gone, so a failed delete never loses the image.
+        # Only after the row is really gone, so a failed delete never loses the image. The receipt is deleted
+        # either way; a file that cannot be removed now is left for the orphan clean-up, not reported as an error.
         if receipt.file_path:
-            self._storage.delete(receipt.file_path)
+            self._remove_file(receipt.file_path)
+
+    # --- files no receipt points at ---
+
+    def find_orphaned_files(self) -> dict[int, list[str]]:
+        """Stored files that no receipt points at, by user: left by an upload whose save failed, a file that could
+        not be removed when its receipt was deleted, or a half-written file. Only files older than ORPHAN_MIN_AGE
+        count, so an upload still being saved is never one. A committed receipt always points at its file, so a
+        valid receipt's image is never listed (second code review, finding 11)."""
+        cutoff = datetime.now(UTC) - ORPHAN_MIN_AGE
+        orphans: dict[int, list[str]] = {}
+        for user_id in self._storage.user_ids():
+            old_files = [file.path for file in self._storage.list_files(user_id) if file.modified_at <= cutoff]
+            if not old_files:
+                continue
+            with self._uow(user_id) as work:  # as that user, so row-level security shows exactly their receipts
+                referenced = work.receipts.file_paths()
+            if found := [path for path in old_files if path not in referenced]:
+                orphans[user_id] = found
+        return orphans
+
+    def remove_orphaned_files(self) -> dict[int, list[str]]:
+        """Remove what `find_orphaned_files` finds. Safe to run at any time: a file is never given to a new receipt
+        once stored (every upload gets a new random name). Returns what was actually removed."""
+        removed: dict[int, list[str]] = {}
+        for user_id, paths in self.find_orphaned_files().items():
+            if done := [path for path in paths if self._remove_file(path)]:
+                removed[user_id] = done
+        return removed
 
     # --- helpers ---
 
     def _apply_confirmation(self, work: UnitOfWork, receipt: Receipt, request: ConfirmReceiptRequest) -> None:
         """Apply the user's reviewed values to a receipt, inside the caller's transaction."""
-        currency = validate_confirmation(request.currency, request.total, request.lines)
+        currency = validate_confirmation(request.currency, request.total, request.lines, request.vendor_name)
 
         # Correcting an already confirmed receipt keeps it confirmed. Otherwise the move must be allowed.
         if receipt.status is not ReceiptStatus.CONFIRMED:
@@ -205,12 +242,21 @@ class ReceiptService:
         )
         self._alerts.check(work)  # covers confirming, correcting and manual entry
 
-    def _mark_failed(self, user_id: int, receipt_id: int) -> None:
+    def _remove_file(self, path: str) -> bool:
+        try:
+            self._storage.delete(path)
+            return True
+        except Exception:
+            logger.exception("Could not remove the receipt file %s; it is left for the orphan clean-up", path)
+            return False
+
+    def _mark_failed(self, user_id: int, receipt_id: int, attempt: int) -> None:
         with self._uow(user_id) as work:
-            work.receipts.set_status(receipt_id, ReceiptStatus.FAILED)
+            if not work.receipts.fail_processing(receipt_id, attempt):
+                return  # no longer this attempt's receipt: never mark a confirmed or deleted receipt failed
             receipt = work.receipts.get(receipt_id)
-            if receipt is not None:
-                work.notifications.add(receipt_failed_notification(receipt_id, receipt.created_at.date()))
+            assert receipt is not None
+            work.notifications.add(receipt_failed_notification(receipt_id, receipt.created_at.date()))
 
     def _extract(self, receipt_id: int, file_path: str, category_names: Sequence[str]) -> ExtractedReceipt | None:
         # Any failure here must end as status `failed`, never as a receipt stuck in `processing`.

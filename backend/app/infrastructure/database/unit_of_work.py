@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import Connection, Engine
+from sqlalchemy import Connection, Engine, text
 
 from app.infrastructure.database.budget_repository import SqlBudgetRepository
 from app.infrastructure.database.category_repository import SqlCategoryRepository
@@ -33,8 +33,13 @@ class SqlUnitOfWorkFactory:
         self._engine = engine
 
     @contextmanager
-    def __call__(self, user_id: int) -> Iterator[SqlUnitOfWork]:
+    def __call__(self, user_id: int, serialized: bool = False) -> Iterator[SqlUnitOfWork]:
         # Commits on a normal exit and rolls back on any exception. This is the only place a
         # user-data transaction is opened, so `app.user_id` is always set for these repositories.
         with user_scoped_connection(self._engine, user_id) as conn:
+            if serialized:
+                # A transaction-level advisory lock keyed by the user id (the only advisory lock this app uses).
+                # Taken before anything is read, and released by PostgreSQL at commit or rollback, so every read
+                # after it sees the previous change's committed rows. Isolation stays READ COMMITTED: no retries.
+                conn.execute(text("SELECT pg_advisory_xact_lock(:uid)"), {"uid": int(user_id)})
             yield SqlUnitOfWork(conn)

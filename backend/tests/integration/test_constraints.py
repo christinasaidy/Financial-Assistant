@@ -22,25 +22,44 @@ def test_only_usd_and_lbp_are_valid_currencies(as_user, alice):
     assert sqlstate(err) == CHECK_VIOLATION
 
 
-def test_confirmed_receipt_needs_date_currency_and_total(as_user, alice):
+COMPLETE_CONFIRMED = {
+    "status": "confirmed", "receipt_date": "2026-10-01", "currency": "LBP", "total": 450000,
+    "exchange_rate_used": 89500,
+}  # fmt: skip
+
+
+def violated_constraint(excinfo) -> str:
+    return excinfo.value.orig.diag.constraint_name
+
+
+# Each case leaves out only the field it is about, so it can only fail on that field's rule. (Before the second
+# code review the first test left out the rate as well, so it still passed with receipts_confirmed_complete gone.)
+@pytest.mark.parametrize("missing", ["receipt_date", "currency", "total"])
+def test_confirmed_receipt_needs_date_currency_and_total(as_user, alice, missing):
+    values = {key: value for key, value in COMPLETE_CONFIRMED.items() if key != missing}
     with pytest.raises(DBAPIError) as err, as_user(alice) as conn:
-        add_receipt(conn, alice, status="confirmed")
+        add_receipt(conn, alice, **values)
     assert sqlstate(err) == CHECK_VIOLATION
+    assert violated_constraint(err) == "receipts_confirmed_complete"
 
 
 def test_confirmed_receipt_with_all_fields_is_accepted(as_user, alice):
     with as_user(alice) as conn:
-        add_receipt(
-            conn, alice, status="confirmed", receipt_date="2026-10-01", currency="LBP", total=450000,
-            exchange_rate_used=89500,
-        )  # fmt: skip
+        add_receipt(conn, alice, **COMPLETE_CONFIRMED)
 
 
 def test_a_confirmed_receipt_must_have_an_exchange_rate(as_user, alice):
     # Migration 0005: the assistant's USD views divide by the rate, so it can never be missing.
+    values = {key: value for key, value in COMPLETE_CONFIRMED.items() if key != "exchange_rate_used"}
     with pytest.raises(DBAPIError) as err, as_user(alice) as conn:
-        add_receipt(conn, alice, status="confirmed", receipt_date="2026-10-01", currency="LBP", total=450000)
+        add_receipt(conn, alice, **values)
     assert sqlstate(err) == CHECK_VIOLATION
+    assert violated_constraint(err) == "receipts_confirmed_has_rate"
+
+
+def test_a_draft_may_still_have_gaps(as_user, alice):
+    with as_user(alice) as conn:
+        add_receipt(conn, alice, status="needs_review")
 
 
 def test_duplicate_file_hash_is_rejected_per_user_but_allowed_across_users(as_user, alice, bob):

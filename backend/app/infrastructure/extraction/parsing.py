@@ -53,8 +53,25 @@ class _Receipt(BaseModel):
         return value
 
 
+def _find_nul(value: object, where: str = "") -> str | None:
+    """Where in the answer a string holds a NUL character (U+0000), if anywhere. PostgreSQL can store it
+    neither in a text column nor in the raw_extraction JSONB."""
+    if isinstance(value, str):
+        return where or "(root)" if "\x00" in value else None
+    items = value.items() if isinstance(value, dict) else enumerate(value) if isinstance(value, list) else ()
+    for key, item in items:
+        found = _find_nul(item, f"{where}.{key}" if where else str(key))
+        if found is not None:
+            return found
+    return None
+
+
 def parse_extraction(data: object) -> ExtractedReceipt:
     """Turn the model's decoded JSON into an ExtractedReceipt, or raise ExtractionFailed."""
+    # Refused rather than cleaned, so the original receipt text is never silently altered; like any other
+    # unusable answer it is retried once and then the receipt is marked failed for manual entry.
+    if (where := _find_nul(data)) is not None:
+        raise ExtractionFailed(f"The model's output contains a NUL character: {where}")
     try:
         receipt = _Receipt.model_validate(data)
     except ValidationError as exc:

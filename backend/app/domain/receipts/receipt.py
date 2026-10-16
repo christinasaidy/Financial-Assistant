@@ -48,7 +48,17 @@ class Receipt:
         return sum((line.line_total for line in self.lines), Decimal(0))
 
 
+def validate_text(value: str | None, what: str) -> None:
+    """Text must be storable. PostgreSQL text cannot hold the NUL character (U+0000), which no real receipt
+    prints, so it is refused rather than removed: the original text is kept exactly or not at all. Every other
+    character (Arabic, accents, tabs) is fine."""
+    if value is not None and "\x00" in value:
+        raise InvalidReceipt(f"{what} contains a character that cannot be saved (NUL)")
+
+
 def validate_line(line: ReceiptLine) -> None:
+    validate_text(line.description, "Description")
+    validate_text(line.normalized_name, "Item name")
     if not line.description.strip():
         raise InvalidReceipt("Every line needs a description")
     _check_places(line.quantity, QUANTITY_PLACES, "Quantity")
@@ -90,8 +100,11 @@ def validate_draft(total: Decimal | None, lines: Sequence[ReceiptLine]) -> None:
         validate_line(line)
 
 
-def validate_confirmation(currency: str, total: Decimal, lines: Sequence[ReceiptLine]) -> Currency:
+def validate_confirmation(
+    currency: str, total: Decimal, lines: Sequence[ReceiptLine], vendor_name: str | None = None
+) -> Currency:
     """Check the values a user confirms. Returns the currency as a domain value."""
+    validate_text(vendor_name, "Vendor name")
     try:
         valid_currency = Currency(currency)
     except ValueError:

@@ -4,9 +4,10 @@ from collections.abc import Sequence
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import Connection, text
+from sqlalchemy import Connection, Row, text
 from sqlalchemy.exc import IntegrityError
 
+from app.application.receipts.interfaces import ProcessingClaim
 from app.domain.receipts.errors import DuplicateReceipt
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.receipts.receipt import Receipt, ReceiptLine
@@ -17,15 +18,23 @@ UNIQUE_VIOLATION = "23505"
 
 # A draft has no vendor row yet, so its vendor name comes from the stored extraction. Once confirmed, the
 # reviewed vendor is final: a vendor the user cleared stays empty (2026-10-15 code review).
-_SELECT_RECEIPT = """
-    SELECT r.id, r.status,
-           CASE WHEN r.status = 'confirmed' THEN v.name
-                ELSE COALESCE(v.name, r.raw_extraction ->> 'vendor_name') END AS vendor_name,
-           r.receipt_date, r.currency, r.total, r.primary_category_id, r.file_path, r.created_at,
-           r.exchange_rate_used
-    FROM receipts r
-    LEFT JOIN vendors v ON v.id = r.vendor_id
+_RECEIPT_COLUMNS = """
+    r.id, r.status,
+    CASE WHEN r.status = 'confirmed' THEN v.name
+         ELSE COALESCE(v.name, r.raw_extraction ->> 'vendor_name') END AS vendor_name,
+    r.receipt_date, r.currency, r.total, r.primary_category_id, r.file_path, r.created_at, r.exchange_rate_used
 """
+_LINE_COLUMNS = """
+    li.id AS line_id, li.description AS line_description, li.line_total, li.quantity AS line_quantity,
+    li.unit_price AS line_unit_price, li.normalized_name AS line_normalized_name,
+    li.size_amount AS line_size_amount, li.size_unit AS line_size_unit, li.category_id AS line_category_id
+"""
+_SELECT_RECEIPT = f"SELECT {_RECEIPT_COLUMNS} FROM receipts r LEFT JOIN vendors v ON v.id = r.vendor_id"
+# Each receipt once per line, or once with NULL line columns if it has no lines. See `_with_lines`.
+_SELECT_RECEIPT_WITH_LINES = (
+    f"SELECT {_RECEIPT_COLUMNS}, {_LINE_COLUMNS} FROM receipts r LEFT JOIN vendors v ON v.id = r.vendor_id"
+    " LEFT JOIN receipt_items li ON li.receipt_id = r.id"
+)
 
 
 class SqlReceiptRepository:
@@ -58,22 +67,15 @@ class SqlReceiptRepository:
         ).scalar_one_or_none()
 
     def get(self, receipt_id: int) -> Receipt | None:
-        row = self._conn.execute(text(_SELECT_RECEIPT + " WHERE r.id = :id"), {"id": receipt_id}).one_or_none()
-        if row is None:
-            return None
-        return _to_receipt(row, self._lines_by_receipt([receipt_id]).get(receipt_id, ()))
+        receipts = self._with_lines("r.id = :id", "r.id", {"id": receipt_id})
+        return receipts[0] if receipts else None
 
     def list_confirmed_between(self, start: date, end: date) -> list[Receipt]:
-        rows = self._conn.execute(
-            text(
-                _SELECT_RECEIPT
-                + " WHERE r.status = 'confirmed' AND r.receipt_date >= :start AND r.receipt_date < :end"
-                " ORDER BY r.receipt_date, r.id"
-            ),
+        return self._with_lines(
+            "r.status = 'confirmed' AND r.receipt_date >= :start AND r.receipt_date < :end",
+            "r.receipt_date, r.id",
             {"start": start, "end": end},
-        ).all()
-        lines = self._lines_by_receipt([row.id for row in rows])
-        return [_to_receipt(row, lines.get(row.id, ())) for row in rows]
+        )
 
     def count_with_status(self, status: ReceiptStatus) -> int:
         return self._conn.execute(
@@ -88,34 +90,31 @@ class SqlReceiptRepository:
         ).scalars()
         return set(rows)
 
-    def _lines_by_receipt(self, receipt_ids: Sequence[int]) -> dict[int, tuple[ReceiptLine, ...]]:
-        """The lines of several receipts in one query, grouped by receipt."""
-        if not receipt_ids:
-            return {}
+    def _with_lines(self, where: str, order_by: str, params: dict) -> list[Receipt]:
+        """Receipts with their lines, read in ONE statement. A statement sees a single snapshot of the database, so
+        a receipt corrected or deleted meanwhile is seen wholly before or wholly after the change; reading headers
+        and lines in two statements could combine an old total with new lines (second code review, finding 9)."""
         rows = self._conn.execute(
-            text(
-                "SELECT receipt_id, id, description, line_total, quantity, unit_price, normalized_name, "
-                "size_amount, size_unit, category_id FROM receipt_items "
-                "WHERE receipt_id = ANY(:ids) ORDER BY receipt_id, id"
-            ),
-            {"ids": list(receipt_ids)},
+            text(f"{_SELECT_RECEIPT_WITH_LINES} WHERE {where} ORDER BY {order_by}, li.id"), params
         ).all()
-        grouped: dict[int, list[ReceiptLine]] = {}
-        for line in rows:
-            grouped.setdefault(line.receipt_id, []).append(
-                ReceiptLine(
-                    id=line.id,
-                    description=line.description,
-                    line_total=line.line_total,
-                    quantity=line.quantity,
-                    unit_price=line.unit_price,
-                    normalized_name=line.normalized_name,
-                    size_amount=line.size_amount,
-                    size_unit=line.size_unit,
-                    category_id=line.category_id,
+        receipts: dict[int, tuple[Row, list[ReceiptLine]]] = {}  # in query order
+        for row in rows:
+            _, lines = receipts.setdefault(row.id, (row, []))
+            if row.line_id is not None:  # a receipt without lines still comes back once, with NULL line columns
+                lines.append(
+                    ReceiptLine(
+                        id=row.line_id,
+                        description=row.line_description,
+                        line_total=row.line_total,
+                        quantity=row.line_quantity,
+                        unit_price=row.line_unit_price,
+                        normalized_name=row.line_normalized_name,
+                        size_amount=row.line_size_amount,
+                        size_unit=row.line_size_unit,
+                        category_id=row.line_category_id,
+                    )
                 )
-            )
-        return {receipt_id: tuple(lines) for receipt_id, lines in grouped.items()}
+        return [_to_receipt(row, tuple(lines)) for row, lines in receipts.values()]
 
     def list_all(self) -> list[Receipt]:
         rows = self._conn.execute(
@@ -123,34 +122,64 @@ class SqlReceiptRepository:
         ).all()
         return [_to_receipt(row, ()) for row in rows]
 
-    def set_status(self, receipt_id: int, status: ReceiptStatus) -> None:
-        self._conn.execute(
-            text("UPDATE receipts SET status = :status, updated_at = now() WHERE id = :id"),
-            {"status": status.value, "id": receipt_id},
-        )
+    def claim_for_processing(self, receipt_id: int, from_statuses: Sequence[ReceiptStatus]) -> ProcessingClaim | None:
+        # One UPDATE checks and claims together. A second worker's UPDATE waits on the row lock, then re-checks the
+        # status of the committed row (READ COMMITTED), finds it already processing, and claims nothing.
+        row = self._conn.execute(
+            text(
+                """
+                UPDATE receipts
+                SET status = 'processing', processing_attempt = processing_attempt + 1, updated_at = now()
+                WHERE id = :id AND status = ANY(:from_statuses) AND file_path IS NOT NULL
+                RETURNING processing_attempt, file_path
+                """
+            ),
+            {"id": receipt_id, "from_statuses": [status.value for status in from_statuses]},
+        ).one_or_none()
+        return ProcessingClaim(row.processing_attempt, row.file_path) if row else None
 
     def save_extraction(
-        self, receipt_id: int, extracted: ExtractedReceipt, vendor_id: int | None, lines: Sequence[ReceiptLine]
-    ) -> None:
-        self._conn.execute(
+        self,
+        receipt_id: int,
+        attempt: int,
+        extracted: ExtractedReceipt,
+        vendor_id: int | None,
+        lines: Sequence[ReceiptLine],
+    ) -> bool:
+        saved = self._conn.execute(
             text(
                 """
                 UPDATE receipts
                 SET status = 'needs_review', vendor_id = :vendor_id, receipt_date = :receipt_date,
                     currency = :currency, total = :total, raw_extraction = CAST(:raw AS jsonb), updated_at = now()
-                WHERE id = :id
+                WHERE id = :id AND status = 'processing' AND processing_attempt = :attempt
                 """
             ),
             {
                 "id": receipt_id,
+                "attempt": attempt,
                 "vendor_id": vendor_id,
                 "receipt_date": extracted.receipt_date,
                 "currency": extracted.currency,
                 "total": extracted.total,
                 "raw": json.dumps(dataclasses.asdict(extracted), default=str),
             },
-        )
+        ).rowcount
+        if not saved:
+            return False  # not this attempt's receipt any more: its lines are left alone too
         self._replace_lines(receipt_id, lines)
+        return True
+
+    def fail_processing(self, receipt_id: int, attempt: int) -> bool:
+        return bool(
+            self._conn.execute(
+                text(
+                    "UPDATE receipts SET status = 'failed', updated_at = now() "
+                    "WHERE id = :id AND status = 'processing' AND processing_attempt = :attempt"
+                ),
+                {"id": receipt_id, "attempt": attempt},
+            ).rowcount
+        )
 
     def save_confirmed(
         self,
@@ -191,6 +220,9 @@ class SqlReceiptRepository:
 
     def delete(self, receipt_id: int) -> None:
         self._conn.execute(text("DELETE FROM receipts WHERE id = :id"), {"id": receipt_id})
+
+    def file_paths(self) -> set[str]:
+        return set(self._conn.execute(text("SELECT file_path FROM receipts WHERE file_path IS NOT NULL")).scalars())
 
     def category_history(self, normalized_names: Sequence[str]) -> dict[str, list[int]]:
         if not normalized_names:

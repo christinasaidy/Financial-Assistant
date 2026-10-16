@@ -1,5 +1,6 @@
 from collections.abc import Sequence
-from datetime import date
+from dataclasses import dataclass
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Protocol
 
@@ -7,6 +8,14 @@ from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.receipts.receipt import Receipt, ReceiptLine
 from app.domain.receipts.status import ReceiptStatus
 from app.domain.shared.currency import Currency
+
+
+@dataclass(frozen=True)
+class ProcessingClaim:
+    """Proof that this worker owns the current attempt at reading a receipt."""
+
+    attempt: int
+    file_path: str
 
 
 class ReceiptRepository(Protocol):
@@ -21,12 +30,24 @@ class ReceiptRepository(Protocol):
     def list_all(self) -> list[Receipt]:
         """All of the user's receipts, newest first, without their lines."""
 
-    def set_status(self, receipt_id: int, status: ReceiptStatus) -> None: ...
+    def claim_for_processing(self, receipt_id: int, from_statuses: Sequence[ReceiptStatus]) -> ProcessingClaim | None:
+        """Atomically move the receipt to processing if it has a file and is in one of `from_statuses`, starting
+        a new attempt. None if it is not (another worker claimed it first, or it was deleted)."""
 
     def save_extraction(
-        self, receipt_id: int, extracted: ExtractedReceipt, vendor_id: int | None, lines: Sequence[ReceiptLine]
-    ) -> None:
-        """Store the model's output as a draft and move the receipt to needs_review."""
+        self,
+        receipt_id: int,
+        attempt: int,
+        extracted: ExtractedReceipt,
+        vendor_id: int | None,
+        lines: Sequence[ReceiptLine],
+    ) -> bool:
+        """Store the model's output as a draft and move the receipt to needs_review, only if it is still processing
+        under this attempt. False (and nothing written) if not: it was deleted, finished another way, or claimed
+        again by a later attempt."""
+
+    def fail_processing(self, receipt_id: int, attempt: int) -> bool:
+        """Move the receipt to failed, under the same condition as save_extraction."""
 
     def save_confirmed(
         self,
@@ -53,6 +74,9 @@ class ReceiptRepository(Protocol):
     def existing_ids(self, receipt_ids: Sequence[int]) -> set[int]:
         """Which of these receipts still exist for this user."""
 
+    def file_paths(self) -> set[str]:
+        """The stored-file paths of all of the user's receipts."""
+
     def category_history(self, normalized_names: Sequence[str]) -> dict[str, list[int]]:
         """For each name, the categories the user confirmed for it before, oldest first."""
 
@@ -63,6 +87,12 @@ class VendorRepository(Protocol):
     def find_or_create(self, name: str) -> int: ...
 
 
+@dataclass(frozen=True)
+class StoredFile:
+    path: str  # as kept in the database
+    modified_at: datetime  # timezone-aware
+
+
 class FileStorage(Protocol):
     def save(self, user_id: int, content: bytes, extension: str) -> str:
         """Store the file and return the path to keep in the database."""
@@ -70,6 +100,13 @@ class FileStorage(Protocol):
     def read(self, path: str) -> bytes: ...
 
     def delete(self, path: str) -> None: ...
+
+    def user_ids(self) -> list[int]:
+        """The users that have stored files."""
+
+    def list_files(self, user_id: int) -> list[StoredFile]:
+        """The files this storage saved for the user, including any left half-written. Nothing else: a file it
+        did not name itself is never listed, so it can never be cleaned up by mistake."""
 
 
 class ReceiptExtractor(Protocol):

@@ -33,8 +33,11 @@ class ExtractedReceipt:
 
 
 def rounded_for_storage(extracted: ExtractedReceipt) -> ExtractedReceipt:
-    """Round what the model read to the precision the database stores (money 2 places, quantities and
-    sizes 3). Unlike typed input, this is rounded rather than refused, because the user reviews it next."""
+    """Round what the model read to the precision the database stores (money 2 places, quantities 3).
+    Unlike typed input, this is rounded rather than refused, because the user reviews it next.
+
+    Sizes are left in the model's unit here: the stored precision is in base units, so `to_draft_lines`
+    rounds them after converting (0.3333 L is 333.300 ml, not 0.333 L = 333.000 ml)."""
     return replace(
         extracted,
         total=rounded(extracted.total, MONEY_PLACES) if extracted.total is not None else None,
@@ -44,11 +47,20 @@ def rounded_for_storage(extracted: ExtractedReceipt) -> ExtractedReceipt:
                 line_total=rounded(line.line_total, MONEY_PLACES),
                 quantity=rounded(line.quantity, QUANTITY_PLACES),
                 unit_price=rounded(line.unit_price, MONEY_PLACES) if line.unit_price is not None else None,
-                size_amount=rounded(line.size_amount, QUANTITY_PLACES) if line.size_amount is not None else None,
             )
             for line in extracted.lines
         ),
     )
+
+
+def _stored_size(amount: Decimal | None, unit: str | None) -> tuple[Decimal | None, str | None]:
+    """The model's size in a base unit, rounded to the stored 3 places. A size too small to store even in
+    base units (0.0004 ml) is dropped like any other unusable size: sizes are optional, the line is kept."""
+    base_amount, base_unit = normalize_size(amount, unit)
+    if base_amount is None:
+        return None, None
+    stored = rounded(base_amount, QUANTITY_PLACES)
+    return (stored, base_unit) if stored > 0 else (None, None)
 
 
 def to_draft_lines(
@@ -64,7 +76,7 @@ def to_draft_lines(
     lines = []
     for line in extracted.lines:
         name = normalize_product_name(line.normalized_name)
-        size_amount, size_unit = normalize_size(line.size_amount, line.size_unit)
+        size_amount, size_unit = _stored_size(line.size_amount, line.size_unit)
         category_id = suggest_category(category_history.get(name, ())) if name else None
         if category_id is None and line.category:
             category_id = category_ids_by_name.get(line.category.strip().lower())
