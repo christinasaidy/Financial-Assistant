@@ -77,8 +77,12 @@ class ReceiptRepository(Protocol):
     def file_paths(self) -> set[str]:
         """The stored-file paths of all of the user's receipts."""
 
-    def category_history(self, normalized_names: Sequence[str]) -> dict[str, list[int]]:
-        """For each name, the categories the user confirmed for it before, oldest first."""
+    def category_history(self, name_keys: Sequence[str]) -> dict[str, list[int]]:
+        """For each name key (see `normalization.name_key`: the same words in any order), the categories the user
+        confirmed for lines with that key before, oldest first."""
+
+    def known_item_names(self, limit: int) -> list[str]:
+        """The user's distinct item names on confirmed receipts, most recently used first, at most `limit`."""
 
 
 class VendorRepository(Protocol):
@@ -110,5 +114,8 @@ class FileStorage(Protocol):
 
 
 class ReceiptExtractor(Protocol):
-    def extract(self, content: bytes, content_type: str, category_names: Sequence[str]) -> ExtractedReceipt:
-        """Read a receipt image or PDF. Raises ExtractionFailed if the output is unusable."""
+    def extract(
+        self, content: bytes, content_type: str, category_names: Sequence[str], known_names: Sequence[str] = ()
+    ) -> ExtractedReceipt:
+        """Read a receipt image or PDF. Raises ExtractionFailed if the output is unusable. `known_names` are the
+        user's item names, most recently used first, which the model should reuse for the same product."""

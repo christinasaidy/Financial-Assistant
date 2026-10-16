@@ -14,10 +14,12 @@ class FakeReceiptExtractor:
         self.result = result  # None means "the model could not read it"
         self.calls = 0
         self.category_names: list[str] = []
+        self.known_names: list[str] = []
 
-    def extract(self, content: bytes, content_type: str, category_names) -> ExtractedReceipt:
+    def extract(self, content: bytes, content_type: str, category_names, known_names=()) -> ExtractedReceipt:
         self.calls += 1
         self.category_names = list(category_names)
+        self.known_names = list(known_names)
         if self.result is None:
             raise ExtractionFailed
         return self.result

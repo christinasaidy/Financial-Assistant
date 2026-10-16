@@ -35,7 +35,7 @@ class RawAnswerExtractor:
         self.answer = answer
         self.calls = 0
 
-    def extract(self, content, content_type, category_names) -> ExtractedReceipt:
+    def extract(self, content, content_type, category_names, known_names=()) -> ExtractedReceipt:
         self.calls += 1
         return parse_extraction(self.answer)
 
