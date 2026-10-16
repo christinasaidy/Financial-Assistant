@@ -73,3 +73,29 @@ def test_an_answer_without_lines_is_not_a_successful_read(bad):
 
 def test_an_explicit_empty_list_of_lines_is_still_accepted():
     assert parse_extraction({"vendor_name": "Spinneys", "total": "5", "lines": []}).lines == ()
+
+
+@pytest.mark.parametrize(
+    ("answer", "where"),
+    [
+        ({**VALID, "vendor_name": "Spin\u0000neys"}, "vendor_name"),
+        ({"lines": [{"description": "MILK\u0000", "line_total": 1}]}, "lines.0.description"),
+        (
+            {"lines": [{"description": "MILK", "normalized_name": "mi\u0000lk", "line_total": 1}]},
+            "lines.0.normalized_name",
+        ),
+        ({"lines": [{"description": "MILK", "line_total": 1, "category": "x\u0000"}]}, "lines.0.category"),
+        ({"lines": [], "unexpected": ["\u0000"]}, "unexpected.0"),  # even in a field we ignore: kept in raw_extraction
+    ],
+)
+def test_an_answer_with_a_nul_character_is_rejected_not_cleaned(answer, where):
+    # Second review, finding 2: PostgreSQL cannot store U+0000 in text or JSONB.
+    with pytest.raises(ExtractionFailed, match=where.replace(".", r"\.")):
+        parse_extraction(answer)
+
+
+def test_arabic_and_accented_text_from_the_model_is_kept_exactly():
+    answer = {"vendor_name": "زعتر و زيت", "lines": [{"description": "Pâté\tمنقوشة", "line_total": 1}]}
+    result = parse_extraction(answer)
+    assert result.vendor_name == "زعتر و زيت"
+    assert result.lines[0].description == "Pâté\tمنقوشة"

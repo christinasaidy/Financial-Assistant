@@ -26,5 +26,10 @@ class UnitOfWork(Protocol):
 
 
 class UnitOfWorkFactory(Protocol):
-    def __call__(self, user_id: int) -> AbstractContextManager[UnitOfWork]:
-        """Commits when the block ends normally, rolls everything back if it raises."""
+    def __call__(self, user_id: int, serialized: bool = False) -> AbstractContextManager[UnitOfWork]:
+        """Commits when the block ends normally, rolls everything back if it raises.
+
+        `serialized=True` first waits until the user's other serialized units of work have finished, and holds
+        them off until this one ends. Use it for every change that can move a budget (and so checks budget
+        alerts): two such changes at once would each check the budget without the other's change and could both
+        miss an alert (second code review, 2026-10-16). Reads and other changes do not need it."""

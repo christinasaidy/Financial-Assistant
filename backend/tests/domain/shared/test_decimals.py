@@ -104,12 +104,10 @@ def test_what_the_model_reads_is_rounded_to_the_stored_precision():
     result = rounded_for_storage(extracted)
     assert result.total == Decimal("1.01")
     (only,) = result.lines
-    assert (only.line_total, only.quantity, only.unit_price, only.size_amount) == (
-        Decimal("2.16"),
-        Decimal("1.001"),
-        Decimal("2.15"),
-        Decimal("0.333"),
-    )
+    assert (only.line_total, only.quantity, only.unit_price) == (Decimal("2.16"), Decimal("1.001"), Decimal("2.15"))
+    # The size is not rounded in litres: precision applies to base units, after conversion (second review,
+    # finding 1). See tests/infrastructure/extraction/test_extraction_pipeline.py.
+    assert (only.size_amount, only.size_unit) == (Decimal("0.3333"), "l")
 
 
 def test_rounding_keeps_missing_values_missing():

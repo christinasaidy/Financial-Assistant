@@ -22,13 +22,30 @@ ALLOWED_FUNCTIONS = frozenset(
         "and", "or", "exists",
         "sum", "count", "avg", "min", "max",
         "round", "abs", "coalesce", "nullif", "greatest", "least",
-        "lower", "upper", "trim", "length", "concat",
+        "lower", "upper", "trim", "length", "concat", "initcap",
         "extract", "cast", "trycast", "timestamptrunc", "datetrunc", "timetostr",
         "currentdate", "currenttimestamp",
     }
 )  # fmt: skip
-# Functions sqlglot does not know, written as they are in PostgreSQL.
+# Functions sqlglot does not know, written as they are in PostgreSQL (sqlglot 30 knows all three; kept in case
+# another version does not).
 ALLOWED_OTHER_FUNCTIONS = frozenset({"date_part", "to_char", "initcap"})
+
+# Types a value may be cast to: the ordinary scalar types spending questions need. Everything else is refused,
+# notably catalog reference types (regclass, regrole, regprocedure, oid, ...), which look database objects up by
+# name, and user-defined, schema-qualified and array types (second code review, 2026-10-16).
+_Type = exp.DataType.Type
+ALLOWED_TYPES = frozenset(
+    {
+        _Type.SMALLINT, _Type.INT, _Type.BIGINT, _Type.DECIMAL, _Type.FLOAT, _Type.DOUBLE,
+        _Type.TEXT, _Type.VARCHAR, _Type.CHAR, _Type.BOOLEAN,
+        _Type.DATE, _Type.TIME, _Type.TIMESTAMP, _Type.TIMESTAMPTZ, _Type.INTERVAL,
+    }
+)  # fmt: skip
+# How many size modifiers a type may have: numeric(precision, scale), varchar(n), char(n), timestamp(precision).
+_MAX_MODIFIERS = {
+    _Type.DECIMAL: 2, _Type.VARCHAR: 1, _Type.CHAR: 1, _Type.TIME: 1, _Type.TIMESTAMP: 1, _Type.TIMESTAMPTZ: 1,
+}  # fmt: skip
 
 _FORBIDDEN_NODES = (
     exp.Insert, exp.Update, exp.Delete, exp.Merge, exp.Create, exp.Drop, exp.Alter,
@@ -66,15 +83,44 @@ class SqlGlotGuard:
             raise UnsafeQuery("Only the receipts, purchases and category_spending views can be queried")
 
         for function in tree.find_all(exp.Func):
+            # `public.to_char(...)` is a function in another schema, not the built-in: refuse any schema, so a call
+            # always resolves to pg_catalog (the search path is only `assistant`, which defines no functions).
+            if isinstance(function.parent, exp.Dot) and function.arg_key == "expression":
+                raise UnsafeQuery("Functions cannot be called with a schema name")
             if isinstance(function, exp.Anonymous):
-                allowed = function.name.lower() in ALLOWED_OTHER_FUNCTIONS
+                # A quoted name is case-sensitive ("MyFunc" is not myfunc) and sqlglot does not rebuild it faithfully,
+                # so only plain, unquoted names count as the built-ins on the list.
+                allowed = isinstance(function.this, str) and function.this.lower() in ALLOWED_OTHER_FUNCTIONS
             else:
                 allowed = function.key in ALLOWED_FUNCTIONS
             if not allowed:
                 name = function.name if isinstance(function, exp.Anonymous) else function.key
                 raise UnsafeQuery(f"The function {name} is not allowed")
 
+        # Every type written in the query: cast targets (CAST, ::, typed literals) and anything nested inside them.
+        for cast in tree.find_all(exp.Cast):
+            _check_type(cast.args.get("to"))
+        for node in tree.find_all(exp.DataType, exp.ObjectIdentifier, exp.PseudoType):
+            _check_type(node)
+
         return tree.sql(dialect="postgres")
+
+
+def _check_type(node: exp.Expression | None) -> None:
+    """An allowed scalar type, with at most the size modifiers it takes, each a plain number."""
+    if (
+        type(node) is exp.DataType  # not ObjectIdentifier (regclass, oid, ...) or another subclass
+        and node.this in ALLOWED_TYPES
+        and len(node.expressions) <= _MAX_MODIFIERS.get(node.this, 0)
+        and all(_is_size(modifier) for modifier in node.expressions)
+    ):
+        return
+    raise UnsafeQuery("Casting to this type is not allowed")
+
+
+def _is_size(modifier: exp.Expression) -> bool:
+    value = modifier.this if isinstance(modifier, exp.DataTypeParam) else None
+    return isinstance(value, exp.Literal) and not value.is_string and str(value.this).isdigit()
 
 
 def _name(identifier: exp.Expression | None) -> str | None:

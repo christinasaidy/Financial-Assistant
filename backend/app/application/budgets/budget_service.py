@@ -19,7 +19,7 @@ class BudgetService:
         """Set a category's budget from `month` onwards. Earlier months keep their amount."""
         validate_limit(request.limit_amount)
         month, _ = month_range(request.year, request.month)
-        with self._uow(user_id) as work:
+        with self._uow(user_id, serialized=True) as work:  # checks budget alerts: see UnitOfWorkFactory
             if request.category_id not in {category.id for category in work.categories.list_all()}:
                 raise InvalidBudget("Unknown category")
             work.budgets.set(request.category_id, month, request.currency, request.limit_amount)

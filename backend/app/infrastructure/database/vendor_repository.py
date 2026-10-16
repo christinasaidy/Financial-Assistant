@@ -16,7 +16,19 @@ class SqlVendorRepository:
         existing_id = self.find_by_name(name)
         if existing_id is not None:
             return existing_id
-        return self._conn.execute(
-            text("INSERT INTO vendors (user_id, name) VALUES (app_user_id(), btrim(:name)) RETURNING id"),
+        # Another transaction may be creating the same vendor right now. ON CONFLICT waits for it and then inserts
+        # nothing instead of failing (which would abort this transaction and lose the receipt being saved); the
+        # vendor it created is then found by the next statement, which sees committed rows.
+        created_id = self._conn.execute(
+            text(
+                "INSERT INTO vendors (user_id, name) VALUES (app_user_id(), btrim(:name)) "
+                "ON CONFLICT (user_id, lower(btrim(name))) DO NOTHING RETURNING id"
+            ),
             {"name": name},
-        ).scalar_one()
+        ).scalar_one_or_none()
+        if created_id is not None:
+            return created_id
+        existing_id = self.find_by_name(name)
+        if existing_id is None:
+            raise RuntimeError(f"Vendor {name!r} conflicted on insert but cannot be found")
+        return existing_id
