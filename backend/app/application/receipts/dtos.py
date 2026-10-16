@@ -33,5 +33,5 @@ class ReceiptView:
     flags: list[str]
 
 
-def to_view(receipt: Receipt) -> ReceiptView:
-    return ReceiptView(receipt=receipt, flags=review_flags(receipt))
+def to_view(receipt: Receipt, today: date) -> ReceiptView:
+    return ReceiptView(receipt=receipt, flags=review_flags(receipt, today))

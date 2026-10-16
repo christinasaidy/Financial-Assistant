@@ -1,6 +1,7 @@
 import logging
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import replace
+from datetime import date
 from decimal import Decimal
 
 from app.application.notifications.budget_alerts import BudgetAlerts
@@ -35,12 +36,14 @@ class ReceiptService:
         extractor: ReceiptExtractor,
         default_lbp_per_usd: Decimal,
         alerts: BudgetAlerts,
+        today: Callable[[], date] = date.today,
     ) -> None:
         self._uow = uow
         self._storage = storage
         self._extractor = extractor
         self._default_lbp_per_usd = default_lbp_per_usd  # saved on receipts confirmed without a rate
         self._alerts = alerts  # budget notifications, checked after anything that changes spending
+        self._today = today  # for the future-date review flag
 
     # --- upload and background reading ---
 
@@ -63,7 +66,7 @@ class ReceiptService:
                 self._storage.delete(path)  # don't leave a file with no receipt
                 raise
         assert receipt is not None
-        return to_view(receipt)
+        return to_view(receipt, self._today())
 
     def process(self, user_id: int, receipt_id: int) -> None:
         """Read an uploaded receipt with the vision model and save the result as a draft for review."""
@@ -114,7 +117,7 @@ class ReceiptService:
             self._apply_confirmation(work, receipt, request)
             confirmed = work.receipts.get(receipt_id)
         assert confirmed is not None
-        return to_view(confirmed)
+        return to_view(confirmed, self._today())
 
     def create_manual(self, user_id: int, request: ConfirmReceiptRequest) -> ReceiptView:
         """Fully manual entry: a receipt with no file, typed in and confirmed in one step."""
@@ -125,7 +128,7 @@ class ReceiptService:
             self._apply_confirmation(work, draft, request)
             confirmed = work.receipts.get(receipt_id)
         assert confirmed is not None
-        return to_view(confirmed)
+        return to_view(confirmed, self._today())
 
     # --- reading and deleting ---
 
@@ -134,7 +137,7 @@ class ReceiptService:
             receipt = work.receipts.get(receipt_id)
         if receipt is None:
             raise ReceiptNotFound
-        return to_view(receipt)
+        return to_view(receipt, self._today())
 
     def list_all(self, user_id: int) -> list[Receipt]:
         """The user's receipts, newest first, without their lines."""

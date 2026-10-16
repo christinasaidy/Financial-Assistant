@@ -19,7 +19,8 @@ Return the receipt as JSON that follows the schema.
 
 Rules:
 - vendor_name: the shop's name as a short display name (e.g. "Spinneys"), not the branch or address.
-- receipt_date: the purchase date as YYYY-MM-DD.
+- receipt_date: the purchase date as YYYY-MM-DD. Lebanese receipts write the day first (DD/MM/YYYY):
+  10/05/2026 is 10 May 2026, not 5 October.
 - currency: "USD" or "LBP". Use the currency the total is printed in.
 - total: the final amount paid, as a plain number.
 - lines: one entry per purchased product. Do not include tax, discount, subtotal or payment lines.

@@ -34,18 +34,36 @@ class BudgetStatusCalculator:
         names = {category.id: category.name for category in work.categories.list_all()}
 
         # Category spending (tax and discounts excluded) in each currency a budget is set in.
+        currencies = {budget.currency for budget in applying.values()}
         spent_by_currency = {
             currency: combined_breakdown(receipts, currency, self._default_lbp_per_usd).by_category
-            for currency in {budget.currency for budget in applying.values()}
+            for currency in currencies
+        }
+        # Pace is "spent so far": a receipt dated after today is almost always a misread or mistyped date, so it
+        # must not inflate the projection (agreed 2026-10-16). The month's spent amount still counts every receipt.
+        today = self.today()
+        so_far = [r for r in receipts if r.receipt_date is not None and r.receipt_date <= today]
+        spent_so_far_by_currency = {
+            currency: combined_breakdown(so_far, currency, self._default_lbp_per_usd).by_category
+            for currency in currencies
         }
         statuses = [
-            self._status(budget, month, names.get(budget.category_id, ""), spent_by_currency[budget.currency])
+            self._status(
+                budget,
+                month,
+                names.get(budget.category_id, ""),
+                spent_by_currency[budget.currency],
+                spent_so_far_by_currency[budget.currency],
+            )
             for budget in applying.values()
         ]
         return sorted(statuses, key=lambda status: status.category_name)
 
-    def _status(self, budget: Budget, month: date, name: str, spent_by_category: dict) -> BudgetStatus:
+    def _status(
+        self, budget: Budget, month: date, name: str, spent_by_category: dict, spent_so_far_by_category: dict
+    ) -> BudgetStatus:
         spent = spent_by_category.get(budget.category_id, Decimal(0)).quantize(CENT, ROUND_HALF_UP)
+        spent_so_far = spent_so_far_by_category.get(budget.category_id, Decimal(0)).quantize(CENT, ROUND_HALF_UP)
         return BudgetStatus(
             category_id=budget.category_id,
             category_name=name,
@@ -57,15 +75,15 @@ class BudgetStatusCalculator:
             remaining=budget.limit_amount - spent,
             percent_used=(spent / budget.limit_amount * 100).quantize(ONE_DECIMAL, ROUND_HALF_UP),
             state=budget_state(spent, budget.limit_amount),
-            pace=self._pace(month, spent, budget.limit_amount),
+            pace=self._pace(month, spent_so_far, budget.limit_amount),
         )
 
-    def _pace(self, month: date, spent: Decimal, limit_amount: Decimal) -> Pace | None:
+    def _pace(self, month: date, spent_so_far: Decimal, limit_amount: Decimal) -> Pace | None:
         today = self.today()
         if (today.year, today.month) != (month.year, month.month):
             return None  # past months show what was spent; future months have nothing to project
         days_in_month = calendar.monthrange(today.year, today.month)[1]
-        projection = project_month_end(spent, today.day, days_in_month)
+        projection = project_month_end(spent_so_far, today.day, days_in_month)
         projected = projection.projected.quantize(CENT, ROUND_HALF_UP)
         return Pace(
             projected=projected, low_confidence=projection.low_confidence, projected_over=projected > limit_amount

@@ -119,3 +119,20 @@ def test_impossible_months_are_refused_not_crashed(client, alice, month):
 def test_ordinary_december_january_and_leap_months_work(client, alice, month):
     assert client.get("/spending/summary", params={"month": month}, headers=alice).status_code == 200
     assert client.get("/budgets", params={"month": month}, headers=alice).status_code == 200
+
+
+# --- A receipt dated after today is flagged on review (agreed 2026-10-16) ---
+
+
+def test_a_future_date_is_flagged_but_still_saved(engine, tmp_path, alice):
+    settings = Settings()
+    container = build_container(
+        settings, extractor=FakeReceiptExtractor(SPINNEYS), storage=LocalFileStorage(tmp_path),
+        today=lambda: date(2026, 10, 10),
+    )  # fmt: skip
+    client = TestClient(create_app(container))
+    future = manual(client, alice, receipt_date="2026-10-25")
+    assert future.status_code == 201  # a flag warns, it never blocks
+    assert "future_date" in future.json()["flags"]
+    assert "future_date" in client.get(f"/receipts/{future.json()['id']}", headers=alice).json()["flags"]
+    assert "future_date" not in manual(client, alice, receipt_date="2026-10-10", total="2.00").json()["flags"]

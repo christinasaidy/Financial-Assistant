@@ -245,3 +245,11 @@ def test_notification_endpoints_need_a_token(client):
     assert client.get("/notifications/unread-count").status_code == 401
     assert client.post("/notifications/1/read").status_code == 401
     assert client.post("/notifications/read-all").status_code == 401
+
+
+def test_a_future_dated_receipt_does_not_cause_a_pace_warning(client, alice, groceries):
+    # On 12 October: $100 dated the 5th is on pace for $258; a misdated $200 on the 25th must not change that.
+    set_budget(client, alice, groceries, "400")
+    add(client, alice, "100", groceries, day="2026-10-05")
+    add(client, alice, "200", groceries, day="2026-10-25")
+    assert budget_kinds(client, alice) == []  # 75% is under "near", and pace up to today is under the limit

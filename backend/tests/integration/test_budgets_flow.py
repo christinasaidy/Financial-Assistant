@@ -251,3 +251,19 @@ def test_budget_endpoints_need_a_token(client):
     assert client.get("/budgets").status_code == 401
     assert client.put("/budgets/1", json={"month": "2026-10", "limit_amount": "1"}).status_code == 401
     assert client.delete("/budgets/1").status_code == 401
+
+
+# --- Pace counts only spending dated up to today (code review finding 14, agreed 2026-10-16) ---
+
+
+def test_pace_ignores_receipts_dated_after_today(client_on, alice, ids):
+    # The example from 2026-10-16: on 10 October, $100 dated the 5th and $200 dated the 25th.
+    client = client_on(date(2026, 10, 10))
+    g = ids["Groceries"]
+    set_budget(client, alice, g, "2026-10", "400")
+    add(client, alice, "2026-10-05", "100.00", category=g)
+    add(client, alice, "2026-10-25", "200.00", category=g)
+
+    groceries = budgets(client, alice, "2026-10")["Groceries"]
+    assert groceries["spent"] == "300.00"  # the month still counts every receipt
+    assert groceries["pace"] == {"projected": "310.00", "low_confidence": False, "projected_over": False}

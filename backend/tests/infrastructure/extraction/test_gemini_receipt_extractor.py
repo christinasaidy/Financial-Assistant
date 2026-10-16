@@ -46,6 +46,7 @@ def test_sends_the_file_and_parses_the_answer():
     file_part, text_part = seen["body"]["contents"][0]["parts"]
     assert file_part["inline_data"] == {"mime_type": "image/jpeg", "data": base64.b64encode(b"image-bytes").decode()}
     assert "Groceries, Dining" in text_part["text"]
+    assert "day first (DD/MM/YYYY)" in text_part["text"]  # Lebanese receipts: 10/05 is 10 May
     assert seen["body"]["generationConfig"]["responseMimeType"] == "application/json"
 
 
