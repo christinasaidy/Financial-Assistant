@@ -12,6 +12,7 @@ from sqlalchemy import text
 
 from app.api.app import create_app
 from app.domain.receipts.extraction import ExtractedLine, ExtractedReceipt
+from app.domain.receipts.normalization import MAX_NAME_WORDS
 from app.infrastructure.config import Settings
 from app.infrastructure.database.connection import user_scoped_connection
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
@@ -210,4 +211,32 @@ def test_known_item_names_respects_the_limit(engine, client, sign_in):
     alice, alice_id = sign_in()
     confirm_manually(client, alice, [("a", None, None), ("b", None, None), ("c", None, None)])
     with user_scoped_connection(engine, alice_id) as conn:
-        assert SqlReceiptRepository(conn).known_item_names(2) == ["c", "b"]
+        assert SqlReceiptRepository(conn).known_item_names(2, MAX_NAME_WORDS) == ["c", "b"]
+
+
+# --- Third review (2026-10-18), issue 3: the 1-3 word rule is applied before the 200 limit, not after ---
+
+
+def test_older_short_names_are_offered_even_after_many_newer_long_ones(client, sign_in, extractor):
+    # Before the fix the 400 newest names were read and then filtered, so 401 newer 4-word names hid "milk".
+    alice, _ = sign_in()
+    confirm_manually(client, alice, [("milk", None, None), ("olive oil", None, None)])
+    confirm_manually(client, alice, [(f"brand x long name{i}", None, None) for i in range(401)])  # 4 words, newer
+    read_by_model(client, alice, extractor, line("tea"))
+    assert extractor.known_names == ["olive oil", "milk"]  # most recently used first
+
+
+def test_at_most_200_names_are_offered_most_recent_first(client, sign_in, extractor):
+    alice, _ = sign_in()
+    confirm_manually(client, alice, [(f"item{i}", None, None) for i in range(205)])
+    read_by_model(client, alice, extractor, line("tea"))
+    assert extractor.known_names == [f"item{i}" for i in range(204, 4, -1)]  # the 200 newest of 205
+
+
+def test_the_database_and_python_agree_on_which_names_are_short_enough(engine, client, sign_in):
+    alice, alice_id = sign_in()
+    names = ["milk", "olive oil", "extra virgin olive", "extra virgin olive oil", "a b c d e", "pâté de campagne"]
+    confirm_manually(client, alice, [(name, None, None) for name in names])
+    with user_scoped_connection(engine, alice_id) as conn:
+        in_sql = SqlReceiptRepository(conn).known_item_names(10, MAX_NAME_WORDS)
+    assert sorted(in_sql) == sorted(name for name in names if len(name.split()) <= MAX_NAME_WORDS)

@@ -47,11 +47,16 @@ class LocalFileStorage:
         folder = self._base / str(int(user_id))
         if not folder.is_dir() or folder.is_symlink():
             return []
-        return [
-            StoredFile(f"{int(user_id)}/{file.name}", datetime.fromtimestamp(file.stat().st_mtime, UTC))
-            for file in sorted(folder.iterdir())
-            if file.is_file() and not file.is_symlink() and _OWN_FILE.fullmatch(file.name)
-        ]
+        files = []
+        for file in sorted(folder.iterdir()):
+            if not (file.is_file() and not file.is_symlink() and _OWN_FILE.fullmatch(file.name)):
+                continue
+            try:
+                modified = file.stat().st_mtime
+            except FileNotFoundError:
+                continue  # removed meanwhile (a receipt deleted, another clean-up): nothing left to list
+            files.append(StoredFile(f"{int(user_id)}/{file.name}", datetime.fromtimestamp(modified, UTC)))
+        return files
 
     def read(self, path: str) -> bytes:
         return self._resolve(path).read_bytes()

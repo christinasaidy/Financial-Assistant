@@ -81,8 +81,9 @@ class ReceiptRepository(Protocol):
         """For each name key (see `normalization.name_key`: the same words in any order), the categories the user
         confirmed for lines with that key before, oldest first."""
 
-    def known_item_names(self, limit: int) -> list[str]:
-        """The user's distinct item names on confirmed receipts, most recently used first, at most `limit`."""
+    def known_item_names(self, limit: int, max_words: int) -> list[str]:
+        """The user's distinct item names of at most `max_words` words on confirmed receipts, most recently used
+        first, at most `limit`. The word limit is applied before `limit`, so long names never crowd out short ones."""
 
 
 class VendorRepository(Protocol):

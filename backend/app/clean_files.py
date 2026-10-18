@@ -5,6 +5,12 @@
 
 Only files the app stored itself (its own random names, in a numbered user folder under UPLOAD_DIR), older than
 24 hours, and not referenced by any of that user's receipts are touched. See ReceiptService.find_orphaned_files.
+
+Not coordinated with uploads: an upload whose transaction is still open after 24 hours would have its file listed.
+That is very unlikely but not impossible, so run this by hand at a quiet time, check the dry run, then --delete.
+Unattended, scheduled clean-up would first need uploads and clean-up to share a per-user lock: an upload holding it
+from saving the file until its transaction ends, and the clean-up holding it while it lists, checks and deletes.
+A lock taken by the clean-up alone would not protect an upload. Not built.
 """
 
 import argparse

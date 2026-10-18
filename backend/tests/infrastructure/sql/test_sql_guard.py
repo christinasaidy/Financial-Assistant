@@ -45,7 +45,6 @@ LEGITIMATE_CTES = [
     "WITH a AS (SELECT * FROM receipts), b AS (SELECT * FROM a) SELECT * FROM b",  # a later CTE uses an earlier one
     "SELECT * FROM (WITH t AS (SELECT * FROM purchases) SELECT * FROM t) s",  # used inside its own subquery
     "WITH t AS (SELECT * FROM receipts) SELECT * FROM t WHERE receipt_id IN (SELECT receipt_id FROM t)",
-    "WITH RECURSIVE n AS (SELECT 1 AS i UNION ALL SELECT i + 1 FROM n WHERE i < 3) SELECT * FROM n",
     'WITH "t" AS (SELECT * FROM receipts) SELECT * FROM t',  # quoted lower-case is the same name
     'SELECT * FROM "receipts"',
     "SELECT * FROM receipts r WHERE EXISTS (SELECT 1 FROM purchases p WHERE p.receipt_id = r.receipt_id)",
@@ -271,3 +270,111 @@ def test_the_cte_scope_rule_still_holds_alongside_the_new_checks():
     with pytest.raises(UnsafeQuery):
         guard.check("WITH x AS (WITH pg_class AS (SELECT 1) SELECT * FROM pg_class) SELECT relname::text FROM pg_class")
     guard.check("WITH t AS (SELECT total::numeric(10, 2) AS t FROM receipts) SELECT initcap(t::text) FROM t")
+
+
+# --- Third review (2026-10-18), issue 1: bound how much data a query can manufacture ---
+# None of these is executed: the checker refuses them before they reach the database.
+
+ALLOWED_SIZES = [
+    "SELECT vendor::varchar(255), vendor::char(1), CAST(vendor AS varchar(20)) FROM receipts",
+    "SELECT total::numeric(38, 10), total::numeric(18, 2), total::numeric(38) FROM receipts",
+    "SELECT receipt_date::timestamp(6), receipt_date::timestamptz(0), '12:00'::time(3) FROM receipts",
+    "SELECT " + ", ".join(f"total AS c{i}" for i in range(50)) + " FROM receipts",  # column count is the runner's job
+]
+
+
+@pytest.mark.parametrize("sql", ALLOWED_SIZES)
+def test_ordinary_type_sizes_are_allowed(sql):
+    guard.check(sql)
+
+
+REFUSED_SIZES = {
+    # The review's example: 201 rows of char(10000000), about 2 GB with no receipt data at all.
+    "review example": "WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 201) "
+                      "SELECT CAST(i AS char(10000000)) FROM n",
+    "huge char without recursion": "SELECT CAST(total AS char(10000000)) FROM receipts",
+    "char just over the limit": "SELECT vendor::char(256) FROM receipts",
+    "varchar just over the limit": "SELECT vendor::varchar(256) FROM receipts",
+    "zero length": "SELECT vendor::varchar(0) FROM receipts",
+    "numeric precision over 38": "SELECT total::numeric(39, 2) FROM receipts",
+    "numeric scale over precision": "SELECT total::numeric(10, 11) FROM receipts",
+    "numeric precision 0": "SELECT total::numeric(0) FROM receipts",
+    "timestamp precision over 6": "SELECT receipt_date::timestamp(7) FROM receipts",
+    "time precision over 6": "SELECT '12:00'::time(99) FROM receipts",
+    "nested huge cast": "SELECT CAST(CAST(total AS char(100000)) AS text) FROM receipts",
+}
+
+
+@pytest.mark.parametrize("sql", REFUSED_SIZES.values(), ids=REFUSED_SIZES.keys())
+def test_oversized_type_modifiers_are_refused(sql):
+    with pytest.raises(UnsafeQuery):
+        guard.check(sql)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        # Recursion is the one construct that manufactures unbounded rows or values from nothing; a spending question
+        # over three views never needs it. (It was allowed before the third review.)
+        "WITH RECURSIVE n AS (SELECT 1 AS i UNION ALL SELECT i + 1 FROM n WHERE i < 3) SELECT * FROM n",
+        "WITH RECURSIVE n(s) AS (SELECT 'x' UNION ALL SELECT s || s FROM n WHERE length(s) < 100000000) "
+        "SELECT length(s) FROM n",  # doubles a string every round: no modifier needed
+        "SELECT * FROM (WITH RECURSIVE n AS (SELECT 1 AS i UNION ALL SELECT i + 1 FROM n) SELECT i FROM n) s",
+    ],
+    ids=["small recursion", "string doubling", "recursion in a subquery"],
+)
+def test_recursive_queries_are_refused(sql):
+    with pytest.raises(UnsafeQuery, match="[Rr]ecursive"):
+        guard.check(sql)
+
+
+def test_oversized_sql_text_is_refused_before_it_is_parsed():
+    with pytest.raises(UnsafeQuery, match="too long"):
+        guard.check("SELECT total FROM receipts WHERE vendor = '" + "x" * 10_000 + "'")
+    guard.check("SELECT total FROM receipts WHERE vendor = '" + "x" * 9_000 + "'")  # long but within the limit
+
+
+# --- Third review, issue 2: ordinary CASE expressions ---
+
+ALLOWED_CASES = [
+    # The review's example: a conditional total.
+    "SELECT COALESCE(SUM(CASE WHEN currency = 'USD' THEN total ELSE 0 END), 0) FROM receipts",
+    "SELECT CASE currency WHEN 'USD' THEN 1 WHEN 'LBP' THEN 2 END FROM receipts",  # simple CASE
+    "SELECT SUM(CASE WHEN receipt_date >= DATE '2026-10-01' THEN total_usd END) AS this_month, "
+    "SUM(CASE WHEN receipt_date < DATE '2026-10-01' THEN total_usd END) AS before FROM receipts",
+    "SELECT CASE WHEN total > 100 THEN CASE WHEN currency = 'USD' THEN 'big usd' ELSE 'big' END ELSE 'small' END "
+    "FROM receipts",  # nested
+    "SELECT vendor FROM receipts WHERE CASE WHEN currency = 'USD' THEN total ELSE total_usd END > 10 "
+    "ORDER BY CASE WHEN vendor IS NULL THEN 1 ELSE 0 END",
+    "SELECT CASE WHEN EXISTS (SELECT 1 FROM purchases p WHERE p.receipt_id = r.receipt_id) THEN 'items' END "
+    "FROM receipts r",
+]
+
+
+@pytest.mark.parametrize("sql", ALLOWED_CASES)
+def test_ordinary_case_expressions_are_allowed(sql):
+    assert "CASE" in guard.check(sql)
+
+
+REFUSED_CASES = {
+    "forbidden function in THEN": "SELECT CASE WHEN total > 0 THEN pg_sleep(10) END FROM receipts",
+    "forbidden function in WHEN": "SELECT CASE WHEN set_config('app.user_id', '7', true) = '7' THEN 1 END "
+                                  "FROM receipts",
+    "forbidden function in ELSE": "SELECT CASE WHEN total > 0 THEN 1 ELSE current_setting('app.user_id') END "
+                                  "FROM receipts",
+    "forbidden function in the simple CASE value": "SELECT CASE current_setting('app.user_id') WHEN '1' THEN 1 END",
+    "catalog cast in a branch": "SELECT CASE WHEN total > 0 THEN 'users'::regclass::text END FROM receipts",
+    "huge cast in a branch": "SELECT CASE WHEN total > 0 THEN vendor::char(100000) END FROM receipts",
+    "users table in a branch": "SELECT CASE WHEN total > 0 THEN (SELECT email FROM users LIMIT 1) END FROM receipts",
+    "qualified function in a branch": "SELECT CASE WHEN total > 0 THEN public.lower(vendor) END FROM receipts",
+    "forbidden function in a nested CASE": "SELECT CASE WHEN total > 0 THEN CASE WHEN true THEN pg_sleep(1) END END "
+                                           "FROM receipts",
+    "IF(), which PostgreSQL does not have": "SELECT IF(total > 0, 1, 0) FROM receipts",
+    "IIF()": "SELECT IIF(total > 0, 1, 0) FROM receipts",
+}
+
+
+@pytest.mark.parametrize("sql", REFUSED_CASES.values(), ids=REFUSED_CASES.keys())
+def test_case_does_not_hide_anything_forbidden(sql):
+    with pytest.raises(UnsafeQuery):
+        guard.check(sql)
