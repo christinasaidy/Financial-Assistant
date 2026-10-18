@@ -392,3 +392,36 @@ def test_a_mistake_in_allowed_sql_is_reported_not_crashed(container, alice_with_
     _, alice = alice_with_receipts
     with pytest.raises(QueryFailed, match="no_such_column"):
         container.assistant.run_query(alice, "SELECT no_such_column FROM receipts")
+
+
+# --- Third review (2026-10-18), issue 1: limits the runner applies with the database's help ---
+
+
+def test_too_many_columns_are_refused_before_any_row_is_produced(settings, alice_with_receipts):
+    _, alice = alice_with_receipts
+    runner = SqlReadOnlyQueryRunner(create_db_engine(settings.readonly_database_url), max_columns=3)
+    # Row 1 divides by zero. Being told "too many columns" rather than "division by zero" shows the column check ran on
+    # the cursor's description, before the database computed (or sent) a single row.
+    with pytest.raises(QueryFailed, match="columns"):
+        runner.run(alice, "SELECT 1 / (n - 1) AS a, n AS b, n AS c, n AS d FROM generate_series(1, 5) AS n")
+    assert runner.run(alice, "SELECT n AS a, n AS b, n AS c FROM generate_series(1, 2) AS n").columns == ["a", "b", "c"]
+
+
+def test_a_result_larger_than_the_byte_limit_is_refused(settings, alice_with_receipts):
+    _, alice = alice_with_receipts
+    runner = SqlReadOnlyQueryRunner(create_db_engine(settings.readonly_database_url), max_result_bytes=100)
+    # 10 rows of a 9-character string = 90 bytes: kept. 12 rows = 108 bytes: refused. Both are tiny on purpose.
+    assert len(runner.run(alice, "SELECT 'xxxxxxxxx' FROM generate_series(1, 10)").rows) == 10
+    with pytest.raises(QueryFailed, match="too large"):
+        runner.run(alice, "SELECT 'xxxxxxxxx' FROM generate_series(1, 12)")
+
+
+def test_the_default_limits_allow_ordinary_queries(container, alice_with_receipts):
+    _, alice = alice_with_receipts
+    result = container.assistant.run_query(
+        alice,
+        "SELECT COALESCE(SUM(CASE WHEN currency = 'USD' THEN total ELSE 0 END), 0) AS usd, "
+        "CAST(SUM(total_usd) AS numeric(18, 2)) AS all_usd, MAX(vendor)::varchar(255) AS last_vendor FROM receipts",
+    )
+    usd, all_usd, _ = result.rows[0]
+    assert (usd, all_usd) == (Decimal("46.50"), Decimal("56.50"))  # 23 + 15 + 8.50 in USD; plus the $10 LBP receipt

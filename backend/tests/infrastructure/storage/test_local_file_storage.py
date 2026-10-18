@@ -76,3 +76,37 @@ def test_only_files_this_storage_named_are_listed(tmp_path):
     assert sorted(file.path for file in storage.list_files(7)) == sorted([saved, f"7/{partial}"])
     assert storage.list_files(8) == []
     assert all(file.modified_at.tzinfo is not None for file in storage.list_files(7))
+
+
+# --- Third review (2026-10-18), issue 4: a file removed while the folder is being listed ---
+
+
+def test_a_file_removed_during_listing_is_skipped_and_the_rest_are_still_listed(tmp_path, monkeypatch):
+    storage = LocalFileStorage(tmp_path)
+    kept = [storage.save(7, b"a", ".jpg"), storage.save(7, b"b", ".png")]
+    vanishing = storage.save(7, b"c", ".pdf")
+    real_is_file = Path.is_file
+
+    def is_file_then_removed(self, *args, **kwargs):
+        result = real_is_file(self, *args, **kwargs)
+        if self.name == vanishing.split("/")[1]:
+            self.unlink()  # another request deletes it right after it was seen
+        return result
+
+    monkeypatch.setattr(Path, "is_file", is_file_then_removed)
+    assert sorted(file.path for file in storage.list_files(7)) == sorted(kept)
+
+
+def test_other_errors_while_listing_are_not_hidden(tmp_path, monkeypatch):
+    storage = LocalFileStorage(tmp_path)
+    storage.save(7, b"a", ".jpg")
+    real_stat = Path.stat
+
+    def denied(self, *args, **kwargs):
+        if self.suffix == ".jpg":
+            raise PermissionError("access denied")
+        return real_stat(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "stat", denied)
+    with pytest.raises(PermissionError):
+        storage.list_files(7)

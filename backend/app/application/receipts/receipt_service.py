@@ -13,6 +13,7 @@ from app.domain.receipts.errors import DuplicateReceipt, ExtractionFailed, Inval
 from app.domain.receipts.extraction import ExtractedReceipt, rounded_for_storage, to_draft_lines
 from app.domain.receipts.files import content_type_for, extension_for, file_hash, validate_size
 from app.domain.receipts.normalization import (
+    MAX_NAME_WORDS,
     clean_extracted_name,
     name_key,
     names_for_prompt,
@@ -31,7 +32,7 @@ ORPHAN_MIN_AGE = timedelta(hours=24)
 # The statuses a receipt may be claimed for reading from, as the state machine allows (only `uploaded` today).
 _CLAIMABLE = tuple(status for status in ReceiptStatus if can_transition(status, ReceiptStatus.PROCESSING))
 # How many of the user's item names the model is given to reuse (decision approved 2026-10-16; a judgment that keeps
-# the prompt short, not measured). Twice as many are read, because names longer than 3 words are skipped.
+# the prompt short, not measured).
 KNOWN_NAMES_LIMIT = 200
 
 
@@ -93,7 +94,8 @@ class ReceiptService:
             if claim is None:
                 return
             categories = work.categories.list_all()
-            known_names = names_for_prompt(work.receipts.known_item_names(2 * KNOWN_NAMES_LIMIT), KNOWN_NAMES_LIMIT)
+            recent = work.receipts.known_item_names(KNOWN_NAMES_LIMIT, MAX_NAME_WORDS)
+            known_names = names_for_prompt(recent, KNOWN_NAMES_LIMIT)  # the domain rule stays the authority
 
         # The model call is slow, so it runs outside any database transaction.
         extracted = self._extract(
@@ -103,8 +105,10 @@ class ReceiptService:
             self._mark_failed(user_id, receipt_id, claim.attempt)
             return
 
-        # From here the receipt is `processing`. Whatever goes wrong, it must end as `failed`
-        # so the user can still enter it by hand, never stay stuck.
+        # From here the receipt is `processing`. Any error building or saving the draft is caught and the receipt is
+        # marked `failed`, so the user can enter it by hand. That is a best effort, not a guarantee: if the database
+        # is unreachable or the failure's own commit fails, or the process dies, the receipt stays `processing`. No
+        # recovery job exists yet (deferred, third code review); the attempt number makes one safe to add later.
         try:
             extracted = rounded_for_storage(extracted)
             with self._uow(user_id) as work:
@@ -182,9 +186,13 @@ class ReceiptService:
 
     def find_orphaned_files(self) -> dict[int, list[str]]:
         """Stored files that no receipt points at, by user: left by an upload whose save failed, a file that could
-        not be removed when its receipt was deleted, or a half-written file. Only files older than ORPHAN_MIN_AGE
-        count, so an upload still being saved is never one. A committed receipt always points at its file, so a
-        valid receipt's image is never listed (second code review, finding 11)."""
+        not be removed when its receipt was deleted, or a half-written file. A receipt committed before the check
+        always points at its file, so its image is not listed (second code review, finding 11).
+
+        Limitation (third code review): only files older than ORPHAN_MIN_AGE count. That makes it very unlikely, but
+        does not guarantee, that a file belongs to no upload still being saved: an upload whose transaction stays
+        open past that age is not visible yet and its file would be listed. Nothing coordinates uploads with this
+        check; run the clean-up by hand, at a quiet time, and look at the dry run first."""
         cutoff = datetime.now(UTC) - ORPHAN_MIN_AGE
         orphans: dict[int, list[str]] = {}
         for user_id in self._storage.user_ids():
@@ -198,8 +206,9 @@ class ReceiptService:
         return orphans
 
     def remove_orphaned_files(self) -> dict[int, list[str]]:
-        """Remove what `find_orphaned_files` finds. Safe to run at any time: a file is never given to a new receipt
-        once stored (every upload gets a new random name). Returns what was actually removed."""
+        """Remove what `find_orphaned_files` finds, with the same limitation (an upload still uncommitted after
+        ORPHAN_MIN_AGE). A file is never given to a later receipt (every upload gets a new random name), so a file
+        that was a true orphan when checked stays one. Returns what was actually removed."""
         removed: dict[int, list[str]] = {}
         for user_id, paths in self.find_orphaned_files().items():
             if done := [path for path in paths if self._remove_file(path)]:
@@ -276,7 +285,7 @@ class ReceiptService:
     def _extract(
         self, receipt_id: int, file_path: str, category_names: Sequence[str], known_names: Sequence[str]
     ) -> ExtractedReceipt | None:
-        # Any failure here must end as status `failed`, never as a receipt stuck in `processing`.
+        # Any failure here returns None, and the caller marks the receipt `failed` (best effort, see `process`).
         try:
             content = self._storage.read(file_path)
             content_type = content_type_for(file_path)

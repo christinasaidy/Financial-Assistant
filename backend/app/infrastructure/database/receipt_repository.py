@@ -254,21 +254,25 @@ class SqlReceiptRepository:
             history.setdefault(row.key, []).append(row.category_id)
         return history
 
-    def known_item_names(self, limit: int) -> list[str]:
+    def known_item_names(self, limit: int, max_words: int) -> list[str]:
+        # The word count is filtered here, before LIMIT, so older short names are still found when many newer names
+        # are too long (third code review, issue 3), and at most `limit` names are ever loaded. Words are split on
+        # runs of whitespace after trimming, as Python's str.split() does; a test checks the two agree.
         return list(
             self._conn.execute(
                 text(
-                    """
+                    r"""
                     SELECT ri.normalized_name
                     FROM receipt_items ri
                     JOIN receipts r ON r.id = ri.receipt_id
                     WHERE r.status = 'confirmed' AND ri.normalized_name IS NOT NULL
+                      AND array_length(regexp_split_to_array(btrim(ri.normalized_name), '\s+'), 1) <= :max_words
                     GROUP BY ri.normalized_name
                     ORDER BY max(ri.id) DESC
                     LIMIT :limit
                     """
                 ),
-                {"limit": limit},
+                {"limit": limit, "max_words": max_words},
             ).scalars()
         )
 
