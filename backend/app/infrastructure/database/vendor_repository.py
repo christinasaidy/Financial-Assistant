@@ -12,6 +12,23 @@ class SqlVendorRepository:
             text("SELECT id FROM vendors WHERE lower(btrim(name)) = lower(btrim(:name))"), {"name": name}
         ).scalar_one_or_none()
 
+    def recent_names(self, limit: int) -> list[str]:
+        return list(
+            self._conn.execute(
+                text(
+                    """
+                    SELECT v.name
+                    FROM vendors v
+                    JOIN receipts r ON r.vendor_id = v.id AND r.status = 'confirmed'
+                    GROUP BY v.id, v.name
+                    ORDER BY max(r.id) DESC
+                    LIMIT :limit
+                    """
+                ),
+                {"limit": limit},
+            ).scalars()
+        )
+
     def find_or_create(self, name: str) -> int:
         existing_id = self.find_by_name(name)
         if existing_id is not None:

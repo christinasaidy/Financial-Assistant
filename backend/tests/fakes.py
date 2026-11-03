@@ -25,6 +25,37 @@ class FakeReceiptExtractor:
         return self.result
 
 
+class FakeAssistantModel:
+    """Gives the replies it was set up with, in order, and records every prompt. A reply that is an exception is
+    raised instead. A call it has no reply for fails the test, so a test also proves how many calls were made."""
+
+    sql_model = "fake-sql-model"
+    answer_model = "fake-answer-model"
+
+    def __init__(self, sql=(), answers=()) -> None:
+        self.sql_replies = list(sql)
+        self.answer_replies = list(answers)
+        self.sql_prompts: list[str] = []
+        self.answer_prompts: list[str] = []
+
+    def write_sql(self, prompt: str) -> str:
+        self.sql_prompts.append(prompt)
+        return self._next(self.sql_replies, "SQL")
+
+    def write_answer(self, prompt: str) -> str:
+        self.answer_prompts.append(prompt)
+        return self._next(self.answer_replies, "answer")
+
+    @staticmethod
+    def _next(replies: list, step: str) -> str:
+        if not replies:
+            raise AssertionError(f"The model was asked for an unexpected {step} reply")
+        reply = replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+
 class FakeHasher:
     """Fast and obviously not secure: only for tests."""
 

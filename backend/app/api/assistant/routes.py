@@ -1,4 +1,4 @@
-"""Conversation screens. Asking a question arrives with the question flow (phase 3)."""
+"""Asking questions (phase 3) and the conversation screens."""
 
 from datetime import datetime
 from typing import Literal
@@ -42,10 +42,13 @@ class MessageOut(BaseModel):
     role: str
     content: str
     created_at: datetime
-    kind: str | None  # assistant answers: answer, clarify, unsupported or error
+    kind: str | None  # assistant answers: answer, clarify, unsupported, reply or error
     sql: str | None  # the query that ran, for "show query"
     source_receipts: list[SourceReceiptOut]
     rating: str | None  # "up", "down" or none
+    # Only when the answer is shown as a table (no sentence passed the number check): the result, as text.
+    columns: list[str] | None = None
+    rows: list[list[str | None]] | None = None
 
     @classmethod
     def from_view(cls, message: MessageView) -> "MessageOut":
@@ -59,6 +62,8 @@ class MessageOut(BaseModel):
             sql=details.sql if details else None,
             source_receipts=[SourceReceiptOut(**vars(source)) for source in message.source_receipts],
             rating=message.rating.value if message.rating else None,
+            columns=list(details.columns) if details and details.columns is not None else None,
+            rows=[list(row) for row in details.rows] if details and details.rows is not None else None,
         )
 
 
@@ -68,6 +73,24 @@ class ConversationDetailOut(ConversationOut):
 
 class RatingIn(BaseModel):
     rating: Literal["up", "down"]
+
+
+class AskIn(BaseModel):
+    question: str
+    conversation_id: int | None = None  # leave out to start a new conversation
+
+
+class AnswerOut(MessageOut):
+    conversation_id: int  # the new conversation's id when none was given, for the follow-up questions
+
+
+@router.post("/ask", response_model=AnswerOut)
+def ask(
+    body: AskIn, user_id: int = Depends(get_current_user_id), container: Container = Depends(get_container)
+) -> AnswerOut:
+    """Answer a question and return the saved answer. Waits for the answer (a few seconds); no streaming."""
+    result = container.assistant.ask(user_id, body.conversation_id, body.question)
+    return AnswerOut(**MessageOut.from_view(result.answer).model_dump(), conversation_id=result.conversation_id)
 
 
 @router.get("/conversations", response_model=list[ConversationOut])

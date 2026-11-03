@@ -14,6 +14,31 @@ class QueryFailed(DomainError):
     default_message = "The query could not be run"
 
 
+class QueryRejected(DomainError):
+    """Generated SQL that is safe but breaks an answering rule: an item name matched loosely, a name the user
+    does not have, or the clock read directly instead of CURRENT_DATE. The model is asked to try again."""
+
+    default_message = "This query does not follow the answering rules"
+
+
+class UnusableReply(DomainError):
+    """A model reply that is not one of the allowed forms, or states a number it was not given."""
+
+    default_message = "The reply cannot be used"
+
+
+class ModelFailed(DomainError):
+    """The language model could not be reached or did not return a usable response."""
+
+    default_message = "The language model did not answer"
+
+
+class ModelUnavailable(ModelFailed):
+    """No language model is configured."""
+
+    default_message = "No language model is configured"
+
+
 class InvalidQuestion(DomainError):
     default_message = "Type a question"
 
