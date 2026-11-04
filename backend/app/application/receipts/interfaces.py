@@ -91,6 +91,9 @@ class VendorRepository(Protocol):
 
     def find_or_create(self, name: str) -> int: ...
 
+    def recent_names(self, limit: int) -> list[str]:
+        """The user's vendor names that appear on confirmed receipts, most recently used first, at most `limit`."""
+
 
 @dataclass(frozen=True)
 class StoredFile:

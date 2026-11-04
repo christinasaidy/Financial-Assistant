@@ -5,13 +5,15 @@ Run with:  uvicorn app.main:app --reload
 
 import logging
 from collections.abc import Callable
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI
 
 from app.api.app import create_app
 from app.api.container import Container
 from app.application.assistant.assistant_service import AssistantService
+from app.application.assistant.interfaces import AssistantModel
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.budgets.budget_status import BudgetStatusCalculator
@@ -28,8 +30,11 @@ from app.infrastructure.database.unit_of_work import SqlUnitOfWorkFactory
 from app.infrastructure.database.user_repository import SqlUserRepository
 from app.infrastructure.extraction.gemini_receipt_extractor import GeminiReceiptExtractor
 from app.infrastructure.extraction.unavailable_receipt_extractor import UnavailableReceiptExtractor
+from app.infrastructure.language_model.openai_compatible_assistant_model import OpenAiCompatibleAssistantModel
+from app.infrastructure.language_model.unavailable_assistant_model import UnavailableAssistantModel
 from app.infrastructure.security.password_hasher import Argon2PasswordHasher
 from app.infrastructure.security.token_service import JwtTokenService
+from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 
@@ -38,9 +43,10 @@ def build_container(
     settings: Settings,
     extractor: ReceiptExtractor | None = None,
     storage: FileStorage | None = None,
-    today: Callable[[], date] = date.today,
+    today: Callable[[], date] | None = None,
+    assistant_model: AssistantModel | None = None,
 ) -> Container:
-    """Wire the real implementations. Tests pass their own extractor, storage and today's date."""
+    """Wire the real implementations. Tests pass their own extractor, storage, language model and today's date."""
     if not settings.jwt_secret:
         raise RuntimeError("JWT_SECRET is not set (see backend/.env.example)")
 
@@ -53,6 +59,24 @@ def build_container(
             if settings.gemini_api_key
             else UnavailableReceiptExtractor()
         )
+
+    if assistant_model is None:
+        api_key = settings.assistant_api_key or settings.gemini_api_key
+        assistant_model = (
+            OpenAiCompatibleAssistantModel(
+                settings.assistant_base_url,
+                api_key,
+                settings.assistant_sql_model,
+                settings.assistant_answer_model,
+                timeout=settings.assistant_timeout_seconds,
+            )
+            if api_key
+            else UnavailableAssistantModel()
+        )
+    # The assistant's "today" is Beirut's date (the server's clock may be elsewhere); a test's date wins.
+    time_zone = ZoneInfo(settings.assistant_time_zone)
+    assistant_today = today or (lambda: datetime.now(time_zone).date())
+    today = today or date.today
 
     budget_status = BudgetStatusCalculator(settings.default_lbp_per_usd, today)
     # Generated SQL runs through its own read-only role (ai_readonly), never the app's connection.
@@ -74,7 +98,16 @@ def build_container(
         spending=SpendingService(uow, settings.default_lbp_per_usd),
         budgets=BudgetService(uow, budget_status, alerts),
         notifications=NotificationService(uow),
-        assistant=AssistantService(uow, SqlGlotGuard(), query_runner),
+        assistant=AssistantService(
+            uow,
+            SqlGlotGuard(),
+            query_runner,
+            SqlGlotQueryRules(),
+            assistant_model,
+            assistant_today,
+            settings.assistant_history_exchanges,
+            settings.assistant_history_characters,
+        ),
     )
 
 

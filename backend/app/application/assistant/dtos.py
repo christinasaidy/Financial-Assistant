@@ -39,3 +39,9 @@ class MessageView:
 class ConversationView:
     conversation: Conversation
     messages: list[MessageView]
+
+
+@dataclass(frozen=True)
+class AskResult:
+    conversation_id: int  # the new conversation's id when the question started one
+    answer: MessageView

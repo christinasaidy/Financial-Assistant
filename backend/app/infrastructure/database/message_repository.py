@@ -2,7 +2,15 @@ import json
 
 from sqlalchemy import Connection, text
 
-from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Message, MessageRole, Rating
+from app.domain.assistant.conversation import (
+    AnswerDetails,
+    AnswerKind,
+    Attempt,
+    Message,
+    MessageRole,
+    Rating,
+    Step,
+)
 
 
 class SqlMessageRepository:
@@ -68,6 +76,11 @@ def _to_metadata(details: AnswerDetails) -> dict[str, object]:
         "receipt_ids": list(details.receipt_ids),
         "row_count": details.row_count,
         "duration_ms": details.duration_ms,
+        "attempts": [
+            {"step": a.step.value, "model": a.model, "output": a.output, "problem": a.problem} for a in details.attempts
+        ],
+        "columns": list(details.columns) if details.columns is not None else None,
+        "rows": [list(row) for row in details.rows] if details.rows is not None else None,
     }
 
 
@@ -80,4 +93,10 @@ def _from_metadata(metadata: dict | None) -> AnswerDetails | None:
         receipt_ids=tuple(metadata.get("receipt_ids") or ()),
         row_count=metadata.get("row_count"),
         duration_ms=metadata.get("duration_ms"),
+        attempts=tuple(
+            Attempt(Step(a["step"]), a["model"], a.get("output"), a.get("problem"))
+            for a in metadata.get("attempts") or ()
+        ),
+        columns=tuple(metadata["columns"]) if metadata.get("columns") is not None else None,
+        rows=tuple(tuple(row) for row in metadata["rows"]) if metadata.get("rows") is not None else None,
     )
