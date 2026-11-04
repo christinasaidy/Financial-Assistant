@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # Temporary failures worth one more try after a short wait: rate limits and "overloaded" answers.
 RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 DEFAULT_WAIT = 2.0  # seconds before the one retry
-DEFAULT_TIMEOUT = 20.0  # seconds per call
+DEFAULT_TIMEOUT = 60.0  # seconds per call, like the receipt reader (Gemini often takes 15-20 s)
 
 
 class OpenAiCompatibleAssistantModel:

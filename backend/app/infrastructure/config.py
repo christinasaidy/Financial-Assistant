@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     assistant_api_key: str | None = None  # falls back to gemini_api_key
     assistant_sql_model: str = "gemini-3.5-flash-lite"
     assistant_answer_model: str = "gemini-3.5-flash-lite"
-    assistant_timeout_seconds: float = 20
+    assistant_timeout_seconds: float = 60  # Gemini calls took 16-20 s in the live run of 2026-11-04
     # How much of the chat is sent with a question: whole exchanges, the oldest dropped first. Starting values,
     # not tested ones: tune them in the evaluation.
     assistant_history_exchanges: int = 6
