@@ -20,7 +20,8 @@ class OpenAiCompatibleAssistantModel:
     the base URL, the key and the two model names (for vLLM, the SQL model is the LoRA adapter and the answer model is
     the same base model without it).
 
-    Every call uses temperature 0 and sends the prompt as one user message, exactly as `build_prompt` made it. A
+    Every call uses temperature 0 and sends the prompt as one user message, exactly as `build_prompt` made it.
+    `thinking` turns the model's thinking on or off (vLLM's chat_template_kwargs); None sends nothing. A
     temporary failure (429, 5xx, a timeout) is tried once more after a short wait; anything else, or a second
     failure, raises ModelFailed."""
 
@@ -31,6 +32,7 @@ class OpenAiCompatibleAssistantModel:
         sql_model: str,
         answer_model: str,
         timeout: float = DEFAULT_TIMEOUT,
+        thinking: bool | None = None,
         client: httpx.Client | None = None,
         wait: float = DEFAULT_WAIT,
         sleep: Callable[[float], None] = time.sleep,
@@ -39,6 +41,7 @@ class OpenAiCompatibleAssistantModel:
         self._api_key = api_key
         self.sql_model = sql_model
         self.answer_model = answer_model
+        self._thinking = thinking
         self._client = client or httpx.Client(timeout=timeout)
         self._wait = wait
         self._sleep = sleep
@@ -50,7 +53,9 @@ class OpenAiCompatibleAssistantModel:
         return self._complete(self.answer_model, prompt)
 
     def _complete(self, model: str, prompt: str) -> str:
-        body = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0}
+        body: dict = {"model": model, "messages": [{"role": "user", "content": prompt}], "temperature": 0}
+        if self._thinking is not None:  # vLLM passes this to the model's chat template (Qwen3: enable_thinking)
+            body["chat_template_kwargs"] = {"enable_thinking": self._thinking}
         try:
             return self._ask(body)
         except _Retryable as first:

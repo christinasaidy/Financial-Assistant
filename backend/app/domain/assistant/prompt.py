@@ -54,13 +54,15 @@ Rules:
 - Filter on brand = '<brand>' only when the user names a brand.
 - For dates use CURRENT_DATE, for example this month:
   receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+  "Last week" is the previous Monday to Sunday:
+  receipt_date >= date_trunc('week', CURRENT_DATE) - INTERVAL '1 week' AND receipt_date < date_trunc('week', CURRENT_DATE)
   Never use now() or CURRENT_TIMESTAMP.
 - For amounts, GROUP BY currency and return both the amount and its USD value, e.g.
   SELECT currency, SUM(amount) AS total_spent, SUM(amount_usd) AS total_spent_usd ... GROUP BY currency.
   If the user asks for dollars ("bel dollar"), return only the USD value.
 - What the user paid for an item: the latest price, or the average and range, with vendor and date.
-  Compare prices between shops per size (unit_price / size_amount) and only between lines with the same
-  size_unit and currency; also return how many purchases each figure is based on.
+  Compare prices between shops per 100 g or 100 ml (unit_price / size_amount * 100), only between lines with a
+  size, the same size_unit and the same currency; also return how many purchases each figure is based on.
 - Compute every difference, percentage or average in the query itself.
 - Use earlier questions in the chat to fill in what a follow-up leaves out ("and last month?"), but never reuse
   numbers from earlier answers."""

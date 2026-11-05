@@ -12,3 +12,6 @@ backend/uploads/
 agent_documentation/
 # Real receipt photos used for local testing; never commit them.
 backend/sample_receipts/
+
+# Evaluation runs (copy what the report needs; the runs themselves are not committed).
+research/evaluation/results/

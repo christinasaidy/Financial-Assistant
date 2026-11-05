@@ -1,6 +1,6 @@
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import date
 from decimal import Decimal
 
@@ -9,6 +9,7 @@ from app.application.assistant.dtos import (
     ConversationView,
     MessageView,
     QueryResult,
+    QuestionOutcome,
     SavedQuestion,
     SourceReceipt,
 )
@@ -100,21 +101,37 @@ class AssistantService:
         saved = self.save_question(user_id, conversation_id, question)
         question = clean_question(question)
         with self._uow(user_id) as work:
+            history = recent_exchanges(
+                work.messages.list_for(saved.conversation_id), self._history_exchanges, self._history_characters
+            )
+            waiting = work.receipts.count_with_status(ReceiptStatus.NEEDS_REVIEW)
+        content, details = self._answer(user_id, question, history, waiting)
+        return AskResult(saved.conversation_id, self.save_answer(user_id, saved.conversation_id, content, details))
+
+    def run_question(self, user_id: int, question: str, history: Sequence[Exchange] = ()) -> QuestionOutcome:
+        """The SQL step on its own: the model turns the question into SQL (or asks, refuses or replies), the guard
+        and the answering rules check it, and it runs as the read-only role, with one repair. Nothing is saved.
+
+        `ask` answers with it, and the research evaluation scores it, so both always run exactly the same step.
+        Raises ModelUnavailable if no model is configured."""
+        question = clean_question(question)
+        with self._uow(user_id) as work:
             names = UserNames(
                 items=names_for_prompt(work.receipts.known_item_names(ITEM_NAMES_LIMIT, MAX_NAME_WORDS),
                                        ITEM_NAMES_LIMIT),
                 vendors=work.vendors.recent_names(VENDOR_NAMES_LIMIT),
                 categories=[category.name for category in work.categories.list_all()] + list(VIEW_CATEGORIES),
             )  # fmt: skip
-            history = recent_exchanges(
-                work.messages.list_for(saved.conversation_id), self._history_exchanges, self._history_characters
-            )
-            waiting = work.receipts.count_with_status(ReceiptStatus.NEEDS_REVIEW)
-        content, details = self._answer(user_id, question, names, history, waiting)
-        return AskResult(saved.conversation_id, self.save_answer(user_id, saved.conversation_id, content, details))
+        attempts: list[Attempt] = []
+        outcome = self._write_sql(user_id, question, names, list(history), attempts)
+        return QuestionOutcome(
+            result=outcome if isinstance(outcome, QueryResult) else None,
+            reply=outcome if isinstance(outcome, answers.ModelReply) else None,
+            attempts=tuple(attempts),
+        )
 
     def _answer(
-        self, user_id: int, question: str, names: UserNames, history: list[Exchange], waiting: int
+        self, user_id: int, question: str, history: list[Exchange], waiting: int
     ) -> tuple[str, AnswerDetails]:
         started = time.perf_counter()
         attempts: list[Attempt] = []
@@ -126,18 +143,19 @@ class AssistantService:
             return content, AnswerDetails(kind, attempts=tuple(attempts), duration_ms=duration_ms, **found)
 
         try:
-            outcome = self._write_sql(user_id, question, names, history, attempts)
+            outcome = self.run_question(user_id, question, history)
         except ModelUnavailable:
             return finished(AnswerKind.ERROR, answers.NOT_AVAILABLE)
-        if outcome is None:
-            return finished(AnswerKind.ERROR, answers.FAILURE)
-        if isinstance(outcome, answers.ModelReply):
-            if outcome.form is ReplyForm.UNSUPPORTED:
+        attempts.extend(outcome.attempts)
+        if outcome.reply is not None:
+            if outcome.reply.form is ReplyForm.UNSUPPORTED:
                 return finished(AnswerKind.UNSUPPORTED, answers.UNSUPPORTED)
-            kind = AnswerKind.CLARIFY if outcome.form is ReplyForm.CLARIFY else AnswerKind.REPLY
-            return finished(kind, outcome.text)
+            kind = AnswerKind.CLARIFY if outcome.reply.form is ReplyForm.CLARIFY else AnswerKind.REPLY
+            return finished(kind, outcome.reply.text)
+        if outcome.result is None:
+            return finished(AnswerKind.ERROR, answers.FAILURE)
 
-        result = outcome
+        result = outcome.result
         if answers.is_empty_result(result.rows):  # nothing matched: no need to ask the model to say so
             return finished(AnswerKind.ANSWER, answers.NO_MATCHES, sql=result.sql, row_count=len(result.rows))
         receipt_ids = self._sources(user_id, result.sql)

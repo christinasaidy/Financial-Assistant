@@ -69,6 +69,7 @@ def build_container(
                 settings.assistant_sql_model,
                 settings.assistant_answer_model,
                 timeout=settings.assistant_timeout_seconds,
+                thinking=settings.assistant_thinking,
             )
             if api_key
             else UnavailableAssistantModel()
