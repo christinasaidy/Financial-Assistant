@@ -98,7 +98,7 @@ def test_every_result_records_the_code_it_measured():
 def test_the_summary_lists_what_went_wrong(settings):
     reports = evaluated(settings, ScriptedModel({"P18": MONEY.format(where="item_name IN ('water', 'water heater')")}))
     text_ = run.summary(list(reports.values()), "scripted")
-    assert "Correct: 46/47 (98%)" in text_
+    assert "Correct: 46/47   on the first try: 46/47" in text_  # counts, not %: approved 2026-11-05
     assert "P18 [en, item] wrong result: How much did I spend on water?" in text_
     assert "Spelling groups right in every spelling: 4/4" in text_
 
@@ -114,6 +114,7 @@ def test_follow_ups_send_their_earlier_question_and_sql(settings):
     evaluated(settings, Recording(QUESTIONS))
     follow_up = next(p for p in prompts if p.endswith("Question: and last month?\nReply:"))
     assert "Earlier in this chat:\nQuestion: How much did I spend on groceries this month?\nReply: SELECT" in follow_up
+    assert all("Today: 2026-11-03 (Tuesday)" in prompt for prompt in prompts)  # the evaluation's day, not today's
 
 
 def test_the_seed_confirms_35_receipts_and_leaves_one_waiting_for_review(settings):
@@ -130,3 +131,18 @@ def test_the_seed_confirms_35_receipts_and_leaves_one_waiting_for_review(setting
             remove_user(evaluation, user_id)
     assert visible == 35
     assert statuses.count(ReceiptStatus.NEEDS_REVIEW) == 1 and len(statuses) == 36
+
+
+
+# Qwen3.8-27B's own answers from the first pilot run (2026-11-05), exactly as it wrote them.
+QWEN_P28 = "SELECT vendor,\n       COUNT(*) AS purchases,\n       AVG(unit_price / size_amount * 100) AS avg_price_per_100,\n       MIN(unit_price / size_amount * 100) AS min_price_per_100,\n       MAX(unit_price / size_amount * 100) AS max_price_per_100,\n       currency\nFROM purchases\nWHERE item_name = 'laban'\n  AND vendor IN ('Spinneys', 'Carrefour')\n  AND size_amount IS NOT NULL\n  AND size_unit IS NOT NULL\nGROUP BY vendor, currency"
+QWEN_P34 = "SELECT\n  CASE\n    WHEN receipt_date >= date_trunc('month', CURRENT_DATE)\n     AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'\n    THEN 'this_month'\n    ELSE 'last_month'\n  END AS period,\n  currency,\n  SUM(amount) AS total_spent,\n  SUM(amount_usd) AS total_spent_usd\nFROM category_spending\nWHERE category = 'Groceries'\n  AND (\n    (receipt_date >= date_trunc('month', CURRENT_DATE)\n     AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month')\n    OR\n    (receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month'\n     AND receipt_date < date_trunc('month', CURRENT_DATE))\n  )\nGROUP BY\n  CASE\n    WHEN receipt_date >= date_trunc('month', CURRENT_DATE)\n     AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'\n    THEN 'this_month'\n    ELSE 'last_month'\n  END,\n  currency"
+
+
+def test_the_pilot_findings_are_scored_as_decided(settings):
+    """P28 was right but scored wrong, because the expected answer also asked for size_unit (now removed). P34 labels
+    its months 'this_month' and 'last_month'; the prompt now asks for date_trunc('month', ...), so it stays wrong
+    rather than accepting labels that could be swapped (decided 2026-11-05)."""
+    reports = evaluated(settings, ScriptedModel({"P28": QWEN_P28, "P34": QWEN_P34}))
+    assert reports["P28"].score.correct
+    assert (reports["P34"].score.correct, reports["P34"].score.reason) == (False, "wrong result")

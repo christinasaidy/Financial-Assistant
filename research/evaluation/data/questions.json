@@ -1,5 +1,5 @@
 {
-  "about": "Pilot test questions (approved by the user on 2026-11-05, Arabizi corrected by the user). Each question lists the answers accepted as correct: a SQL query (scored by comparing its result with the model's) or a reply type (CLARIFY, UNSUPPORTED, REPLY). Questions in the same group are spellings of the same question. Date placeholders: {THIS_MONTH}, {LAST_MONTH}, {LAST_WEEK}, {AUGUST}, {SEPTEMBER}, {OCTOBER}.",
+  "about": "Pilot test questions (approved by the user on 2026-11-05, Arabizi corrected by the user; after the first Qwen run, size_unit was removed from P28-P30 and P33/P34 accept only the date_trunc month form, which the prompt now asks for). Each question lists the answers accepted as correct: a SQL query (scored by comparing its result with the model's) or a reply type (CLARIFY, UNSUPPORTED, REPLY). Questions in the same group are spellings of the same question. Date placeholders: {THIS_MONTH}, {LAST_MONTH}, {LAST_WEEK}, {AUGUST}, {SEPTEMBER}, {OCTOBER}.",
   "today": "2026-11-03",
   "questions": [
     {"id": "P01", "language": "en", "type": "total", "question": "How much did I spend this month?",
@@ -69,15 +69,15 @@
     {"id": "P27", "language": "en", "type": "price", "question": "What's the average price I paid for eggs?",
      "accept": [{"sql": "SELECT currency, ROUND(AVG(unit_price), 2) AS average_price FROM purchases WHERE item_name = 'eggs' GROUP BY currency"}]},
     {"id": "P28", "language": "en", "type": "price comparison", "question": "Is laban cheaper at Spinneys or Carrefour?",
-     "accept": [{"sql": "SELECT vendor, currency, size_unit, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'laban' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
+     "accept": [{"sql": "SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'laban' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
     {"id": "P29", "language": "en", "type": "price comparison", "question": "Compare what I paid for water at Spinneys and Carrefour.",
-     "accept": [{"sql": "SELECT vendor, currency, size_unit, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'water' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
+     "accept": [{"sql": "SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'water' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
     {"id": "P30", "language": "arabizi", "type": "price comparison", "group": "rice", "question": "wayn a3red el roz, Spinneys aw Carrefour?",
-     "accept": [{"sql": "SELECT vendor, currency, size_unit, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'rice' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
+     "accept": [{"sql": "SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'rice' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
     {"id": "P30b", "language": "arabizi", "type": "price comparison", "group": "rice", "question": "wayn a3red el ruz, Spinneys aw Carrefour?",
-     "accept": [{"sql": "SELECT vendor, currency, size_unit, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'rice' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
+     "accept": [{"sql": "SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'rice' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
     {"id": "P30c", "language": "arabizi", "type": "price comparison", "group": "rice", "question": "wayn a3red el rez, Spinneys aw Carrefour?",
-     "accept": [{"sql": "SELECT vendor, currency, size_unit, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'rice' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
+     "accept": [{"sql": "SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG(unit_price / size_amount * 100), 2) AS average_price_per_100 FROM purchases WHERE item_name = 'rice' AND vendor IN ('Spinneys', 'Carrefour') AND size_amount IS NOT NULL GROUP BY vendor, currency, size_unit"}]},
 
     {"id": "P31", "language": "en", "type": "count", "question": "How many receipts do I have from August?",
      "accept": [{"sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE {AUGUST}"}]},
@@ -87,14 +87,10 @@
      "accept": [{"sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'manakish'"}]},
     {"id": "P33", "language": "en", "type": "comparison", "question": "Did I spend more on dining in October or September?",
      "accept": [
-       {"sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Dining' AND receipt_date >= '2026-09-01' AND receipt_date < '2026-11-01' GROUP BY 1, 2"},
-       {"sql": "SELECT EXTRACT(MONTH FROM receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Dining' AND receipt_date >= '2026-09-01' AND receipt_date < '2026-11-01' GROUP BY 1, 2"},
-       {"sql": "SELECT to_char(receipt_date, 'YYYY-MM') AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Dining' AND receipt_date >= '2026-09-01' AND receipt_date < '2026-11-01' GROUP BY 1, 2"}]},
+       {"sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Dining' AND receipt_date >= '2026-09-01' AND receipt_date < '2026-11-01' GROUP BY 1, 2"}]},
     {"id": "P34", "language": "arabizi", "type": "comparison", "question": "sraft aktar hal shaher walla el shaher el ablo 3al groceries?",
      "accept": [
-       {"sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Groceries' AND receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month' GROUP BY 1, 2"},
-       {"sql": "SELECT EXTRACT(MONTH FROM receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Groceries' AND receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month' GROUP BY 1, 2"},
-       {"sql": "SELECT to_char(receipt_date, 'YYYY-MM') AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Groceries' AND receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month' GROUP BY 1, 2"}]},
+       {"sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Groceries' AND receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month' GROUP BY 1, 2"}]},
 
     {"id": "P35", "language": "en", "type": "clarify", "question": "How much did I spend on pizza?", "accept": [{"reply": "CLARIFY"}]},
     {"id": "P36", "language": "en", "type": "clarify", "question": "How much was the last one?", "accept": [{"reply": "CLARIFY"}]},

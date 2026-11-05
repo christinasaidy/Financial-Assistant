@@ -171,7 +171,8 @@ class AssistantService:
     ) -> QueryResult | answers.ModelReply | None:
         """The query's result, or the model's clarifying question, refusal or reply. None if both attempts failed
         or the model could not be reached (it already waited and retried once by then)."""
-        prompt = build_prompt(question, names, history)
+        today = self._today()  # one date for the prompt and for CURRENT_DATE, so they can never disagree
+        prompt = build_prompt(question, names, today, history)
         current = prompt
         for _ in range(ATTEMPTS_PER_STEP):
             output = None
@@ -179,7 +180,7 @@ class AssistantService:
                 output = self._model.write_sql(current)
                 reply = answers.read_reply(output)
                 if reply.form is ReplyForm.SQL:
-                    sql = self._rules.prepare(self._guard.check(reply.text), names, self._today())
+                    sql = self._rules.prepare(self._guard.check(reply.text), names, today)
                     outcome: QueryResult | answers.ModelReply = self.run_query(user_id, sql)
                 else:
                     answers.check_numbers(reply.text, answers.numbers_in(question), "the question")
