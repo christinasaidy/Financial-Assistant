@@ -72,17 +72,18 @@ def build_evaluation(settings: Settings, model: AssistantModel, today: date, sto
     uow = SqlUnitOfWorkFactory(engine)
     on_day = lambda: today  # noqa: E731
     reader = SeedReceiptReader()
+    storage = LocalFileStorage(storage_dir)
     alerts = BudgetAlerts(BudgetStatusCalculator(settings.default_lbp_per_usd, on_day))
     return Evaluation(
         assistant=AssistantService(
             uow, SqlGlotGuard(), SqlReadOnlyQueryRunner(create_db_engine(settings.readonly_database_url)),
             SqlGlotQueryRules(), model, on_day,
         ),  # fmt: skip
-        receipts=ReceiptService(uow, LocalFileStorage(storage_dir), reader, settings.default_lbp_per_usd, alerts,
-                                on_day),  # fmt: skip
+        receipts=ReceiptService(uow, storage, reader, settings.default_lbp_per_usd, alerts, on_day),
         categories=CategoryService(uow),
-        # Only `register` is used; no token is ever issued, so a throwaway signing key is enough.
-        auth=AuthService(SqlUserRepository(engine), Argon2PasswordHasher(), JwtTokenService(secrets.token_urlsafe(48))),
+        # Only `register` and `delete_account` are used; no token is ever issued, so a throwaway signing key is enough.
+        auth=AuthService(SqlUserRepository(engine), Argon2PasswordHasher(), JwtTokenService(secrets.token_urlsafe(48)),
+                         storage),  # fmt: skip
         reader=reader,
         settings=settings,
     )

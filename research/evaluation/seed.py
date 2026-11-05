@@ -7,8 +7,6 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from sqlalchemy import create_engine, text
-
 from app.application.auth.dtos import RegisterRequest
 from app.application.receipts.dtos import ConfirmReceiptRequest, UploadReceiptRequest
 from app.domain.receipts.extraction import ExtractedLine, ExtractedReceipt
@@ -49,13 +47,8 @@ def seed_user(evaluation: Evaluation, path: Path = SEED_FILE) -> int:
 
 
 def remove_user(evaluation: Evaluation, user_id: int) -> None:
-    """Delete the throwaway user and, with it, everything it owns. PENDING the user's decision: the app has no
-    public way to delete a user yet, so this is a direct statement for now (as the backend's own tests do)."""
-    engine = create_engine(evaluation.settings.database_url)
-    with engine.begin() as conn:
-        conn.execute(text("DELETE FROM users WHERE id = :id AND email LIKE :pattern"),
-                     {"id": user_id, "pattern": f"evaluation-%@{EMAIL_DOMAIN}"})  # fmt: skip
-    engine.dispose()
+    """Delete the throwaway user with everything it owns, its receipt files included, through the app."""
+    evaluation.auth.delete_account(user_id)
 
 
 def _line(line: list) -> ReceiptLine:
