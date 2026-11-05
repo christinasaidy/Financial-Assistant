@@ -67,8 +67,7 @@ def summary(reports: Sequence[QuestionReport], label: str) -> str:
     right = sum(r.score.correct for r in reports)
     first = sum(r.score.first_try for r in reports)
     lines = [f"Model: {label}   Questions: {total}",
-             f"Correct: {right}/{total} ({_percent(right, total)})   on the first try: {first}/{total} "
-             f"({_percent(first, total)})", ""]  # fmt: skip
+             f"Correct: {right}/{total}   on the first try: {first}/{total}", ""]  # counts: a pilot is too small for %
     for title, key in (("By type", lambda r: r.question.type), ("By language", lambda r: r.question.language)):
         counts: dict[str, list[int]] = defaultdict(lambda: [0, 0])
         for report in reports:
@@ -164,10 +163,6 @@ def _backend_commit() -> dict:
         return subprocess.run(["git", *command], cwd=BACKEND_DIR, capture_output=True, text=True).stdout.strip()
 
     return {"backend_commit": git("rev-parse", "HEAD"), "uncommitted_changes": bool(git("status", "--porcelain"))}
-
-
-def _percent(part: int, whole: int) -> str:
-    return f"{round(100 * part / whole)}%" if whole else "-"
 
 
 def _safe(name: str) -> str:

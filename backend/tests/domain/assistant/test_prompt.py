@@ -17,6 +17,7 @@ from app.domain.assistant.prompt import (
 NAMES = UserNames(items=["laban", "water", "water heater"], vendors=["Spinneys", "Carrefour"],
                   categories=["Groceries", "Dining", "Uncategorized", "Tax, discounts & rounding"])  # fmt: skip
 _ids = iter(range(1, 10**6))
+TODAY = date(2026, 11, 3)
 
 
 def question(text: str) -> Message:
@@ -33,7 +34,7 @@ def reply(content: str, kind: AnswerKind = AnswerKind.ANSWER, sql: str | None = 
 
 def test_the_prompt_has_the_views_the_users_names_the_chat_and_the_question_last():
     history = [Exchange("How much did I spend on groceries this month?", "SELECT 1")]
-    prompt = build_prompt("and last month?", NAMES, history)
+    prompt = build_prompt("and last month?", NAMES, TODAY, history)
 
     for view in ("receipts(receipt_id", "purchases(receipt_id", "category_spending(receipt_id"):
         assert view in prompt
@@ -44,19 +45,23 @@ def test_the_prompt_has_the_views_the_users_names_the_chat_and_the_question_last
     assert prompt.endswith("Question: and last month?\nReply:")
 
 
-def test_the_prompt_holds_no_date_so_examples_stay_valid():
-    prompt = build_prompt("how much this month?", NAMES)
+def test_the_prompt_gives_the_date_and_weekday_it_was_asked_on():
+    """Changed with the user on 2026-11-05 (it used to hold no date): "October" needs the year, so the date and
+    weekday are part of the input; relative dates still use CURRENT_DATE."""
+    prompt = build_prompt("how much in October?", NAMES, date(2025, 1, 31))
+    assert "Today: 2025-01-31 (Friday)" in prompt
+    assert date.today().isoformat() not in prompt  # the date given, never the computer's clock
     assert "CURRENT_DATE" in prompt
-    assert "2026" not in prompt and date.today().isoformat() not in prompt
+    assert "A month or day named without a year means the most recent one up to today" in prompt
 
 
 def test_a_user_with_no_receipts_gets_empty_lists():
-    prompt = build_prompt("hi", UserNames([], [], ["Groceries"]))
+    prompt = build_prompt("hi", UserNames([], [], ["Groceries"]), TODAY)
     assert "The user's items: (none yet)" in prompt
 
 
 def test_a_repair_shows_the_reply_that_failed_and_why():
-    prompt = build_prompt("water?", NAMES)
+    prompt = build_prompt("water?", NAMES, TODAY)
     repaired = repair_prompt(prompt, "SELECT 1 FROM purchases WHERE item_name ILIKE '%water%'", "Item names must match")
     assert repaired.startswith(prompt)
     assert "ILIKE '%water%'" in repaired and "Item names must match" in repaired
@@ -146,6 +151,13 @@ def test_small_figures_keep_enough_places_and_a_cut_off_result_is_announced():
 
 
 def test_the_prompt_states_the_week_and_price_conventions():
-    prompt = build_prompt("how much last week?", NAMES)
+    prompt = build_prompt("how much last week?", NAMES, TODAY)
     assert '"Last week" is the previous Monday to Sunday' in prompt  # approved 2026-11-05
     assert "per 100 g or 100 ml (unit_price / size_amount * 100)" in prompt
+
+
+def test_the_prompt_states_the_period_and_counting_conventions():  # approved 2026-11-05, after the pilot
+    prompt = build_prompt("did I spend more this month or last?", NAMES, TODAY)
+    assert "return each period as the first day of its month: date_trunc('month', receipt_date) AS month" in prompt
+    assert '"how many times", "how often" and "how many visits" count receipts: COUNT(DISTINCT receipt_id)' in prompt
+    assert '"How many <items> did I buy" adds up the quantity: SUM(quantity)' in prompt

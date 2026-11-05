@@ -4,10 +4,12 @@
 the fine-tuning dataset, so the model is always trained on exactly what it is later sent. It holds:
 - the instructions and the three assistant views;
 - the user's own item, vendor and category names, so every filter can use an exact name;
+- today's date and weekday, so a month or day named without a year can be placed ("in October");
 - the recent chat (each earlier question with the SQL that answered it, never the numbers it showed);
 - the question.
-It holds no date: the model writes CURRENT_DATE and the backend fills in the date before the query runs, so an
-example written today is still right next year.
+Relative dates ("this month") are written with CURRENT_DATE, which the backend replaces with the same date before
+the query runs. Each example carries its own date, so it stays correct whenever it is used (decided with the user
+on 2026-11-05, after the pilot showed that "October" cannot be answered without knowing the year).
 
 The answer step's prompt (`build_answer_prompt`) is used only by the app.
 """
@@ -21,6 +23,8 @@ from app.domain.assistant.answer import read_reply
 from app.domain.assistant.conversation import AnswerKind, Message, MessageRole, Step
 from app.domain.assistant.errors import UnusableReply
 
+# Written out rather than taken from the system's locale, so the prompt is the same on every machine.
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 # Categories the views make up themselves, so they are valid even though no user created them.
 VIEW_CATEGORIES = ("Uncategorized", "Tax, discounts & rounding")
 
@@ -52,11 +56,17 @@ Rules:
 - Filter items with item_name = '<name>', vendors with vendor = '<name>' and categories with category = '<name>',
   using a name exactly as listed below. Never use LIKE, ILIKE or a partial name: "water" is not "water heater".
 - Filter on brand = '<brand>' only when the user names a brand.
-- For dates use CURRENT_DATE, for example this month:
+- For dates relative to today use CURRENT_DATE, for example this month:
   receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
   "Last week" is the previous Monday to Sunday:
   receipt_date >= date_trunc('week', CURRENT_DATE) - INTERVAL '1 week' AND receipt_date < date_trunc('week', CURRENT_DATE)
+  A month or day named without a year means the most recent one up to today (asked in February, "October" is last
+  year's October); write its dates out, e.g. receipt_date >= '2026-10-01' AND receipt_date < '2026-11-01'.
   Never use now() or CURRENT_TIMESTAMP.
+- To compare periods, return each period as the first day of its month: date_trunc('month', receipt_date) AS month,
+  and GROUP BY it.
+- Counting: "how many times", "how often" and "how many visits" count receipts: COUNT(DISTINCT receipt_id).
+  "How many <items> did I buy" adds up the quantity: SUM(quantity). "How many receipts" counts receipts.
 - For amounts, GROUP BY currency and return both the amount and its USD value, e.g.
   SELECT currency, SUM(amount) AS total_spent, SUM(amount_usd) AS total_spent_usd ... GROUP BY currency.
   If the user asks for dollars ("bel dollar"), return only the USD value.
@@ -85,10 +95,11 @@ class Exchange:
     reply: str
 
 
-def build_prompt(question: str, names: UserNames, history: Sequence[Exchange] = ()) -> str:
+def build_prompt(question: str, names: UserNames, today: date, history: Sequence[Exchange] = ()) -> str:
     parts = [
         INSTRUCTIONS,
         "",
+        f"Today: {today.isoformat()} ({WEEKDAYS[today.weekday()]})",
         "The user's items: " + _quoted(names.items),
         "The user's vendors: " + _quoted(names.vendors),
         "The user's categories: " + _quoted(names.categories),
