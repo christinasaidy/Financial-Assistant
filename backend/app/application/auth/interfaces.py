@@ -26,6 +26,9 @@ class UserRepository(Protocol):
 
     def get_by_id(self, user_id: int) -> User | None: ...
 
+    def delete(self, user_id: int) -> bool:
+        """Delete the user and every row they own (the database cascades it). False if there is no such user."""
+
 
 class PasswordHasher(Protocol):
     def hash(self, password: str) -> str: ...

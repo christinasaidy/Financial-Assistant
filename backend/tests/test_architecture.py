@@ -58,3 +58,14 @@ def test_infrastructure_depends_only_inward():
 
 def test_api_does_not_import_infrastructure():
     assert violations_in("api") == []
+
+
+def test_the_app_never_imports_the_research_code():
+    """research/ (dataset, training, evaluation) uses the app's public parts; the app must never depend on it."""
+    problems = [
+        f"{path.relative_to(APP_DIR)} imports {module}"
+        for path in APP_DIR.rglob("*.py")
+        for module in imported_modules(path)
+        if module.split(".")[0] == "research"
+    ]
+    assert problems == []

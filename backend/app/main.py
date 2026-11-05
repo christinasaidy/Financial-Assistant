@@ -69,6 +69,7 @@ def build_container(
                 settings.assistant_sql_model,
                 settings.assistant_answer_model,
                 timeout=settings.assistant_timeout_seconds,
+                thinking=settings.assistant_thinking,
             )
             if api_key
             else UnavailableAssistantModel()
@@ -92,6 +93,7 @@ def build_container(
             users=SqlUserRepository(engine),
             hasher=Argon2PasswordHasher(),
             tokens=JwtTokenService(settings.jwt_secret, settings.jwt_expire_minutes),
+            files=storage,
         ),
         receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd, alerts, today),
         categories=CategoryService(uow),

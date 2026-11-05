@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -36,6 +37,9 @@ class Settings(BaseSettings):
     assistant_api_key: str | None = None  # falls back to gemini_api_key
     assistant_sql_model: str = "gemini-3.5-flash-lite"
     assistant_answer_model: str = "gemini-3.5-flash-lite"
+    # Whether the model may think before answering. Empty sends nothing (the model's own default; Gemini needs this);
+    # false turns thinking off (Qwen3 on vLLM thinks by default, which is much slower), true turns it on.
+    assistant_thinking: bool | None = None
     assistant_timeout_seconds: float = 60  # Gemini calls took 16-20 s in the live run of 2026-11-04
     # How much of the chat is sent with a question: whole exchanges, the oldest dropped first. Starting values,
     # not tested ones: tune them in the evaluation.
@@ -43,6 +47,11 @@ class Settings(BaseSettings):
     assistant_history_characters: int = 6000
     # "Today" for questions such as "this month", as a date in this time zone.
     assistant_time_zone: str = "Asia/Beirut"
+
+    @field_validator("assistant_thinking", mode="before")
+    @classmethod
+    def _empty_means_unset(cls, value: object) -> object:
+        return None if isinstance(value, str) and not value.strip() else value
 
     # Today's exchange rate, in LBP per USD. It is saved on each receipt when it is confirmed, so
     # changing it later never changes old receipts. Update it when the rate moves.

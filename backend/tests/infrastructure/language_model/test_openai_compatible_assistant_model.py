@@ -106,3 +106,26 @@ def test_without_a_key_the_assistant_is_unavailable():
         UnavailableAssistantModel().write_sql("p")
     with pytest.raises(ModelUnavailable):
         UnavailableAssistantModel().write_answer("p")
+
+
+@pytest.mark.parametrize(("thinking", "sent"), [(None, None), (False, {"enable_thinking": False}),
+                                                (True, {"enable_thinking": True})])  # fmt: skip
+def test_thinking_is_sent_only_when_set(thinking, sent):
+    bodies = []
+
+    def handler(request):
+        bodies.append(json.loads(request.content))
+        return chat_reply("SELECT 1")
+
+    model = OpenAiCompatibleAssistantModel("https://example.test/v1", "k", "m", "m", thinking=thinking,
+                                           client=httpx.Client(transport=httpx.MockTransport(handler)))  # fmt: skip
+    model.write_sql("p")
+    assert bodies[0].get("chat_template_kwargs") == sent  # None: nothing sent, so Gemini is never confused by it
+
+
+@pytest.mark.parametrize(("value", "expected"), [("", None), ("  ", None), ("false", False), ("true", True)])
+def test_the_thinking_setting_treats_empty_as_unset(value, expected, monkeypatch):
+    from app.infrastructure.config import Settings
+
+    monkeypatch.setenv("ASSISTANT_THINKING", value)
+    assert Settings().assistant_thinking is expected

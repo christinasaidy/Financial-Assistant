@@ -143,3 +143,9 @@ def test_small_figures_keep_enough_places_and_a_cut_off_result_is_announced():
     assert "Row: 0.0038" in prompt
     assert "only the first 3 rows are shown" in prompt
     assert "Number of receipts used" not in prompt  # unknown (e.g. a UNION): not claimed
+
+
+def test_the_prompt_states_the_week_and_price_conventions():
+    prompt = build_prompt("how much last week?", NAMES)
+    assert '"Last week" is the previous Monday to Sunday' in prompt  # approved 2026-11-05
+    assert "per 100 g or 100 ml (unit_price / size_amount * 100)" in prompt

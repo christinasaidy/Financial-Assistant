@@ -1,6 +1,9 @@
 """In-memory stand-ins for the interfaces, so services and the API can be tested without a database."""
 
+from datetime import UTC, datetime
+
 from app.application.auth.interfaces import StoredCredentials
+from app.application.receipts.interfaces import StoredFile
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered
@@ -56,6 +59,35 @@ class FakeAssistantModel:
         return reply
 
 
+class InMemoryFileStorage:
+    """Files by user, in memory. Paths in `cannot_delete` raise like a locked file would."""
+
+    def __init__(self) -> None:
+        self.files: dict[int, list[str]] = {}
+        self.cannot_delete: set[str] = set()
+
+    def save(self, user_id: int, content: bytes, extension: str) -> str:
+        path = f"{user_id}/{len(self.files.get(user_id, []))}{extension}"
+        self.files.setdefault(user_id, []).append(path)
+        return path
+
+    def read(self, path: str) -> bytes:
+        return b""
+
+    def delete(self, path: str) -> None:
+        if path in self.cannot_delete:
+            raise PermissionError(path)
+        for paths in self.files.values():
+            if path in paths:
+                paths.remove(path)
+
+    def user_ids(self) -> list[int]:
+        return [user_id for user_id, paths in self.files.items() if paths]
+
+    def list_files(self, user_id: int) -> list[StoredFile]:
+        return [StoredFile(path, datetime.now(UTC)) for path in self.files.get(user_id, [])]
+
+
 class FakeHasher:
     """Fast and obviously not secure: only for tests."""
 
@@ -90,5 +122,5 @@ class InMemoryUserRepository:
             return None
         return User(user_id, self._rows[user_id][0])
 
-    def delete(self, user_id: int) -> None:
-        self._rows.pop(user_id, None)
+    def delete(self, user_id: int) -> bool:
+        return self._rows.pop(user_id, None) is not None

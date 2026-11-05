@@ -44,3 +44,8 @@ class SqlUserRepository:
                 text("SELECT id, email FROM users WHERE id = :id"), {"id": user_id}
             ).one_or_none()
         return User(id=row.id, email=row.email) if row else None
+
+    def delete(self, user_id: int) -> bool:
+        with self._engine.begin() as conn:
+            deleted = conn.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id}).rowcount
+        return deleted == 1

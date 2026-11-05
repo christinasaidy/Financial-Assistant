@@ -10,7 +10,7 @@ from app.domain.users.errors import (
     WeakPassword,
 )
 from app.infrastructure.security.token_service import JwtTokenService
-from tests.fakes import FakeHasher, InMemoryUserRepository
+from tests.fakes import FakeHasher, InMemoryFileStorage, InMemoryUserRepository
 
 SECRET = "x" * 40
 
@@ -21,8 +21,13 @@ def users():
 
 
 @pytest.fixture
-def auth(users):
-    return AuthService(users, FakeHasher(), JwtTokenService(SECRET))
+def files():
+    return InMemoryFileStorage()
+
+
+@pytest.fixture
+def auth(users, files):
+    return AuthService(users, FakeHasher(), JwtTokenService(SECRET), files)
 
 
 def test_register_returns_the_normalized_user(auth):
@@ -89,3 +94,41 @@ def test_authenticate_rejects_a_valid_token_once_the_account_is_gone(auth, users
     users.delete(user.id)
     with pytest.raises(InvalidToken):
         auth.authenticate(token)
+
+
+# --- Deleting an account (no endpoint yet; approved by the user on 2026-11-05) ---
+
+
+def test_deleting_an_account_removes_the_user_and_only_their_files(auth, users, files):
+    alice = auth.register(RegisterRequest("alice@b.com", "correct-horse")).id
+    bob = auth.register(RegisterRequest("bob@b.com", "correct-horse")).id
+    files.save(alice, b"img", ".jpg")
+    files.save(alice, b"img", ".pdf")
+    files.save(bob, b"img", ".jpg")
+
+    auth.delete_account(alice)
+
+    assert users.get_by_id(alice) is None
+    assert files.files[alice] == [] and len(files.files[bob]) == 1
+    with pytest.raises(InvalidToken):
+        auth.get_current_user(alice)
+
+
+def test_deleting_an_account_that_is_gone_is_refused_and_touches_no_file(auth, files):
+    files.save(12345, b"img", ".jpg")  # rows are deleted first: if that fails, no file may be lost
+    with pytest.raises(InvalidToken, match="no longer exists"):
+        auth.delete_account(12345)
+    assert len(files.files[12345]) == 1
+
+
+def test_a_file_that_cannot_be_removed_is_left_for_the_clean_up(auth, users, files, caplog):
+    alice = auth.register(RegisterRequest("alice@b.com", "correct-horse")).id
+    stuck = files.save(alice, b"img", ".jpg")
+    files.save(alice, b"img", ".pdf")
+    files.cannot_delete.add(stuck)
+
+    auth.delete_account(alice)
+
+    assert users.get_by_id(alice) is None  # the account is deleted anyway
+    assert files.files[alice] == [stuck]
+    assert "left for the orphan clean-up" in caplog.text

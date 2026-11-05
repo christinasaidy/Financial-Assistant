@@ -1,16 +1,22 @@
+import logging
+
 from app.application.auth.dtos import LoginRequest, LoginResponse, RegisterRequest, UserResponse
 from app.application.auth.interfaces import PasswordHasher, TokenService, UserRepository
+from app.application.receipts.interfaces import FileStorage
 from app.domain.users.errors import InvalidCredentials, InvalidEmail, InvalidToken
 from app.domain.users.user import normalize_email, validate_password
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
     """Everything to do with accounts and signing in."""
 
-    def __init__(self, users: UserRepository, hasher: PasswordHasher, tokens: TokenService) -> None:
+    def __init__(self, users: UserRepository, hasher: PasswordHasher, tokens: TokenService, files: FileStorage) -> None:
         self._users = users
         self._hasher = hasher
         self._tokens = tokens
+        self._files = files  # the receipt images, so a deleted account leaves none behind
         # Checked when the email is unknown, so unknown and known emails take similar time.
         self._decoy_hash = hasher.hash("decoy-password-never-matches")
 
@@ -46,6 +52,21 @@ class AuthService:
         if self._users.get_by_id(user_id) is None:
             raise InvalidToken("Account no longer exists")
         return user_id
+
+    def delete_account(self, user_id: int) -> None:
+        """Delete the account, everything it owns and its receipt files. No endpoint calls this yet (to come with the
+        app's settings screen, with the password asked again); the research evaluation uses it for its throwaway user.
+
+        Rows first, files second, as for a single receipt: a failed delete never loses an image, and a file that
+        cannot be removed now is logged and left for the orphan clean-up (no receipt points at it any more)."""
+        if not self._users.delete(user_id):
+            raise InvalidToken("Account no longer exists")
+        for stored in self._files.list_files(user_id):
+            try:
+                self._files.delete(stored.path)
+            except Exception:
+                logger.exception("Could not remove %s of a deleted account; it is left for the orphan clean-up",
+                                 stored.path)  # fmt: skip
 
     def get_current_user(self, user_id: int) -> UserResponse:
         user = self._users.get_by_id(user_id)

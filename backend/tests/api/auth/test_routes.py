@@ -7,14 +7,14 @@ from app.api.app import create_app
 from app.api.container import Container
 from app.application.auth.auth_service import AuthService
 from app.infrastructure.security.token_service import JwtTokenService
-from tests.fakes import FakeHasher, InMemoryUserRepository
+from tests.fakes import FakeHasher, InMemoryFileStorage, InMemoryUserRepository
 
 SECRET = "t" * 40
 
 
 @pytest.fixture
 def client():
-    auth = AuthService(InMemoryUserRepository(), FakeHasher(), JwtTokenService(SECRET))
+    auth = AuthService(InMemoryUserRepository(), FakeHasher(), JwtTokenService(SECRET), InMemoryFileStorage())
     # Only the auth routes are exercised here, so the other services are stand-ins.
     others = {name: Mock() for name in ("receipts", "categories", "spending", "budgets", "notifications", "assistant")}
     return TestClient(create_app(Container(auth=auth, **others)))
