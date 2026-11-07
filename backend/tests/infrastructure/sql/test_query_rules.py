@@ -175,3 +175,32 @@ def test_no_sources_rather_than_wrong_ones_when_it_cannot_be_told(sql):
 def test_the_sources_query_passes_the_guard(sql):
     sources = rules.sources_query(prepared(sql))
     assert guard.check(sources) == sources
+
+
+# --- Periods and sizes (approved 2026-11-07): the new shapes pass the guard and the rules ---
+
+
+@pytest.mark.parametrize(
+    ("where", "expected"),
+    [
+        ("receipt_date = CURRENT_DATE - 1", "receipt_date = CAST('2026-11-03' AS DATE) - 1"),
+        ("receipt_date > CURRENT_DATE - 7 AND receipt_date <= CURRENT_DATE",
+         "receipt_date > CAST('2026-11-03' AS DATE) - 7 AND receipt_date <= CAST('2026-11-03' AS DATE)"),
+        ("receipt_date > CURRENT_DATE - INTERVAL '3 months' AND receipt_date <= CURRENT_DATE",
+         "receipt_date > CAST('2026-11-03' AS DATE) - INTERVAL '3 MONTHS' AND receipt_date <= CAST('2026-11-03' AS DATE)"),
+        ("receipt_date >= date_trunc('year', CURRENT_DATE)",
+         "receipt_date >= DATE_TRUNC('YEAR', CAST('2026-11-03' AS DATE))"),
+    ],
+)  # fmt: skip
+def test_the_new_rolling_periods_get_the_given_date(where, expected):
+    assert prepared(f"SELECT SUM(total) FROM receipts WHERE {where}") == f"SELECT SUM(total) FROM receipts WHERE {expected}"
+
+
+def test_the_size_queries_pass_the_guard_and_the_rules():
+    sql = ("SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000 AS kilos, "
+           "COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size "
+           "FROM purchases WHERE item_name = 'bread'")  # fmt: skip
+    assert "FILTER(WHERE size_amount IS NULL)" in prepared(sql).replace("FILTER (", "FILTER(")
+    price = prepared("SELECT AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 1000) FROM purchases "
+                     "WHERE item_name = 'laban' AND size_unit = 'g'")  # fmt: skip
+    assert "COALESCE(unit_price, line_total / quantity)" in price
