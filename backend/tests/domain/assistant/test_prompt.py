@@ -204,3 +204,10 @@ def test_the_prompt_states_the_unit_price_and_size_conventions():
     assert "SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000" in prompt
     assert "a dozen is 12 pieces" in prompt
     assert "COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size" in prompt
+
+
+def test_the_prompt_states_how_to_filter_a_kind_of_product():  # approved 2026-11-07
+    prompt = build_prompt("adde sarafet 3al tyeb hal shaher?", NAMES, TODAY)
+    assert ("- A kind of product that is not one of the user's categories (clothes, electronics, medicine, cleaning "
+            "products,\n  snacks): filter item_name IN the user's items of that kind, e.g. item_name IN ('t-shirt', "
+            "'socks'). Use\n  category = '<name>' only for one of the user's own categories.") in prompt  # fmt: skip
