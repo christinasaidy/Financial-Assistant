@@ -84,6 +84,7 @@ Spending on one category, e.g. Transport in October.
 25. adde sarfet 3al hadeya bi december
 26. shu tole3 majmou3 el adwiye ekher shaher
 27. 3tine total el shopping men 1 la 15 ayloul
+28. taleta aday ba3za2et aa tyeb
 
 ## T4 Where the money went
 A breakdown of spending by category, e.g. this month.
@@ -105,7 +106,6 @@ A breakdown of spending by category, e.g. this month.
 16. farjine kif twaza3it masriyete ben el categories hal weekend
 17. hal shaher shu sarafet 3al akel w el tyeb w kel shi tene
 18. 3mele liste bel categories w adde dafa3et 3a kel wehde bi teshreen el awal
-19. taleta aday ba3za2et aa tyeb
 
 ## T5 Top categories
 The categories with the most spending, e.g. the top 3 last month.
@@ -163,7 +163,6 @@ The shop with the most spending, e.g. since September.
 8. min aktar mahal mestafid menne hal sene
 9. aya shop elo akbar 7essa men masroufe bi teshreen el awal
 10. 3and min sar aktar el dafe3 men awal el shaher
-11. min aktar mahal mestafid menne hal sene
 12. Spinneys walla ghayro, wen sarafet aktar shi hal shaher
 13. baddi esm el mahal li sarafet fi aktar shi el jemaa li mar2it
 14. aya mahal akhad men jaybte aktar shi bi ayloul
@@ -199,24 +198,18 @@ How many times the user went to a shop, e.g. Carrefour last month.
 18. soret zaboune dayme 3and Stories, kam marra re7et men awal el shaher
 19. khabborne bi Spinneys sarle zamen ma jit, kam marra kent 3andon bi hzairan
 
-Labeling note: receipts can show purchases, but not necessarily physical visits. Decide whether T8 counts receipts, distinct shopping days, or actual visits.
+Labeling note: decided, T8 counts receipts (COUNT(DISTINCT receipt_id)), as the prompt and evaluation do.
 
 ## T9 Spending on an item
 How much the user spent on one item, e.g. water, all time.
 
 1. aday sarafet 3al may men awal ma ballashet sajjel masroufe
 2. 7seble kel li dafa3to 3a 7alib men kel el fawatir
-3. el Pepsi la7alo adde kallefne hal shaher
 4. kel yom man2oushet zaatar, adde sarfet 3laya hal jemaa
-5. baddi total masroufe 3a may Rim men awal el sene
-6. adde dafa3et 3a jebnet Picon bi ayloul
 7. jame3le taman kel 3elab el ton li shtarayton
-8. shakle 3am beshteghil la eshrab Red Bull, adde sarfet 3le hal shaher
-9. chou sarle def3a 3a ahwet Najjar la halla2
 10. ma baddi kel el snacks, bas el popcorn adde sarfet 3le hal shaher
 11. el khobez li kel yom mn jibo, adde kallefna ekher shaher
 12. shouf kel el fawatir w 2elle adde dafa3et 3a bayd
-13. adde ra7 men jaybte 3a Nutella hal sene
 14. 7seble masroufe 3a shampoo men awal el sene la halla2
 15. kel hal 3elak li bechteriya, adde sarfet 3laya hal shaher
 16. adde tol3o 3laye kel kyes el rez ekher 3 shhour
@@ -226,8 +219,7 @@ How much the user spent on one item, e.g. water, all time.
 20. 3tine total li sarafto 3a zeit zaytoun men kel el ma7allet
 21. ma te7seble kel el jebne, bas el 7alloum adde dafa3et 3le hal shaher
 22. bala ma t2elle kam marra shtarayta, adde sarfet 3a labne bel majmou3
-23. shefle aday defaa ha2 terrea hal yawmein
-24. dekhan el iqos aday ken ha2o bi awalt el sene
+25. 3tine masroufe 3a digestive men kel el ma7allet li shetrit menna
 
 ## T10 An item of one brand
 Spending on an item of a named brand, e.g. Barilla spaghetti.
@@ -244,15 +236,22 @@ Spending on an item of a named brand, e.g. Barilla spaghetti.
 10. jame3le ha2 kel 3elab jebnet Picon li shtarayton hal sene
 11. labne bas men Dairy Khoury, shu tole3 majmou3 li dafa3to ekher 3 shhour
 12. adde ra7 men jaybte 3a terrea hal sayfiye
-13. 3tine masroufe 3a digestive men kel el ma7allet li shetrit menna
 14. hal jemaa adde kallefetne el indomie
-15. baddi a3ref adde sarfet 3a chips Master taba3 el jebne el shaher li mara2
+15. baddi a3ref adde sarfet 3a chips Master el shaher li mara2
 16. 7seble rimas brownies bi kel fawatire, men awal wa7de la ekher wa7de
 17. shakle ma bekol ella Picon, adde dafa3et 3a jebneton hal shaher
-18. spaghetti Barilla ra2em 5, adde sarfet 3laya men awal el sene
+18. spaghetti Barilla, adde sarfet 3laya men awal el sene
 19. ma baddi kel moshtarayete men Dairy Khoury, bas el labne adde tole3it 3laye
 20. shu sarle def3a 3a bouzet Bonjus men awal el sayf la halla2
-21. 7seble masroufe 3al nescafe bas li ma3 hel bi teshreen el awal
+21. 7seble masroufe 3al nescafe bi teshreen el awal
+22. el Pepsi la7alo adde kallefne hal shaher
+23. baddi total masroufe 3a may Rim men awal el sene
+24. adde dafa3et 3a jebnet Picon bi ayloul
+25. shakle 3am beshteghil la eshrab Red Bull, adde sarfet 3le hal shaher
+26. chou sarle def3a 3a ahwet Najjar la halla2
+27. adde ra7 men jaybte 3a Nutella hal sene
+28. shefle aday defaa ha2 terrea hal yawmein
+29. dekhan el iqos aday ken ha2o bi awalt el sene
 
 ## T11 Latest price
 What the user paid for an item the last time, e.g. labneh.
@@ -276,7 +275,7 @@ What the user paid for an item the last time, e.g. labneh.
 20. el ketchup Heinz shu ken se3ro bi ekher fetoura
 21. ekher marra shetrit pistachio, b adde ken el kilo
 22. el 3elbet ma3moul li jebta ekher marra adde ken 7a2a
-23. ja3 la ekher marra jebt fiya croissant chocolat w 2elle adde dafa3et 7a2o
+23. ja3 la ekher marra jebt fiya croissant w 2elle adde dafa3et 7a2o
 24. khafet dekhan aday ken ha2a 3elbit el terrea ekher mara
 25. shaklon ghalo el djej aday ken ha2o ekher mara shtrit
 
@@ -334,7 +333,7 @@ Which of two shops was cheaper for an item, e.g. rice at Happy or Carrefour.
 25. el dafter A5 nafs 3adad el saf7at, Maliks aw Librairie Antoine ken arkhas
 26. ma32oul dafa3et aktar 7a2 nafs el parfum bi ABC? 2arenle ma3 Feel22
 27. nafs el pan Tefal w nafs el size, Khoury Home aw Abed Tahan kallefne a2al
-28. el souris Logitech li jebta men ma7all el computer kenet arkhas men Virgin? shouf el fetourt en
+28. el souris Logitech li jebta men Abed Tahan kenet arkhas men Virgin? shouf el fetourten
 29. el Ariel nafs el wazn, men Le Charcutier aw Happy dafa3et a2al
 30. 7seble se3er el 7abbe men akyes el zebbele li jebton men Fahed w O&C, aya awfar
 31. nafs el kteb w nafs el edition, Librairie Antoine aw Maliks akhado menne a2al
@@ -392,7 +391,6 @@ How many units the user bought, e.g. bottles of water this month.
 23. kam dazinet bayd jebt ekher jem3ten
 24. kam litre benzin 3abbayt nhar el jem3a
 25. kam gram dahab shtarayt hal sene
-26. jame3le kam metre 2mech jebt men kel el fawatir
 27. kam rabtet khebez shtarayt hal jemaa
 28. adde kilo la7me jebt bi nisen
 29. kam dazine kebayet shtarayt la hal bet bel majmou3
@@ -457,7 +455,7 @@ Short questions that only make sense after an earlier one: change the period, th
 to one shop. Write the earlier question in brackets first, e.g. "(adde sraft 3al laban?) w el shaher el ablo?"
 
 1. (aday sarafet hal shaher?) w el shaher li ablo?
-2. (aday tole3 aalaye mberha bi spinneys aal khodra?) w ghayro? aday 3al djej
+2. (aday tole3 aalaye mberha bi spinneys aal khodra?) w ghayro?
 3. (adde dafa3et 3al transport bi adar?) tab bi nisan?
 4. (kam marra re7et 3a Maliks hal sene?) w Librairie Antoine?
 5. (adde sarfet 3a conditioner hal shaher?) bas L'Oréal
@@ -481,6 +479,7 @@ to one shop. Write the earlier question in brackets first, e.g. "(adde sraft 3al
 23. (adde dafa3et 3a akel el kaleb hal shaher?) w el treats la7alon?
 24. (kam litre benzin 3abbayt hal shaher?) w adde kallefoune?
 25. (adde sarfet 3a ma3joun snen hal sene?) Colgate bas, mesh kel el brands
+26. (aday tole3 aalaye mberha bi spinneys aal khodra?) aday 3al djej?
 
 ## C Clarify
 Questions the assistant cannot answer without asking back: an item or shop the user doesn't have, or "the last
@@ -503,7 +502,9 @@ one" with nothing before it.
 15. 7seble masroufe ben el 5 wel 12
 16. el wa7ad el azra2 arkhas men el abyad?
 17. kam marra re7et 3a Paul? ma ba3ref iza msajjal 3andak b esm tene
-18. shetrit سماعات men Tech Stop bas mesh sheyfe el fetoura, fik tle2iya b esm tene?
+18. shetrit sama3at men Tech Stop bas mesh sheyfe el fetoura, fik tle2iya b esm tene?
+19. ma fhemet, fik tshra7a abssat?
+20. la2 mesh hek azde
 
 ## U Unsupported
 Questions the receipts cannot answer: budgets, predictions, shop prices in general, advice, salary, other people.
@@ -513,7 +514,7 @@ Questions the receipts cannot answer: budgets, predictions, shop prices in gener
 3. b adde el iPhone halla2 bi kel el ma7allet
 4. wen fi offers 3al furniture hal weekend
 5. shu a7san laptop fine eshtri lal jem3a
-6. adde lezim ykoun ma3ashe la 3ish مرتاحة
+6. adde lezim ykoun ma3ashe la 3ish merte7a
 7. kam sarfet ekhte hal shaher
 8. adde ba2e bi 7sebe bel bank
 9. eza baddalt sayarte, adde bwaffer benzin
@@ -547,8 +548,6 @@ Greetings, thanks, "what can you do", small talk.
 12. teslam, hayda li ken badde ye
 13. eh hek tamam
 14. perfect thank you
-15. ma fhemet, fik tshra7a abssat?
-16. la2 mesh hek azde
 17. wow ma kent metwa23a
 18. ya wayle 3a hal masrouf
 19. khalas bala ma tfajja3ne aktar
@@ -575,14 +574,14 @@ Food and drinks
 - tawouk: tawouk, taouk, tawook
 - shawarma: shawarma, chawarma, shawerma
 - meat: la7me, la7meh, lahme, lahmeh
-- minced meat: la7me ma froume, la7me mafroume, lahme mafrume
+- minced meat: la7me mafroume, lahme mafrume
 - kafta: kafta, kefta
 - fish: samak, samak fresh
 - tuna: ton, toun, tuna
 - manakish: mana2ish, man2ish, manakish, mana2eesh
 - manoushe: man2oushe, man2ouche, man2ushe, manoushe
 - zaatar: zaatar, za3tar, za3ter
-- laban: laban, lab an
+- laban: laban
 - labneh: labne, labneh, lebne
 - cheese: jebne, jebneh, jibne
 - halloumi: 7alloum, halloum, 7aloum, halloumi
@@ -612,24 +611,24 @@ Food and drinks
 - onion: basal, bassal
 - garlic: toum, toom, tum
 - lettuce: khass, khas, 5ass
-- carrots: jazar, jaz ar
+- carrots: jazar
 - zucchini: kousa, kusa, koosa
 - eggplant: batenjen, batenjan, batinjen
 - lemon: 7amod, 7amoud, hamod
 - oranges: bourtou2an, borto2an, burtu2an
 - apples: teffe7, tiffe7, teffeh, tuffe7
 - bananas: moz, mouz, mooz
-- strawberries: frez, fraise, f raise
+- strawberries: frez, fraise
 - grapes: 3inab, 3enab, enab
 - watermelon: battikh, batikh, batteekh
 - parsley: ba2dounes, ba2dounis, ba2dones
 - mint: na3na3, naanaa, na3na
-- nuts: mkassarat, moukassarat, mكسarat
+- nuts: mkassarat, moukassarat, mkasarat
 - almonds: loz, looz, lawz
 - walnuts: jawz, joz
 - pistachios: fosto2, festo2, fustok
 - honey: 3asal, asal
-- jam: mrabba, m rabba, مربى
+- jam: mrabba, mrabbah
 - biscuits: baskawit, baskot, biscuit, biscuits
 - chocolate: shokolata, chocolata, chocolate
 - ice cream: bouza, booza, buza
@@ -664,12 +663,12 @@ Household and personal care
 - sheets: sharashif, charachif, sharshaf
 - hangers: 3alla2at, 3ala2at, hangers
 Clothes, electronics, and other items
-- clothes: tyeb, tiyeb, t yab, clothes
+- clothes: tyeb, tiyeb, tyab, clothes
 - trousers: bantalon, pantalon, pantaloun
 - shirt: 2amis, amis, chemise
 - T-shirt: tshirt, t-shirt, t shirt
 - shoes: sabbat, sabat, shoes
-- socks: kalsat, kals et, chaussettes, socks
+- socks: kalsat, kalset, chaussettes, socks
 - jacket: jacket, jaket, blouson
 - bag: shanta, chanta, bag
 - wallet: ma7faza, portefeuille, wallet
@@ -684,7 +683,7 @@ Clothes, electronics, and other items
 - notebook: daftar, dafter, cahier
 - pen: 2alam, alam, stylo
 - book: kteb, kitab, ktab
-- printer ink: 7بر, 7ebr, 7iber, ink, encre
+- printer ink: 7ebr, 7iber, ink, encre
 - cat food: akel lal besse, akel bses, cat food
 - dog food: akel lal kaleb, akel kleb, dog food
 Category wording and related search terms
@@ -698,7 +697,7 @@ Category wording and related search terms
 - Clothing: tyeb, malebis, clothes, clothing, 
 - Beauty: beauty, tajmil, makeup, maquillage, skincare
 - Household: aghrad el bet, ghrad el bait, eshya lal bayt, mostalzamat el bet, household
-- Cleaning: tandif, tanD if, tanzif, tondif, cleaning, maw ed tandif
+- Cleaning: tandif, tanzif, tondif, cleaning, mawed tandif
 - Education: ta3lim, te3lim, derase, dirase, education
 - Stationery: 2artasiye, kartasiye, stationery, aghrad madrase, kortasie
 - Electronics: electronics, electroniques, ajhize electroniye
@@ -706,8 +705,8 @@ Category wording and related search terms
 - Gifts: hadeye, hadaya, hdaya, gifts
 - Pets: pets, 7ayawanet alife, aghrad el bses, aghrad el kleb
 - Subscriptions: eshtiraket, ishtirakat, subscriptions, abonnements
-- Repairs: tasli7, tesli7, maintenance, siyene
-- Tobacco: dekhan, d ekhan, dokhan, cigarettes, sigarat
+- Repairs: tasli7, tesli7, maintenance, siyene, siyane
+- Tobacco: dekhan, dokhan, cigarettes, sigarat
 Money and receipt vocabulary
 - money: masare, masari, masareh, mosriyet, masriyet
 - my money: masriyete, mosriyete, masreyete
@@ -738,7 +737,6 @@ Quantities and units
 - kilo: kilo, kilou, kg
 - gram: gram, ghram, gr
 - litre: litre, liter, litr
-- metre: metre, meter, metr
 - roll: rouleau, rolo, roll
 - bundle: rabta, rabtet, rabte
 - can: 3elbet, can, tin
@@ -753,12 +751,12 @@ Days and periods
 - today: lyom, lyoum, el yom
 - yesterday: mbere7, mberi7, mbereh
 - day before yesterday: awal mbere7, awwal mbere7, awalt mbereh,
-- week: jem3a, jemaa, osbou3, esbou3
+- week: jem3a, jemaa, osbou3, esbou3, jom3a
 - month: shaher, chaher, shahr
-- year: sene, seneh, s ana
+- year: sene, seneh, sana
 - last: ekher, ekhir, li mara2, li mar2it, li ata3
 - since: men, mn, men wa2t
-- until now: la halla2, la hala2, lahalla2
+- until now: la halla2, la hala2, lahalla2, la hadit halae.
 Tobacco product names
 - IQOS device: iqos, ikos, aykos
 - TEREA tobacco sticks: terea, terrea, teria
