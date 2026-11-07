@@ -55,6 +55,9 @@ saved with its receipt.
 Rules:
 - Filter items with item_name = '<name>', vendors with vendor = '<name>' and categories with category = '<name>',
   using a name exactly as listed below. Never use LIKE, ILIKE or a partial name: "water" is not "water heater".
+- A kind of product that is not one of the user's categories (clothes, electronics, medicine, cleaning products,
+  snacks): filter item_name IN the user's items of that kind, e.g. item_name IN ('t-shirt', 'socks'). Use
+  category = '<name>' only for one of the user's own categories.
 - Filter on brand = '<brand>' only when the user names a brand.
 - For dates relative to today use CURRENT_DATE, for example this month:
   receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'

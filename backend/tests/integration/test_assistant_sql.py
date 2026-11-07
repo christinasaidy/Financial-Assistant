@@ -19,7 +19,10 @@ from app.api.app import create_app
 from app.domain.assistant.errors import QueryFailed, UnsafeQuery
 from app.domain.assistant.prompt import UserNames
 from app.infrastructure.config import Settings
-from app.infrastructure.database.connection import create_db_engine
+from app.infrastructure.database.connection import (
+    create_db_engine,
+    user_scoped_connection,
+)
 from app.infrastructure.database.readonly_query_runner import SqlReadOnlyQueryRunner
 from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
@@ -441,12 +444,13 @@ EXAMPLE_NAMES = UserNames(items=["rice", "bread", "eggs"], vendors=["Spinneys", 
 UNIT_PRICE = "COALESCE(unit_price, line_total / quantity)"
 
 
-def post_receipt(client, headers, day, vendor, total, lines=()):
-    """A confirmed USD Groceries receipt; `lines` are (name, size, unit, quantity, unit_price, line_total)."""
-    groceries = next(c["id"] for c in client.get("/categories", headers=headers).json() if c["name"] == "Groceries")
+def post_receipt(client, headers, day, vendor, total, lines=(), category="Groceries", currency="USD"):
+    """A confirmed receipt (USD Groceries unless given); `lines` are (name, size, unit, quantity, unit_price,
+    line_total)."""
+    category_id = next(c["id"] for c in client.get("/categories", headers=headers).json() if c["name"] == category)
     body = {
-        "vendor_name": vendor, "receipt_date": day, "currency": "USD", "total": total,
-        "primary_category_id": groceries, "lbp_per_usd": "89500",
+        "vendor_name": vendor, "receipt_date": day, "currency": currency, "total": total,
+        "primary_category_id": category_id, "lbp_per_usd": "89500",
         "lines": [
             {"description": name.upper(), "normalized_name": name, "size_amount": size, "size_unit": unit,
              "quantity": quantity, "unit_price": price, "line_total": line_total}
@@ -457,9 +461,9 @@ def post_receipt(client, headers, day, vendor, total, lines=()):
     assert response.status_code == 201, response.text
 
 
-def run_as_on(container, user_id, sql, today=EXAMPLE_TODAY):
+def run_as_on(container, user_id, sql, today=EXAMPLE_TODAY, names=EXAMPLE_NAMES):
     """The model's SQL as the app runs it: the rules put in the date, then the guard and the read-only role."""
-    return container.assistant.run_query(user_id, SqlGlotQueryRules().prepare(sql, EXAMPLE_NAMES, today))
+    return container.assistant.run_query(user_id, SqlGlotQueryRules().prepare(sql, names, today))
 
 
 @pytest.fixture
@@ -547,3 +551,44 @@ def test_kilos_and_dozens_bought_leave_out_and_count_lines_without_a_size(contai
                        "COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size "
                        "FROM purchases WHERE item_name = 'eggs'").rows  # fmt: skip
     assert dozens == [(Decimal("3.5"), 1)]
+
+
+# --- A kind of product that is not a category (worked example approved 2026-11-07) ---
+
+GROUP_NAMES = UserNames(items=["t-shirt", "socks", "chips", "laban", "cigarettes"],
+                        vendors=["Zara", "Spinneys", "Abou Jihad"],
+                        categories=["Groceries", "Shopping", "Tobacco"])  # fmt: skip
+SPENT_ON_ITEMS = ("SELECT currency, SUM(line_total) AS total_spent, SUM(line_total_usd) AS total_spent_usd "
+                  "FROM purchases WHERE item_name IN {items} {period}GROUP BY currency")  # fmt: skip
+
+
+def shop_for_a_group(client, headers, cigarettes_category="Groceries"):
+    post_receipt(client, headers, "2027-02-05", "Zara", "21.00", [("t-shirt", None, None, "1", "15.00", "15.00"),
+                 ("socks", None, None, "1", "6.00", "6.00")], category="Shopping")  # fmt: skip
+    post_receipt(client, headers, "2027-02-06", "Spinneys", "5.00", [("chips", "150", "g", "1", "2.00", "2.00"),
+                 ("laban", "1000", "g", "1", "3.00", "3.00")])  # fmt: skip
+    post_receipt(client, headers, "2027-01-20", "Abou Jihad", "3000000", [("cigarettes", "20", "pcs", "1",
+                 "3000000", "3000000")], category=cigarettes_category, currency="LBP")  # fmt: skip
+
+
+def test_a_kind_of_product_adds_up_only_the_users_items_of_that_kind(container, client, sign_in):
+    headers, user_id = sign_in()
+    shop_for_a_group(client, headers)
+    this_month = ("AND receipt_date >= date_trunc('month', CURRENT_DATE) "
+                  "AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month' ")  # fmt: skip
+    clothes = SPENT_ON_ITEMS.format(items="('t-shirt', 'socks')", period=this_month)
+    assert run_as_on(container, user_id, clothes, names=GROUP_NAMES).rows == [("USD", Decimal("21.00"), Decimal("21.00"))]
+    tobacco = SPENT_ON_ITEMS.format(items="('cigarettes')", period="")
+    (currency, spent, spent_usd), = run_as_on(container, user_id, tobacco, names=GROUP_NAMES).rows
+    assert (currency, spent, round(spent_usd, 2)) == ("LBP", Decimal("3000000.00"), Decimal("33.52"))
+
+
+def test_a_user_with_the_category_gets_the_category(container, client, sign_in, engine):
+    headers, user_id = sign_in()
+    with user_scoped_connection(engine, user_id) as conn:  # the app cannot create one yet; the tests do it directly
+        conn.execute(text("INSERT INTO categories (user_id, name) VALUES (app_user_id(), 'Tobacco')"))
+    shop_for_a_group(client, headers, cigarettes_category="Tobacco")
+    sql = ("SELECT currency, SUM(amount) AS total_spent, SUM(amount_usd) AS total_spent_usd FROM category_spending "
+           "WHERE category = 'Tobacco' GROUP BY currency")  # fmt: skip
+    (currency, spent, spent_usd), = run_as_on(container, user_id, sql, names=GROUP_NAMES).rows
+    assert (currency, spent, round(spent_usd, 2)) == ("LBP", Decimal("3000000.00"), Decimal("33.52"))
