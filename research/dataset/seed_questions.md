@@ -111,7 +111,6 @@ A breakdown of spending by category, e.g. this month.
 The categories with the most spending, e.g. the top 3 last month.
 1. shu aktar 3 categories sarafet 3layon hal shaher
 2. aktar shi aa shu ra7o masriyete el shaher li mara2
-3. farjine top 3 categories bi kanoun
 4. shou aktar no3 masrouf akal el ma3ash hal shaher
 5. ratib el categories men aktar la a2al masrouf hal jemaa
 6. wen ken aktar tbe3zi2 ekher 3 shhour
@@ -251,7 +250,6 @@ Spending on an item of a named brand, e.g. Barilla spaghetti.
 26. chou sarle def3a 3a ahwet Najjar la halla2
 27. adde ra7 men jaybte 3a Nutella hal sene
 28. shefle aday defaa ha2 terrea hal yawmein
-29. dekhan el iqos aday ken ha2o bi awalt el sene
 
 ## T11 Latest price
 What the user paid for an item the last time, e.g. labneh.
@@ -359,7 +357,7 @@ How many times the user had or bought an item, e.g. manakish last month.
 15. el noodles hal shaher, kam marra jebt mennon
 16. kel shway byekhlas el savon, kam marra shtarayto ekher jem3ten
 17. kam marra jebt screen protector hal sene
-18. 3a ases 3ande kfeye notebooks, kam marra shtarayt ba3ed hal semester
+18. 3a ases 3ande kfeye notebooks, kam marra shtarayt ba3ed hal sene
 19. chou 3adad el marraat li talab et fiya burger bi tam mouz
 20. kam marra shtarayt akel lal bisse ekher 30 yom
 
@@ -367,7 +365,7 @@ How many times the user had or bought an item, e.g. manakish last month.
 How many units the user bought, e.g. bottles of water this month.
 
 1. kam 2anninet may shtarayt hal shaher
-2. 3eddele kel el pens li jebton hal semester
+2. 3eddele kel el pens li jebton hal sene
 3. adde 3elbet tissues jebt ekher jem3ten
 4. baddi 3adad el batteries li shtarayton, mesh kam marra shetrit
 5. kam man2oushe talabna el jemaa li mar2it bel majmou3
@@ -377,7 +375,7 @@ How many units the user bought, e.g. bottles of water this month.
 9. jame3le 3adad el hangers li shtarayton men kel el fawatir
 10. hal shaher kam 7abbet croissant jebt, mesh kam talab
 11. adde rouleau wara2 toilette shtarayt bi chbat
-12. kam daftar jebt men awal el semester la halla2
+12. kam daftar jebt men awal el sene la halla2
 13. el packs taba3 el razors li shtarayton, kam shafra fiyon bel majmou3
 14. 3a ases wa7ad bikaffine, kam phone case jebt hal sene
 15. kam 2anninet nail polish shtarayt hal sayfiye
@@ -414,7 +412,7 @@ How many receipts the user has, e.g. from January.
 8. men 10 la 20 ayyar, adde fetoura 3ande
 9. 7asse ma 3melt shi ella shopping, kam fetoura jama3et hal weekend
 10. ma baddi majmou3 el masari, bas 3adad el fawatir hal sene
-11. kam fetoura 3ande men Maliks hal semester
+11. kam fetoura 3ande men Maliks hal sene
 12. 3edde kel fawatir ekher 30 yom
 13. bi chbat la7alo kam receipt 3ande
 14. adde sar 3ande fawatir men awal ma ballashet esta3mel el app
@@ -505,6 +503,8 @@ one" with nothing before it.
 18. shetrit sama3at men Tech Stop bas mesh sheyfe el fetoura, fik tle2iya b esm tene?
 19. ma fhemet, fik tshra7a abssat?
 20. la2 mesh hek azde
+21. farjine top 3 categories bi kanoun
+22. dekhan el iqos aday ken ha2o bi awalt el sene
 
 ## U Unsupported
 Questions the receipts cannot answer: budgets, predictions, shop prices in general, advice, salary, other people.
