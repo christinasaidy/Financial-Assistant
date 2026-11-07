@@ -29,6 +29,7 @@ class Item:
     words: tuple[str, ...]  # the user's Arabizi spellings
     suggested: tuple[str, ...]  # spellings added by the assistant, still to be checked by the user
     brands: tuple[str, ...]
+    brand_words: dict[str, tuple[str, ...]]  # how a brand is written, when it has several spellings
     at: tuple[str, ...]  # kinds of shop that sell it
     vendors: tuple[str, ...]  # when only these shops sell it (bills, subscriptions)
     sizes: tuple[Size, ...] = ()  # packaged
@@ -97,7 +98,9 @@ def _item(entry: dict) -> Item:
     return Item(
         name=entry["name"], category=entry["category"], group=entry.get("group"),
         words=tuple(entry.get("words", ())), suggested=tuple(entry.get("suggested", ())),
-        brands=tuple(entry.get("brands", ())), at=tuple(entry["at"]), vendors=tuple(entry.get("vendors", ())),
+        brands=tuple(entry.get("brands", ())),
+        brand_words={brand: tuple(words) for brand, words in entry.get("brand_words", {}).items()},
+        at=tuple(entry["at"]), vendors=tuple(entry.get("vendors", ())),
         sizes=tuple(Size(int(a), u, Decimal(str(lo)), Decimal(str(hi))) for a, u, lo, hi in entry.get("sizes", ())),
         weight_g=tuple(entry["weight_g"]) if entry.get("weight_g") else None, per_kg=money(entry.get("per_kg")),
         litres=tuple(entry["litres"]) if entry.get("litres") else None, per_litre=money(entry.get("per_litre")),

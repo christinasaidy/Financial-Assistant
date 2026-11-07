@@ -211,3 +211,20 @@ def test_a_seeded_user_has_exactly_the_planned_receipts_and_is_removed(settings)
             remove_user(services, user_id)
         with create_engine(settings.database_url).connect() as conn:
             assert conn.execute(text("SELECT COUNT(*) FROM users WHERE id = :id"), {"id": user_id}).scalar_one() == 0
+
+
+def test_a_user_is_the_same_in_every_python_process():
+    """Sets iterate in a different order in each process (hash randomisation); the plan must not depend on it."""
+    import os
+    import subprocess
+    import sys
+
+    script = ("from research.dataset.catalogue import load_catalogue; from research.dataset.users import make_user; "
+              "c = load_catalogue(); print([(len(u.receipts), u.items, sum(r.total for r in u.receipts)) "
+              "for u in (make_user(c, n) for n in range(1, 31))])")
+    outputs = set()
+    for seed in ("1", "2", "3"):
+        env = {**os.environ, "PYTHONHASHSEED": seed}
+        outputs.add(subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, env=env,
+                                   cwd=Path(__file__).resolve().parents[2], check=True).stdout)  # fmt: skip
+    assert len(outputs) == 1

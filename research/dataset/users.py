@@ -153,7 +153,7 @@ class _Planner:
                 continue
             if rng.random() < (0.55 if item.category == "Groceries" else 0.45) or item.vendors:
                 self._add_item(item)
-        for kind in kinds:  # every shop the user goes to sells them at least one thing (fuel, a taxi ride, ...)
+        for kind in sorted(kinds):  # every shop the user goes to sells them at least one thing (fuel, a taxi ride, ...)
             if not any(kind in self.catalogue.item(name).at for name in self.items):
                 candidates = [item for item in catalogue.items if kind in item.at and self._may_buy(item)
                               and not item.vendors]  # fmt: skip
