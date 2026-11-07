@@ -17,9 +17,11 @@ from sqlalchemy import create_engine, text
 
 from app.api.app import create_app
 from app.domain.assistant.errors import QueryFailed, UnsafeQuery
+from app.domain.assistant.prompt import UserNames
 from app.infrastructure.config import Settings
 from app.infrastructure.database.connection import create_db_engine
 from app.infrastructure.database.readonly_query_runner import SqlReadOnlyQueryRunner
+from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.main import build_container
 from tests.fakes import FakeReceiptExtractor
@@ -425,3 +427,123 @@ def test_the_default_limits_allow_ordinary_queries(container, alice_with_receipt
     )
     usd, all_usd, _ = result.rows[0]
     assert (usd, all_usd) == (Decimal("46.50"), Decimal("56.50"))  # 23 + 15 + 8.50 in USD; plus the $10 LBP receipt
+
+
+# --- The prompt's periods and size rules give the approved results (worked examples approved 2026-11-07) ---
+
+EXAMPLE_TODAY = date(2027, 2, 10)  # a Wednesday
+# One receipt per day, each a different power of two, so a total shows exactly which days were counted.
+PERIOD_DAYS = ["2026-06-01", "2026-08-31", "2026-09-01", "2026-10-01", "2026-10-15", "2026-10-16", "2026-11-10",
+               "2026-11-11", "2027-01-01", "2027-01-27", "2027-01-28", "2027-02-03", "2027-02-04", "2027-02-05",
+               "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-02-10"]  # fmt: skip
+EXAMPLE_NAMES = UserNames(items=["rice", "bread", "eggs"], vendors=["Spinneys", "Carrefour", "Fahed", "Happy"],
+                          categories=["Groceries"])  # fmt: skip
+UNIT_PRICE = "COALESCE(unit_price, line_total / quantity)"
+
+
+def post_receipt(client, headers, day, vendor, total, lines=()):
+    """A confirmed USD Groceries receipt; `lines` are (name, size, unit, quantity, unit_price, line_total)."""
+    groceries = next(c["id"] for c in client.get("/categories", headers=headers).json() if c["name"] == "Groceries")
+    body = {
+        "vendor_name": vendor, "receipt_date": day, "currency": "USD", "total": total,
+        "primary_category_id": groceries, "lbp_per_usd": "89500",
+        "lines": [
+            {"description": name.upper(), "normalized_name": name, "size_amount": size, "size_unit": unit,
+             "quantity": quantity, "unit_price": price, "line_total": line_total}
+            for name, size, unit, quantity, price, line_total in lines
+        ],
+    }  # fmt: skip
+    response = client.post("/receipts/manual", json=body, headers=headers)
+    assert response.status_code == 201, response.text
+
+
+def run_as_on(container, user_id, sql, today=EXAMPLE_TODAY):
+    """The model's SQL as the app runs it: the rules put in the date, then the guard and the read-only role."""
+    return container.assistant.run_query(user_id, SqlGlotQueryRules().prepare(sql, EXAMPLE_NAMES, today))
+
+
+@pytest.fixture
+def one_receipt_a_day(client, sign_in):
+    headers, user_id = sign_in()
+    for power, day in enumerate(PERIOD_DAYS):
+        post_receipt(client, headers, day, "Spinneys", str(2**power))
+    return user_id
+
+
+@pytest.mark.parametrize(
+    ("where", "days"),
+    [
+        ("receipt_date = CURRENT_DATE", ["2027-02-10"]),
+        ("receipt_date = CURRENT_DATE - 1", ["2027-02-09"]),
+        (("receipt_date >= date_trunc('week', CURRENT_DATE) AND receipt_date < date_trunc('week', CURRENT_DATE) "
+          "+ INTERVAL '1 week'"), ["2027-02-08", "2027-02-09", "2027-02-10"]),
+        (("receipt_date >= date_trunc('week', CURRENT_DATE) - INTERVAL '1 week' AND receipt_date < "
+          "date_trunc('week', CURRENT_DATE)"), ["2027-02-03", "2027-02-04", "2027-02-05", "2027-02-06", "2027-02-07"]),
+        ("receipt_date > CURRENT_DATE - 7 AND receipt_date <= CURRENT_DATE",
+         ["2027-02-04", "2027-02-05", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-02-10"]),
+        ("receipt_date > CURRENT_DATE - 14 AND receipt_date <= CURRENT_DATE",
+         ["2027-01-28", "2027-02-03", "2027-02-04", "2027-02-05", "2027-02-06", "2027-02-07", "2027-02-08",
+          "2027-02-09", "2027-02-10"]),
+        ("receipt_date > CURRENT_DATE - INTERVAL '3 months' AND receipt_date <= CURRENT_DATE",
+         [d for d in PERIOD_DAYS if d >= "2026-11-11"]),
+        ("receipt_date >= date_trunc('year', CURRENT_DATE)", [d for d in PERIOD_DAYS if d >= "2027-01-01"]),
+        ("receipt_date = '2027-02-05'", ["2027-02-05"]),  # nhar el jem3a: Friday
+        ("receipt_date >= '2027-02-06' AND receipt_date < '2027-02-08'", ["2027-02-06", "2027-02-07"]),  # weekend
+        ("receipt_date >= '2026-06-01' AND receipt_date < '2026-09-01'", ["2026-06-01", "2026-08-31"]),  # summer
+        ("receipt_date >= '2026-10-01' AND receipt_date < '2026-10-16'", ["2026-10-01", "2026-10-15"]),  # 1-15 Oct
+    ],
+)  # fmt: skip
+def test_each_period_counts_exactly_the_approved_days(container, one_receipt_a_day, where, days):
+    spent = one_value(run_as_on(container, one_receipt_a_day, f"SELECT SUM(total) FROM receipts WHERE {where}"))
+    assert spent == sum(2 ** PERIOD_DAYS.index(day) for day in days)
+
+
+@pytest.fixture
+def sized_purchases(client, sign_in):
+    headers, user_id = sign_in()
+    post_receipt(client, headers, "2027-02-01", "Spinneys", "5.20",
+                 [("rice", "2000", "g", "1", None, "4.20"), ("bread", None, None, "1", "1.00", "1.00")])
+    post_receipt(client, headers, "2027-02-02", "Carrefour", "5.70",
+                 [("rice", "1000", "g", "2", "2.40", "4.80"), ("bread", None, None, "1", "0.90", "0.90")])
+    post_receipt(client, headers, "2027-02-03", "Fahed", "9.50",
+                 [("eggs", "30", "pcs", "1", "6.00", "6.00"), ("eggs", None, None, "1", "3.50", "3.50")])
+    post_receipt(client, headers, "2027-02-04", "Happy", "3.00", [("eggs", "12", "pcs", "1", "3.00", "3.00")])
+    return user_id
+
+
+def compared(container, user_id, item, vendors, price, sized):
+    sql = (f"SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG({price}), 2) AS average_price "
+           f"FROM purchases WHERE item_name = '{item}' AND vendor IN {vendors} AND {sized} "
+           "GROUP BY vendor, currency, size_unit ORDER BY vendor")  # fmt: skip
+    return run_as_on(container, user_id, sql).rows
+
+
+def test_prices_are_compared_per_100_g_per_piece_or_per_unit(container, sized_purchases):
+    per_100 = compared(container, sized_purchases, "rice", "('Spinneys', 'Carrefour')",
+                       f"{UNIT_PRICE} / size_amount * 100", "size_unit IN ('g', 'ml')")
+    assert per_100 == [("Carrefour", "USD", 1, Decimal("0.24")), ("Spinneys", "USD", 1, Decimal("0.21"))]
+    per_piece = compared(container, sized_purchases, "eggs", "('Fahed', 'Happy')",
+                         f"{UNIT_PRICE} / size_amount", "size_unit = 'pcs'")
+    assert per_piece == [("Fahed", "USD", 1, Decimal("0.20")), ("Happy", "USD", 1, Decimal("0.25"))]
+    per_unit = compared(container, sized_purchases, "bread", "('Spinneys', 'Carrefour')",
+                        UNIT_PRICE, "size_amount IS NULL")
+    assert per_unit == [("Carrefour", "USD", 1, Decimal("0.90")), ("Spinneys", "USD", 1, Decimal("1.00"))]
+
+
+def test_the_latest_price_per_kilo(container, sized_purchases):
+    sql = (f"SELECT receipt_date, vendor, ROUND({UNIT_PRICE} / size_amount * 1000, 2) AS price_per_kilo "
+           "FROM purchases WHERE item_name = 'rice' AND size_unit = 'g' ORDER BY receipt_date DESC LIMIT 1")
+    assert run_as_on(container, sized_purchases, sql).rows == [(date(2027, 2, 2), "Carrefour", Decimal("2.40"))]
+
+
+def test_kilos_and_dozens_bought_leave_out_and_count_lines_without_a_size(container, sized_purchases):
+    kilos = run_as_on(container, sized_purchases,
+                      "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000 AS kilos, "
+                      "COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size "
+                      "FROM purchases WHERE item_name = 'rice'").rows  # fmt: skip
+    assert kilos == [(Decimal(4), 0)]
+    dozens = run_as_on(container, sized_purchases,
+                       "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'pcs') / 12 AS dozens, "
+                       "COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size "
+                       "FROM purchases WHERE item_name = 'eggs'").rows  # fmt: skip
+    assert dozens == [(Decimal("3.5"), 1)]

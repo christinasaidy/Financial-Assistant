@@ -153,7 +153,7 @@ def test_small_figures_keep_enough_places_and_a_cut_off_result_is_announced():
 def test_the_prompt_states_the_week_and_price_conventions():
     prompt = build_prompt("how much last week?", NAMES, TODAY)
     assert '"Last week" is the previous Monday to Sunday' in prompt  # approved 2026-11-05
-    assert "per 100 g or 100 ml (unit_price / size_amount * 100)" in prompt
+    assert "per 100 g or 100 ml (unit price / size_amount * 100)" in prompt  # decision 8, 2026-11-07
 
 
 def test_the_prompt_states_the_period_and_counting_conventions():  # approved 2026-11-05, after the pilot
@@ -161,3 +161,46 @@ def test_the_prompt_states_the_period_and_counting_conventions():  # approved 20
     assert "return each period as the first day of its month: date_trunc('month', receipt_date) AS month" in prompt
     assert '"how many times", "how often" and "how many visits" count receipts: COUNT(DISTINCT receipt_id)' in prompt
     assert '"How many <items> did I buy" adds up the quantity: SUM(quantity)' in prompt
+
+
+# --- Periods, sizes and comparisons (approved 2026-11-07, worked examples with today 2027-02-10) ---
+
+
+def test_the_prompt_states_the_rolling_periods_with_current_date():
+    prompt = build_prompt("adde sarafet ekher 7 iyem?", NAMES, TODAY)
+    assert '"Today": receipt_date = CURRENT_DATE. "Yesterday": receipt_date = CURRENT_DATE - 1.' in prompt
+    assert ("\"This week\" is this Monday to Sunday:\n  receipt_date >= date_trunc('week', CURRENT_DATE) AND "
+            "receipt_date < date_trunc('week', CURRENT_DATE) + INTERVAL '1 week'") in prompt  # fmt: skip
+    assert '"The last N days" is today and the N-1 days before it; "the last N weeks" is the last N*7 days' in prompt
+    assert "receipt_date > CURRENT_DATE - 7 AND receipt_date <= CURRENT_DATE" in prompt
+    assert '"The last N months" starts the day after the same date N months ago' in prompt
+    assert "receipt_date > CURRENT_DATE - INTERVAL '3 months' AND receipt_date <= CURRENT_DATE" in prompt
+    assert "\"Since the start of the year\" is this year so far: receipt_date >= date_trunc('year', CURRENT_DATE)" in prompt
+
+
+def test_the_prompt_states_the_named_periods_written_out():
+    prompt = build_prompt("adde sarafet hal weekend?", NAMES, TODAY)
+    assert '"on Monday": the most recent Monday up to today' in prompt
+    assert "the weekend (Saturday and Sunday: this one\n  if today is Saturday or Sunday, otherwise the last one)" in prompt
+    assert "summer (June to August)" in prompt
+    assert ("A range includes its first and\n  last day: \"1 to 15 October\" is receipt_date >= '2026-10-01' AND "
+            "receipt_date < '2026-10-16'.") in prompt  # fmt: skip
+
+
+def test_the_prompt_states_the_arabizi_period_words_and_when_to_ask_back():
+    prompt = build_prompt("adde sarafet bi kanoun?", NAMES, TODAY)
+    assert '"jem3a" alone is a week ("hal jem3a" this week, "el jem3a li mar2it" last week); "nhar el jem3a" is\n  Friday.' in prompt
+    assert '"Kanoun el awal" is December and "kanoun el tene" January.' in prompt
+    assert ('Reply CLARIFY for "kanoun" alone, a semester, or\n  "the start of the year" (bi awal el sene) '
+            'without "since".') in prompt  # fmt: skip
+
+
+def test_the_prompt_states_the_unit_price_and_size_conventions():
+    prompt = build_prompt("kam kilo rez jebt?", NAMES, TODAY)
+    assert "A unit price is COALESCE(unit_price, line_total / quantity). Per kilo or litre: unit price / size_amount * 1000." in prompt
+    assert "per 100 g or 100 ml (unit price / size_amount * 100); per piece for sizes in pcs" in prompt
+    assert "by unit price for lines with no size" in prompt
+    assert "Compare only lines with the same size_unit (or\n  both without a size) and the same currency" in prompt
+    assert "SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000" in prompt
+    assert "a dozen is 12 pieces" in prompt
+    assert "COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size" in prompt
