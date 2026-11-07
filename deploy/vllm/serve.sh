@@ -2,7 +2,8 @@
 # Start the model server on a fresh RunPod "PyTorch" pod, for the assistant's evaluation.
 #
 #   export VLLM_KEY='your-key'          # made up on your laptop; never written into this file
-#   bash serve.sh                       # Qwen/Qwen3.8-27B by default, or: bash serve.sh <model name>
+#   bash serve.sh                       # Qwen/Qwen3.8-27B by default, or: bash serve.sh <model name> [vllm flags]
+#   bash serve.sh Qwen/Qwen3.5-9B --language-model-only   # extra flags go to `vllm serve` as they are
 #   tail -f /root/vllm.log              # ready at "Application startup complete"
 #
 # Every choice below comes from the two pilot sessions of 2026-11-05:
@@ -19,6 +20,7 @@
 set -euo pipefail
 
 MODEL="${1:-Qwen/Qwen3.8-27B}"
+shift $(( $# > 0 ? 1 : 0 ))  # whatever follows the model name is passed to vllm serve
 VLLM_VERSION="0.33.0"
 : "${VLLM_KEY:?Set your key first: export VLLM_KEY='...'   (no spaces around =)}"
 
@@ -32,7 +34,7 @@ unset HF_HOME  # the pod's own disk, see above
 pkill -f "vllm serve" || true  # never two servers at once
 nohup vllm serve "$MODEL" \
   --max-model-len 16384 --max-num-seqs 32 --reasoning-parser qwen3 \
-  --api-key "$VLLM_KEY" --host 0.0.0.0 --port 8000 \
+  --api-key "$VLLM_KEY" --host 0.0.0.0 --port 8000 "$@" \
   > /root/vllm.log 2>&1 &
 
 echo "vLLM $(pip show vllm | awk '/^Version/ {print $2}') is starting $MODEL."
