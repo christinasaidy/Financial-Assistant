@@ -32,4 +32,5 @@ class UnitOfWorkFactory(Protocol):
         `serialized=True` first waits until the user's other serialized units of work have finished, and holds
         them off until this one ends. Use it for every change that can move a budget (and so checks budget
         alerts): two such changes at once would each check the budget without the other's change and could both
-        miss an alert (second code review, 2026-10-16). Reads and other changes do not need it."""
+        miss an alert (second code review, 2026-10-16). Creating a category uses it too, so two at once cannot
+        both pass the per-user limit. Reads and other changes do not need it."""

@@ -10,6 +10,7 @@ from app.domain.assistant.errors import (
     UnsafeQuery,
 )
 from app.domain.budgets.errors import BudgetNotFound, InvalidBudget
+from app.domain.categories.errors import CategoryAlreadyExists, InvalidCategory
 from app.domain.notifications.errors import NotificationNotFound
 from app.domain.receipts.errors import (
     DuplicateReceipt,
@@ -41,6 +42,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (ConversationNotFound, status.HTTP_404_NOT_FOUND),
     (MessageNotFound, status.HTTP_404_NOT_FOUND),
     (EmailAlreadyRegistered, status.HTTP_409_CONFLICT),
+    (CategoryAlreadyExists, status.HTTP_409_CONFLICT),
     (DuplicateReceipt, status.HTTP_409_CONFLICT),
     (InvalidStateTransition, status.HTTP_409_CONFLICT),
     (FileTooLarge, 413),
@@ -50,6 +52,7 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidReceipt, 422),
     (InvalidExchangeRate, 422),
     (InvalidBudget, 422),
+    (InvalidCategory, 422),
     (InvalidMonth, 422),
     (InvalidQuestion, 422),
     (CannotRateQuestion, 422),
