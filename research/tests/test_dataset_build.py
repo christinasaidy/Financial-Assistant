@@ -160,6 +160,14 @@ def test_replies_must_start_right_and_a_reply_never_states_a_number():
         "a REPLY states a number"]
 
 
+def test_arabizi_letters_written_as_digits_are_not_numbers():  # found in the first real call, 2026-11-08
+    reply = spec_with((), kind="reply")
+    for text in ("REPLY: Afwan, ya 3afak.", "REPLY: Afwan, b2a2ak.", "REPLY: ahla w sahla, 7abibi"):
+        assert problems(Version("arabizi", "teslam", text), reply, CATALOGUE) == []
+    for text in ("REPLY: sarafet 20 dollar", "REPLY: 3al 7, 50$", "REPLY: you spent 12.5", "REPLY: 2 receipts"):
+        assert problems(Version("arabizi", "teslam", text), reply, CATALOGUE) == ["a REPLY states a number"]
+
+
 def test_a_follow_up_needs_its_earlier_question():
     follow = spec_with((), template="F1", base=spec_with(()))
     assert problems(Version("english", "and last month?"), follow, CATALOGUE) == [

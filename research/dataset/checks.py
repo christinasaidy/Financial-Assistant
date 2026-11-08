@@ -6,7 +6,8 @@ A version is dropped, with the reason logged, when:
   own name (kleenex, nutella: listed among the item's spellings);
 - it has Arabic script;
 - it is blank or longer than 300 characters;
-- its reply does not start the way its kind needs (CLARIFY: / REPLY:), or a REPLY states a number;
+- its reply does not start the way its kind needs (CLARIFY: / REPLY:), or a REPLY states a number
+  (digits inside a word are Arabizi letters, not numbers);
 - a follow-up has no earlier question;
 - it is a near-duplicate of a test question (difflib similarity of at least 0.85 after lowercasing and removing
   punctuation), so no test question leaks into training.
@@ -23,6 +24,8 @@ from research.dataset.templates import Spec
 MAX_LENGTH = 300
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
+# A number stands alone: digits inside a word are Arabizi letters (3afak, b2a2ak), found 2026-11-08.
+_NUMBER = re.compile(r"(?<![^\W\d_])\d+(?![^\W\d_])")
 _ARABIC = re.compile(r"[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]")
 
 
@@ -97,7 +100,7 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
         start = "CLARIFY:" if spec.kind == "clarify" else "REPLY:"
         if not version.reply or not version.reply.startswith(start) or len(version.reply) <= len(start) + 1:
             found.append(f"the reply does not start with {start}")
-        elif spec.kind == "reply" and re.search(r"\d", version.reply):
+        elif spec.kind == "reply" and _NUMBER.search(version.reply):
             found.append("a REPLY states a number")
     if spec.base is not None and not version.first:
         found.append("a follow-up without its earlier question")
