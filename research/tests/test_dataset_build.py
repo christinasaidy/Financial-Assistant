@@ -78,7 +78,9 @@ def test_the_prompt_describes_the_question_and_never_shows_the_sql():
     assert "3 in Lebanese Arabizi" in prompt and "1 mixing Arabizi and English" in prompt and "2 in English" in prompt
     examples = [line[2:] for line in prompt.split("Examples of how people ask this kind of question:\n")[1]
                 .split("\n\n")[0].splitlines()]  # fmt: skip
-    assert len(examples) == 10 and set(examples) <= set(SEEDS.questions["T9"])  # 10 seeds (changed 2026-11-08)
+    assert sorted(examples) == sorted(SEEDS.questions["T9"])[:20]  # up to 20 seeds: T9 has fewer (2026-11-08)
+    assert "reuse their words, spellings and sentence shapes, and change only what this question is about" in prompt
+    assert "Do not copy" not in prompt
 
 
 def test_the_seeds_shown_change_from_call_to_call():
@@ -97,11 +99,12 @@ def test_clarify_and_follow_ups_ask_for_their_extra_fields():
     assert '"first": "<the earlier question>"' in prompt and follow.base.description in prompt
 
 
-def test_weekday_spellings_only_when_the_question_names_that_day():
-    friday = Spec("T9", "sql", "How much the user spent on bread, on Friday (the most recent Friday).", "")
-    week = Spec("T9", "sql", "How much the user spent on bread, this week (Monday to Sunday).", "")
-    assert "- Friday:" in build_generator_prompt(friday, CATALOGUE, SEEDS, TODAY, random.Random(1))
-    assert "- Monday:" not in build_generator_prompt(week, CATALOGUE, SEEDS, TODAY, random.Random(1))
+def test_only_the_spellings_the_question_must_mention_are_listed():  # no word list since 2026-11-08
+    friday = Spec("T9", "sql", "How much the user spent on bread, on Friday (the most recent Friday).", "",
+                  (("bread", "khebez"), ("friday", "jem3a", "jom3a")))
+    prompt = build_generator_prompt(friday, CATALOGUE, SEEDS, TODAY, random.Random(1))
+    assert 'It must mention "bread" (or one of: khebez); and "friday" (or one of: jem3a, jom3a).' in prompt
+    assert "How people write" not in prompt and "masare" not in prompt.split("Examples of")[0]
 
 
 # --- Reading the reply and the checks ---
@@ -164,7 +167,8 @@ def test_the_prompt_asks_for_lebanese_spellings():  # approved 2026-11-08 after 
     spec = next(s for s in make_specs(UserData(make_user(CATALOGUE, 1), CATALOGUE), 24, "x") if s.kind == "sql")
     prompt = build_generator_prompt(spec, CATALOGUE, load_seeds(), date(2026, 11, 8), random.Random(1))
     assert "2 for the qaf and hamza, never q (abel, 2abel, ta2sod)" in prompt
-    assert "not Gulf or formal ones (shu, adde, hayda, mnih, not eish, kam masareh, elay, hatha); 7a2 means price." in prompt
+    assert "not Gulf or formal ones (shu, adde, hayda, mnih, not eish, elay, hatha); 7a2 means price." in prompt
+    assert "masareh" not in prompt.split("Examples of")[0]  # the user's own spelling, not a mistake (2026-11-08)
 
 
 def test_arabizi_letters_written_as_digits_are_not_numbers():  # found in the first real call, 2026-11-08

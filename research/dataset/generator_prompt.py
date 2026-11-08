@@ -1,8 +1,8 @@
 """What the question writer (Qwen) is sent for one thing to ask (decisions approved by the user on 2026-11-05/07).
 
-It gets a plain description of the question (never the SQL), the names and spellings to use, today's date,
-the user's seed questions for that kind of question (ten, picked at random each call, so phrasings do not copy the same
-few), and the spelling lines that matter for this question. It returns JSON: six versions, three in Arabizi, one
+It gets a plain description of the question (never the SQL), the names and spellings to use, today's date, and
+up to twenty of the user's seed questions for that kind of question, in a new order each call, which the Arabizi
+versions must imitate (decided 2026-11-08, after the first full run sounded nothing like the seeds). It returns JSON: six versions, three in Arabizi, one
 mixing Arabizi and English, two in English. For CLARIFY and REPLY each version carries its own reply, in the
 question's language; for a follow-up, each version also carries the earlier question it follows.
 """
@@ -18,7 +18,7 @@ from research.dataset.templates import Spec
 
 SEED_FILE = Path(__file__).parent / "seed_questions.md"
 LANGUAGES = ("arabizi", "arabizi", "arabizi", "mixed", "english", "english")
-SEEDS_PER_CALL = 10  # more examples give more natural, varied wording (5 until 2026-11-08)
+SEEDS_PER_CALL = 20  # the Arabizi imitates them (5, then 10, until 2026-11-08)
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 # The seed section each template learns its style from: new templates use the nearest one.
 SEED_SECTION = {"T3g": "T3", "T11k": "T11", "T12k": "T12", "T18": "T15", "T19": "T17", "T20": "T17"}
@@ -91,18 +91,15 @@ def build_generator_prompt(spec: Spec, catalogue: Catalogue, seeds: Seeds, today
         "- 3 in Lebanese Arabizi (Lebanese Arabic in Latin letters, with 2 3 5 7 for the Arabic sounds);",
         "- 1 mixing Arabizi and English in the same sentence;",
         "- 2 in English.",
-        ("Vary the words, the length and the tone. Use only Latin letters, never Arabic script. Do not copy the "
-         "examples: they are about other things and only show how people write."),
-        # Added after the first real calls showed Gulf and formal spellings (approved by the user on 2026-11-08).
+        # Imitate, not just be inspired by, the user's examples (approved by the user on 2026-11-08).
+        ("Write the 3 Arabizi versions, and the Arabizi words of the mixed one, in the same style as the examples "
+         "below: reuse their words, spellings and sentence shapes, and change only what this question is about. "
+         "The English versions can be worded freely. Use only Latin letters, never Arabic script."),
         ("Write the way people in Lebanon text: 2 for the qaf and hamza, never q (abel, 2abel, ta2sod); Lebanese "
-         "words, not Gulf or formal ones (shu, adde, hayda, mnih, not eish, kam masareh, elay, hatha); 7a2 means "
-         "price."),
+         "words, not Gulf or formal ones (shu, adde, hayda, mnih, not eish, elay, hatha); 7a2 means price."),
         "",
         "Examples of how people ask this kind of question:",
         *[f"- {example}" for example in examples[:SEEDS_PER_CALL]],
-        "",
-        "How people write money, units and days (use these spellings):",
-        *[f"- {line}" for line in _relevant_vocabulary(spec, seeds)],
         "",
         "Reply with JSON only, in this form:",
         _json_form(spec),
@@ -117,22 +114,6 @@ def _must_mention(spec: Spec) -> list[str]:
         main, *others = words
         phrases.append(f'"{main}"' + (f" (or one of: {', '.join(others)})" if others else ""))
     return phrases
-
-
-def _relevant_vocabulary(spec: Spec, seeds: Seeds) -> list[str]:
-    """The money words always; units and days only when the question is about them."""
-    text = (spec.description + " " + (spec.base.description if spec.base else "")).lower()
-    wanted = []
-    for line in seeds.vocabulary:
-        key = line.split(":")[0].lower()
-        money = key in ("money", "my money", "spending", "i spent", "i paid", "price", "receipt", "receipts",
-                        "total", "how much", "bought")  # fmt: skip
-        if key.capitalize() in WEEKDAYS:  # a weekday's spellings only when the question names that day
-            if f"on {key}" in text:
-                wanted.append(line)
-        elif money or key in text or (key == "average" and "usually" in text) or (key == "cheaper" and "cheaper" in text):
-            wanted.append(line)
-    return wanted
 
 
 def _json_form(spec: Spec) -> str:
