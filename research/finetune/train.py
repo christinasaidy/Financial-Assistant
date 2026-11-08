@@ -88,7 +88,7 @@ def main() -> int:
         output_dir=str(args.out / "checkpoints"), num_train_epochs=args.epochs, max_steps=args.max_steps,
         per_device_train_batch_size=args.batch, per_device_eval_batch_size=args.batch,
         gradient_accumulation_steps=args.accumulate, learning_rate=args.lr, lr_scheduler_type="cosine",
-        warmup_ratio=0.03, weight_decay=0.0, bf16=True, gradient_checkpointing=True,
+        warmup_steps=10, weight_decay=0.0, bf16=True, gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False}, logging_steps=10, eval_strategy="epoch"
         if args.max_steps < 0 else "no", save_strategy="no", report_to="none", remove_unused_columns=False,
         seed=SEED, data_seed=SEED,
