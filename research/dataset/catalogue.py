@@ -82,13 +82,19 @@ def load_catalogue(path: Path = CATALOGUE_FILE) -> Catalogue:
         shops=tuple(_shop(entry) for entry in data["shops"]),
         default_categories=tuple(categories["default"]),
         private_categories=dict(categories["private"]),
-        category_words={
-            name: tuple(words) for name, words in data["category_words"].items() if isinstance(words, list)
-        },
-        group_words={name: tuple(words) for name, words in data["group_words"].items() if isinstance(words, list)},
+        category_words=_words(data["category_words"]),
+        group_words=_words(data["group_words"]),
     )
     _check(catalogue)
     return catalogue
+
+
+def _words(section: dict) -> dict[str, tuple[str, ...]]:
+    """A category's or group's words: the main list plus the "suggested" ones, used the same way (as for items)."""
+    words = {name: list(found) for name, found in section.items() if isinstance(found, list)}
+    for name, found in section.get("suggested", {}).items():
+        words.setdefault(name, []).extend(word for word in found if word not in words[name])
+    return {name: tuple(found) for name, found in words.items()}
 
 
 def _item(entry: dict) -> Item:

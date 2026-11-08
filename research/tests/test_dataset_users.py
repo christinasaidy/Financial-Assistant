@@ -228,3 +228,14 @@ def test_a_user_is_the_same_in_every_python_process():
         outputs.add(subprocess.run([sys.executable, "-c", script], capture_output=True, text=True, env=env,
                                    cwd=Path(__file__).resolve().parents[2], check=True).stdout)  # fmt: skip
     assert len(outputs) == 1
+
+
+def test_suggested_category_and_group_words_are_used_like_the_main_ones():  # decided 2026-11-08
+    def add(data):
+        data["group_words"]["suggested"] = {"snacks": ["fawe7esh", "na2rashe"]}
+        data["category_words"]["suggested"] = {"Shopping": ["tasawwo2"]}
+
+    catalogue = load_catalogue(_broken(add))
+    assert {"fawe7esh", "na2rashe"} <= set(catalogue.group_words["snacks"])
+    assert "tasawwo2" in catalogue.category_words["Shopping"]
+    assert "suggested" not in catalogue.group_words and "suggested" not in catalogue.category_words
