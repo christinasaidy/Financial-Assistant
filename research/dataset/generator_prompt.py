@@ -93,6 +93,10 @@ def build_generator_prompt(spec: Spec, catalogue: Catalogue, seeds: Seeds, today
         "- 2 in English.",
         ("Vary the words, the length and the tone. Use only Latin letters, never Arabic script. Do not copy the "
          "examples: they are about other things and only show how people write."),
+        # Added after the first real calls showed Gulf and formal spellings (approved by the user on 2026-11-08).
+        ("Write the way people in Lebanon text: 2 for the qaf and hamza, never q (abel, 2abel, ta2sod); Lebanese "
+         "words, not Gulf or formal ones (shu, adde, hayda, mnih, not eish, kam masareh, elay, hatha); 7a2 means "
+         "price."),
         "",
         "Examples of how people ask this kind of question:",
         *[f"- {example}" for example in examples[:SEEDS_PER_CALL]],

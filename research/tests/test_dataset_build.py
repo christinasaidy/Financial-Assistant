@@ -160,6 +160,13 @@ def test_replies_must_start_right_and_a_reply_never_states_a_number():
         "a REPLY states a number"]
 
 
+def test_the_prompt_asks_for_lebanese_spellings():  # approved 2026-11-08 after the first real calls
+    spec = next(s for s in make_specs(UserData(make_user(CATALOGUE, 1), CATALOGUE), 24, "x") if s.kind == "sql")
+    prompt = build_generator_prompt(spec, CATALOGUE, load_seeds(), date(2026, 11, 8), random.Random(1))
+    assert "2 for the qaf and hamza, never q (abel, 2abel, ta2sod)" in prompt
+    assert "not Gulf or formal ones (shu, adde, hayda, mnih, not eish, kam masareh, elay, hatha); 7a2 means price." in prompt
+
+
 def test_arabizi_letters_written_as_digits_are_not_numbers():  # found in the first real call, 2026-11-08
     reply = spec_with((), kind="reply")
     for text in ("REPLY: Afwan, ya 3afak.", "REPLY: Afwan, b2a2ak.", "REPLY: ahla w sahla, 7abibi"):
