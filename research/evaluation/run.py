@@ -2,10 +2,12 @@
 
     backend\\.venv\\Scripts\\python -m research.evaluation.run                      # free: the expected answers
     backend\\.venv\\Scripts\\python -m research.evaluation.run --model NAME --yes   # a real model (costs money)
+    ... --questions research/evaluation/data/test_questions.json                     # the test set
 
 Run from the repository folder. Each run seeds a throwaway user with data/seed.json, asks every question in
 data/questions.json through the app's own SQL step (AssistantService.run_question) on 2026-11-03, scores each reply
-(scoring.py), removes the user, prints a summary and saves the full results in results/ (not committed).
+(scoring.py), removes the user, prints a summary and saves the full results in results/ (not committed). A questions
+file naming a "user" (the test set: synthetic user 31) is asked as that synthetic user instead, on its own today.
 """
 
 import argparse
@@ -25,7 +27,10 @@ from app.infrastructure.language_model.openai_compatible_assistant_model import 
 from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from research.evaluation.expected_model import ExpectedAnswersModel
-from research.evaluation.questions import QUESTIONS_FILE, PilotQuestion, load_questions, seed_names
+from research.dataset.catalogue import load_catalogue
+from research.dataset.users import make_user
+from research.dataset.users import seed_user as seed_synthetic_user
+from research.evaluation.questions import QUESTIONS_FILE, PilotQuestion, data_user, load_questions, seed_names
 from research.evaluation.scoring import Score, score
 from research.evaluation.seed import remove_user, seed_user
 from research.evaluation.wiring import BACKEND_DIR, Evaluation, build_evaluation, load_settings
@@ -41,12 +46,23 @@ class QuestionReport:
     score: Score
 
 
-def evaluate(evaluation: Evaluation, questions: Sequence[PilotQuestion], today: date) -> list[QuestionReport]:
-    """Seed the data, ask every question, score it, and always remove the throwaway user."""
-    user_id = seed_user(evaluation)
+def evaluate(evaluation: Evaluation, questions: Sequence[PilotQuestion], today: date, user: int | None = None
+             ) -> list[QuestionReport]:  # fmt: skip
+    """Seed the data (seed.json, or synthetic user `user`), ask every question, score it, and always remove the
+    throwaway user."""
+    if user is None:
+        user_id = seed_user(evaluation)
+    else:
+        synthetic = make_user(load_catalogue(), user)
+        if synthetic.today != today:
+            raise ValueError(f"Synthetic user {user} is asked on its own today, {synthetic.today}, not {today}")
+        user_id = seed_synthetic_user(evaluation, synthetic)
     try:
-        categories = tuple(c.name for c in evaluation.categories.list_all(user_id))
-        names = seed_names(categories=categories)
+        if user is None:
+            categories = tuple(c.name for c in evaluation.categories.list_all(user_id))
+            names = seed_names(categories=categories)
+        else:
+            names = evaluation.assistant.prompt_names(user_id)
         guard, rules = SqlGlotGuard(), SqlGlotQueryRules()
         reports = []
         for question in questions:
@@ -134,13 +150,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     started = datetime.now(UTC)
     with tempfile.TemporaryDirectory() as storage:
         evaluation = build_evaluation(settings, model, today, Path(storage))
-        reports = evaluate(evaluation, questions, today)
+        reports = evaluate(evaluation, questions, today, data_user(args.questions))
     label = f"{args.model}" + (f" (thinking {args.thinking})" if args.thinking else "")
     print(summary(reports, label))
 
     run = {"started": started.isoformat(timespec="seconds"), "model": args.model,
            "base_url": base_url if real else None, "thinking": args.thinking, "today": today.isoformat(),
-           "questions_file": str(args.questions), **_backend_commit()}  # fmt: skip
+           "user": data_user(args.questions), "questions_file": str(args.questions), **_backend_commit()}  # fmt: skip
     RESULTS_DIR.mkdir(exist_ok=True)
     path = RESULTS_DIR / f"{started.strftime('%Y%m%d-%H%M%S')}-{_safe(args.model)}.json"
     path.write_text(json.dumps(results_json(reports, run), indent=2, default=str), encoding="utf-8")

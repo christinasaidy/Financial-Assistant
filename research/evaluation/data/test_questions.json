@@ -1,0 +1,2115 @@
+{
+ "about": "The test set (decided with the user on 2026-11-08): a third of each section of the user's seed questions, chosen at random with a fixed seed and taken out of seed_questions.md before any generation, so the generator never saw them. Each is asked as synthetic user 31 (never a training or validation user) on that user's today; 'seed' is the question as the user wrote it, 'question' as asked, with an item, shop or period the user 31 data lacks swapped for one it has. Answers are scored as in the pilot.",
+ "user": 31,
+ "today": "2028-01-12",
+ "questions": [
+  {
+   "id": "Q001",
+   "template": "T1",
+   "type": "total",
+   "language": "arabizi",
+   "seed": "aday sarafit el shaher li ata3",
+   "question": "aday sarafit el shaher li ata3",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q002",
+   "template": "T1",
+   "type": "total",
+   "language": "arabizi",
+   "seed": "aday dafa3et masari hal osbou3",
+   "question": "aday dafa3et masari hal osbou3",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q003",
+   "template": "T1",
+   "type": "total",
+   "language": "arabizi",
+   "seed": "aday sarafet mbere7",
+   "question": "aday sarafet mbere7",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date = '2028-01-11' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q004",
+   "template": "T1",
+   "type": "total",
+   "language": "arabizi",
+   "seed": "ma tkhabbile shi, adde sarfet el shaher li mara2",
+   "question": "ma tkhabbile shi, adde sarfet el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q005",
+   "template": "T1",
+   "type": "total",
+   "language": "arabizi",
+   "seed": "adde sar masroufe men nhar el tanayn la halla2",
+   "question": "adde sar masroufe men nhar el tanayn la halla2",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2028-01-10' AND receipt_date <= '2028-01-12' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q006",
+   "template": "T1",
+   "type": "total",
+   "language": "arabizi",
+   "seed": "jame3le kel li dafa3to hal weekend",
+   "question": "jame3le kel li dafa3to awal weekend bel sene",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2028-01-01' AND receipt_date < '2028-01-03' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q007",
+   "template": "T2",
+   "type": "dollars",
+   "language": "arabizi",
+   "seed": "aday sarafet bel dollar men ayloul la halla2",
+   "question": "aday sarafet bel dollar men ayloul la halla2",
+   "accept": [
+    {
+     "sql": "SELECT SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2027-09-01' AND receipt_date <= '2028-01-12'"
+    }
+   ]
+  },
+  {
+   "id": "Q008",
+   "template": "T2",
+   "type": "dollars",
+   "language": "arabizi",
+   "seed": "7seble aday dafaat bel dollar",
+   "question": "7seble aday dafaat bel dollar",
+   "accept": [
+    {
+     "sql": "SELECT SUM(total_usd) AS total_spent_usd FROM receipts"
+    },
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q009",
+   "template": "T2",
+   "type": "dollars",
+   "language": "arabizi",
+   "seed": "eza mne7sob bl dollar bi may aday byetlaao",
+   "question": "eza mne7sob bl dollar bi may aday byetlaao",
+   "accept": [
+    {
+     "sql": "SELECT SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2027-05-01' AND receipt_date < '2027-06-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q010",
+   "template": "T2",
+   "type": "dollars",
+   "language": "arabizi",
+   "seed": "baddi a3ref aday sarafet bel dollar el shaher li mara2",
+   "question": "baddi a3ref aday sarafet bel dollar el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q011",
+   "template": "T2",
+   "type": "dollars",
+   "language": "arabizi",
+   "seed": "kel hal masarif adde byetla3o bel dollar",
+   "question": "kel hal masarif adde byetla3o bel dollar",
+   "accept": [
+    {
+     "sql": "SELECT SUM(total_usd) AS total_spent_usd FROM receipts"
+    },
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q012",
+   "template": "T2",
+   "type": "dollars",
+   "language": "arabizi",
+   "seed": "aday tar menne dollarat hal jemaa",
+   "question": "aday tar menne dollarat hal jemaa",
+   "accept": [
+    {
+     "sql": "SELECT SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17'"
+    }
+   ]
+  },
+  {
+   "id": "Q013",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "7seble masroufe aal tyeb men awal el sene la halla2",
+   "question": "7seble masroufe aal shopping men awal el sene la halla2",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Shopping' AND receipt_date >= '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q014",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "wayn wesel masrouf el taxi hal shaher",
+   "question": "wayn wesel masrouf el kahraba hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'electricity bill' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q015",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "7seble el cigarettes la7alon hal shaher",
+   "question": "7seble el cigarettes la7alon bi ayloul",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'cigarettes' AND receipt_date >= '2027-09-01' AND receipt_date < '2027-10-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q016",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "adde ra7 men jaybte 3al 7elo hal jem3a",
+   "question": "adde ra7 men jaybte 3al 7elo bi kanoun el awal",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'sweets' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q017",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "adde dafa3et 3al eshtiraket men awal el sene la halla2",
+   "question": "adde dafa3et 3al gym men awal el sene la halla2",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'gym membership' AND receipt_date >= '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q018",
+   "template": "T3",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "el sayara falasetne, adde dafa3et 3al tasli7 hal sene",
+   "question": "el sayara falasetne, adde dafa3et 3al tasli7 hal sene",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q019",
+   "template": "T3",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "adde sarfet 3al hadeya bi december",
+   "question": "adde sarfet 3al hadeya bi december",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q020",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "shu tole3 majmou3 el adwiye ekher shaher",
+   "question": "shu tole3 majmou3 mawed el tandif ekher shaher",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('bleach', 'dishwasher tablets', 'dishwashing liquid', 'garbage bags', 'sponge') AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q021",
+   "template": "T3",
+   "type": "category",
+   "language": "arabizi",
+   "seed": "3tine total el shopping men 1 la 15 ayloul",
+   "question": "3tine total el shopping men 1 la 15 ayloul",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Shopping' AND receipt_date >= '2027-09-01' AND receipt_date < '2027-09-16' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q022",
+   "template": "T4",
+   "type": "by category",
+   "language": "arabizi",
+   "seed": "2asemle masroufe bi august 7asab el categories",
+   "question": "2asemle masroufe bi august 7asab el categories",
+   "accept": [
+    {
+     "sql": "SELECT category, currency, SUM(amount) AS total_spent FROM category_spending WHERE receipt_date >= '2027-08-01' AND receipt_date < '2027-09-01' GROUP BY category, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q023",
+   "template": "T4",
+   "type": "by category",
+   "language": "arabizi",
+   "seed": "ma fhemet kif kholso el masari, farjine wen ra7o hal jemaa",
+   "question": "ma fhemet kif kholso el masari, farjine wen ra7o hal jemaa",
+   "accept": [
+    {
+     "sql": "SELECT category, currency, SUM(amount) AS total_spent FROM category_spending WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17' GROUP BY category, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q024",
+   "template": "T4",
+   "type": "by category",
+   "language": "arabizi",
+   "seed": "7seble kel category la7ala men awal el sene la halla2",
+   "question": "7seble kel category la7ala men awal el sene la halla2",
+   "accept": [
+    {
+     "sql": "SELECT category, currency, SUM(amount) AS total_spent FROM category_spending WHERE receipt_date >= '2028-01-01' GROUP BY category, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q025",
+   "template": "T4",
+   "type": "by category",
+   "language": "arabizi",
+   "seed": "adde 3al akel w adde 3al na2el w adde 3al be2e hal shaher",
+   "question": "adde 3al akel w adde 3al na2el w adde 3al be2e hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT category, currency, SUM(amount) AS total_spent FROM category_spending WHERE receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY category, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q026",
+   "template": "T4",
+   "type": "by category",
+   "language": "arabizi",
+   "seed": "baddi shouf kel naw3 masrouf adde ekhed men el total hal sene",
+   "question": "baddi shouf kel naw3 masrouf adde ekhed men el total hal sene",
+   "accept": [
+    {
+     "sql": "SELECT category, currency, SUM(amount) AS total_spent FROM category_spending WHERE receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' GROUP BY category, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q027",
+   "template": "T4",
+   "type": "by category",
+   "language": "arabizi",
+   "seed": "3mele liste bel categories w adde dafa3et 3a kel wehde bi teshreen el awal",
+   "question": "3mele liste bel categories w adde dafa3et 3a kel wehde bi teshreen el awal",
+   "accept": [
+    {
+     "sql": "SELECT category, currency, SUM(amount) AS total_spent FROM category_spending WHERE receipt_date >= '2027-10-01' AND receipt_date < '2027-11-01' GROUP BY category, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q028",
+   "template": "T5",
+   "type": "top categories",
+   "language": "arabizi",
+   "seed": "shu aktar 3 categories sarafet 3layon hal shaher",
+   "question": "shu aktar 3 categories sarafet 3layon hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT category, SUM(amount_usd) AS total_spent_usd FROM category_spending WHERE receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' AND category <> 'Tax, discounts & rounding' GROUP BY category ORDER BY total_spent_usd DESC LIMIT 3"
+    }
+   ]
+  },
+  {
+   "id": "Q029",
+   "template": "T5",
+   "type": "top categories",
+   "language": "arabizi",
+   "seed": "aktar shi aa shu ra7o masriyete el shaher li mara2",
+   "question": "aktar shi aa shu ra7o masriyete el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT category, SUM(amount_usd) AS total_spent_usd FROM category_spending WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' AND category <> 'Tax, discounts & rounding' GROUP BY category ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q030",
+   "template": "T5",
+   "type": "top categories",
+   "language": "arabizi",
+   "seed": "ratib el categories men aktar la a2al masrouf hal jemaa",
+   "question": "ratib el categories men aktar la a2al masrouf hal jemaa",
+   "accept": [
+    {
+     "sql": "SELECT category, SUM(amount_usd) AS total_spent_usd FROM category_spending WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17' AND category <> 'Tax, discounts & rounding' GROUP BY category ORDER BY total_spent_usd DESC"
+    }
+   ]
+  },
+  {
+   "id": "Q031",
+   "template": "T5",
+   "type": "top categories",
+   "language": "arabizi",
+   "seed": "3tine akbar 5 categories bel masrouf hal sene",
+   "question": "3tine akbar 5 categories bel masrouf hal sene",
+   "accept": [
+    {
+     "sql": "SELECT category, SUM(amount_usd) AS total_spent_usd FROM category_spending WHERE receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' AND category <> 'Tax, discounts & rounding' GROUP BY category ORDER BY total_spent_usd DESC LIMIT 5"
+    }
+   ]
+  },
+  {
+   "id": "Q032",
+   "template": "T5",
+   "type": "top categories",
+   "language": "arabizi",
+   "seed": "shu henne aktar categoryen sarafet 3layon hal jemaa",
+   "question": "shu henne aktar categoryen sarafet 3layon hal jemaa",
+   "accept": [
+    {
+     "sql": "SELECT category, SUM(amount_usd) AS total_spent_usd FROM category_spending WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17' AND category <> 'Tax, discounts & rounding' GROUP BY category ORDER BY total_spent_usd DESC LIMIT 2"
+    }
+   ]
+  },
+  {
+   "id": "Q033",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "aday sarafet bi Spinneys hal sene",
+   "question": "aday sarafet bi Boucherie Kassab hal sene",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Boucherie Kassab' AND receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q034",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "kel yom Starbucks, adde sarle def3a 3andon hal jemaa",
+   "question": "kel yom Furn el Hara, adde sarle def3a 3andon hal jemaa",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Furn el Hara' AND receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q035",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "7asis hale fete7 7seb 3and McDonald's, adde sarfet 3andon hal shaher",
+   "question": "7asis hale fete7 7seb 3and Burger King, adde sarfet 3andon hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Burger King' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q036",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "adde ba3za2et bi bershka hal weekend",
+   "question": "adde ba3za2et bi pull and bear hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Pull and Bear' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q037",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "7seble adde tol3o kel machawire 3al cinema hal shaher",
+   "question": "7seble adde tol3o kel machawire 3a Fitness Lab hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Fitness Lab' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q038",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "shakle 3am bechtghil la stories, adde sarfet 3andon ekher shaher",
+   "question": "shakle 3am bechtghil la Starbucks, adde sarfet 3andon ekher shaher",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Starbucks' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q039",
+   "template": "T6",
+   "type": "shop",
+   "language": "arabizi",
+   "seed": "fawetir Happy hal jemaa adde byetla3o kelon sawa",
+   "question": "fawetir Kababji hal shaher adde byetla3o kelon sawa",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Kababji' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q040",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "3and min sar aktar el dafe3 men awal el shaher",
+   "question": "3and min sar aktar el dafe3 men awal el shaher",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2028-01-01' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q041",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "aya mahal akhad men jaybte aktar shi bi ayloul",
+   "question": "aya mahal akhad men jaybte aktar shi bi ayloul",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2027-09-01' AND receipt_date < '2027-10-01' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q042",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "rattib el ma7allet 7asab masroufe hal shaher w 2elle min bel awal",
+   "question": "rattib el ma7allet 7asab masroufe hal shaher w 2elle min bel awal",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY vendor ORDER BY total_spent_usd DESC"
+    },
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q043",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "aya mahal sarafet fi aktar shi men awal el sene w adde dafa3etlo",
+   "question": "aya mahal sarafet fi aktar shi men awal el sene w adde dafa3etlo",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2028-01-01' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q044",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "law baddi wa2ef rou7 3a mahal wa7ad la waffer, aya mahal byetla3 7asab masroufe hal sene",
+   "question": "law baddi wa2ef rou7 3a mahal wa7ad la waffer, aya mahal byetla3 7asab masroufe hal sene",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q045",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "shou el mahal li kellafne aktar shi ekher jem3ten",
+   "question": "shou el mahal li kellafne aktar shi ekher jem3ten",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date > '2027-12-29' AND receipt_date <= '2028-01-12' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q046",
+   "template": "T7",
+   "type": "top shop",
+   "language": "arabizi",
+   "seed": "min elo el sadara bel masrouf men ayloul la halla2",
+   "question": "min elo el sadara bel masrouf men ayloul la halla2",
+   "accept": [
+    {
+     "sql": "SELECT vendor, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2027-09-01' AND receipt_date <= '2028-01-12' GROUP BY vendor ORDER BY total_spent_usd DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q047",
+   "template": "T8",
+   "type": "visits",
+   "language": "arabizi",
+   "seed": "3eddele kam marra shtrit men Le Charcutier bi ayloul",
+   "question": "3eddele kam marra shtrit men Fahed bi ayloul",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Fahed Supermarket' AND receipt_date >= '2027-09-01' AND receipt_date < '2027-10-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q048",
+   "template": "T8",
+   "type": "visits",
+   "language": "arabizi",
+   "seed": "chou 3adad zawrate la Maison M el shaher li mara2",
+   "question": "chou 3adad zawrate la Hallab el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Hallab' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q049",
+   "template": "T8",
+   "type": "visits",
+   "language": "mixed",
+   "seed": "how many times ro7et 3a Carrefour el shaher li mara2",
+   "question": "how many times ro7et 3a Carrefour el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Carrefour' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q050",
+   "template": "T8",
+   "type": "visits",
+   "language": "arabizi",
+   "seed": "7asse ma 3am betla3 men pull and bear, adde marra re7et hal shaher",
+   "question": "7asse ma 3am betla3 men pull and bear, adde marra re7et hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Pull and Bear' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q051",
+   "template": "T8",
+   "type": "visits",
+   "language": "arabizi",
+   "seed": "soret zaboune dayme 3and Stories, kam marra re7et men awal el shaher",
+   "question": "soret zaboune dayme 3and Kababji, kam marra re7et men awal el shaher",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Kababji' AND receipt_date >= '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q052",
+   "template": "T8",
+   "type": "visits",
+   "language": "arabizi",
+   "seed": "khabborne bi Spinneys sarle zamen ma jit, kam marra kent 3andon bi hzairan",
+   "question": "khabborne bi Burger House sarle zamen ma jit, kam marra kent 3andon bi hzairan",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Burger House' AND receipt_date >= '2027-06-01' AND receipt_date < '2027-07-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q053",
+   "template": "T9",
+   "type": "item",
+   "language": "arabizi",
+   "seed": "shouf kel el fawatir w 2elle adde dafa3et 3a bayd",
+   "question": "shouf kel el fawatir w 2elle adde dafa3et 3a khebez",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'bread' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q054",
+   "template": "T9",
+   "type": "item",
+   "language": "arabizi",
+   "seed": "kel hal 3elak li bechteriya, adde sarfet 3laya hal shaher",
+   "question": "kel hal 3elak li bechteriya, adde sarfet 3laya el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'chewing gum' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q055",
+   "template": "T9",
+   "type": "item",
+   "language": "arabizi",
+   "seed": "adde tol3o 3laye kel kyes el rez ekher 3 shhour",
+   "question": "adde tol3o 3laye kel kyes el ahwe ekher 3 shhour",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'coffee' AND receipt_date > '2027-10-12' AND receipt_date <= '2028-01-12' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q056",
+   "template": "T9",
+   "type": "item",
+   "language": "arabizi",
+   "seed": "bouza adde kallefetne hal sayfiye",
+   "question": "bouza adde kallefetne hal sayfiye",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'ice cream' AND receipt_date >= '2027-06-01' AND receipt_date < '2027-09-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q057",
+   "template": "T9",
+   "type": "item",
+   "language": "arabizi",
+   "seed": "ma te7seble kel el jebne, bas el 7alloum adde dafa3et 3le hal shaher",
+   "question": "ma te7seble kel el jebne, bas el 7alloum adde dafa3et 3le bi teshreen el awal",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'halloumi' AND receipt_date >= '2027-10-01' AND receipt_date < '2027-11-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q058",
+   "template": "T9",
+   "type": "item",
+   "language": "arabizi",
+   "seed": "bala ma t2elle kam marra shtarayta, adde sarfet 3a labne bel majmou3",
+   "question": "bala ma t2elle kam marra shtarayta, adde sarfet 3a kafta bel majmou3",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'kafta' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q059",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "may Rim sparkling, adde sarle def3a 3laya la halla2, kel el a7jem sawa",
+   "question": "ahwe Brazilian, adde sarle def3a 3laya la halla2, kel el a7jem sawa",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'coffee' AND brand = 'brazilian' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q060",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "ma te7seb kel el spaghetti, bas Barilla adde dafa3et 3laya",
+   "question": "ma te7seb kel el hommos, bas Cortas adde dafa3et 3laya",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'hummus' AND brand = 'cortas' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q061",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "kel yom chips Master, adde tayyaret masari 3le hal shaher",
+   "question": "kel yom biscuits Gandour, adde tayyaret masari 3le el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'biscuits' AND brand = 'gandour' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q062",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "jame3le ha2 kel 3elab jebnet Picon li shtarayton hal sene",
+   "question": "jame3le ha2 kel 3elab el feta Puck li shtarayton el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'feta' AND brand = 'puck' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q063",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "hal jemaa adde kallefetne el indomie",
+   "question": "el shaher li mara2 adde kallefetne el Clorox",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'bleach' AND brand = 'clorox' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q064",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "baddi a3ref adde sarfet 3a chips Master el shaher li mara2",
+   "question": "baddi a3ref adde sarfet 3a digestive McVitie's el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'digestive biscuits' AND brand = 'mcvitie''s' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q065",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "spaghetti Barilla, adde sarfet 3laya men awal el sene",
+   "question": "shay Lipton, adde sarfet 3laya el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'tea' AND brand = 'lipton' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q066",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "baddi total masroufe 3a may Rim men awal el sene",
+   "question": "baddi total masroufe 3a bouza Igloo el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'ice cream' AND brand = 'igloo' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q067",
+   "template": "T10",
+   "type": "brand",
+   "language": "arabizi",
+   "seed": "chou sarle def3a 3a ahwet Najjar la halla2",
+   "question": "chou sarle def3a 3a 7alib Candia la halla2",
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'milk' AND brand = 'candia' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q068",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "el tawouk el nayy adde ken el kilo ekher marra jebto",
+   "question": "el djej el nayy adde ken el kilo ekher marra jebto",
+   "accept": [
+    {
+     "sql": "SELECT ROUND(COALESCE(unit_price, line_total / quantity) / size_amount * 1000, 2) AS price_per_kilo FROM purchases WHERE item_name = 'chicken' AND size_unit = 'g' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q069",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "shu dafa3et 7a2 el cornflakes Kellogg’s ekher marra",
+   "question": "shu dafa3et 7a2 el cornflakes Kellogg’s ekher marra",
+   "accept": [
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'cornflakes' AND brand = 'kellogg''s' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    },
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'cornflakes' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q070",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "el tahine li jebta ekher marra kenet b adde",
+   "question": "el tahine li jebta ekher marra kenet b adde",
+   "accept": [
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'tahini' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q071",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "shouf ekher fetoura fiya avocado w 2elle adde ken 7a2 el 7abbe",
+   "question": "shouf ekher fetoura fiya croissant w 2elle adde ken 7a2 el 7abbe",
+   "accept": [
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'croissant' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q072",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "el 3elke Orbit b adde ekher marra shtarayta",
+   "question": "el 3elke Trident b adde ekher marra shtarayta",
+   "accept": [
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'chewing gum' AND brand = 'trident' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    },
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'chewing gum' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q073",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "ma baddi se3ro halla2, baddi adde ana dafa3et 7a2 el Persil ekher marra",
+   "question": "ma baddi se3ro halla2, baddi adde ana dafa3et 7a2 el Mazola ekher marra",
+   "accept": [
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'oil' AND brand = 'mazola' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q074",
+   "template": "T11",
+   "type": "latest price",
+   "language": "arabizi",
+   "seed": "el 7ommos el yebis adde ken 7a2o ekher marra",
+   "question": "el 7ommos el yebis adde ken 7a2o ekher marra",
+   "accept": [
+    {
+     "sql": "SELECT COALESCE(unit_price, line_total / quantity) AS price FROM purchases WHERE item_name = 'chickpeas' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1"
+    }
+   ]
+  },
+  {
+   "id": "Q075",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "3adatan b adde bejib kilo el teffe7",
+   "question": "3adatan b adde bejib kilo el batata",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 1000), 2) AS average_price FROM purchases WHERE item_name = 'potatoes' AND size_unit = 'g' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q076",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "7seble average se3er el tuna sandwich li bechteriya",
+   "question": "7seble average se3er el shawarma li bechteriya",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'shawarma' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q077",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "el foul el m3allab 3adatan adde 3am edfa3 7a2o",
+   "question": "el hommos el m3allab 3adatan adde 3am edfa3 7a2o",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'hummus' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q078",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "baddi a3ref bel 3ade adde 3am kallef 7ale 3a protein bar",
+   "question": "baddi a3ref bel 3ade adde 3am kallef 7ale 3a energy drink",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'energy drink' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q079",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "shouf kel marra shtarayt couscous w 7seble motawassit se3ro",
+   "question": "shouf kel marra shtarayt zaatar w 7seble motawassit se3ro",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'zaatar' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q080",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "el batteries AA pack el 4, adde moyenne li dafa3to 3layon",
+   "question": "el batteries AA pack el 4, adde moyenne li dafa3to 3layon",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'batteries' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q081",
+   "template": "T12",
+   "type": "average price",
+   "language": "arabizi",
+   "seed": "bel 3ade adde 3am edfa3 7a2 sa7sou7et el jale",
+   "question": "bel 3ade adde 3am edfa3 7a2 sa7sou7et el jale",
+   "accept": [
+    {
+     "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'dishwashing liquid' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q082",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "el bourghol wen ken arkhas, bi Happy aw Fahed",
+   "question": "el 7ommos el yebis wen ken arkhas, bi Hibou aw Fahed",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'chickpeas' AND vendor IN ('Hibou', 'Fahed Supermarket') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q083",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "2arenle se3er el 3inab ben O&C w Le Charcutier 7asab fawatire",
+   "question": "2arenle se3er el frez ben Carrefour w Fahed 7asab fawatire",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'strawberries' AND vendor IN ('Carrefour', 'Fahed Supermarket') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q084",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "el croissant el se7er jebto men Wooden Bakery aw Maison M ken awfar",
+   "question": "el croissant el se7er jebto men Furn el Hara aw Dunkin ken awfar",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'croissant' AND vendor IN ('Furn el Hara', 'Dunkin') AND size_amount IS NULL GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q085",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "el 3elbet Lipton nafsa, adde fare2 se3ra ben Happy w Fahed w min arkhas",
+   "question": "el 3elbet Alwazah nafsa, adde fare2 se3ra ben Carrefour w Fahed w min arkhas",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount), 2) AS average_price FROM purchases WHERE item_name = 'tea' AND vendor IN ('Carrefour', 'Fahed Supermarket') AND size_unit = 'pcs' AND brand = 'alwazah' GROUP BY vendor, currency"
+    },
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'tea' AND vendor IN ('Carrefour', 'Fahed Supermarket') AND brand = 'alwazah' GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q086",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "7asse el foul bi Le Charcutier aghla men Fahed, fawatire hek bt2oul",
+   "question": "7asse el la7me bi Boucherie Kassab aghla men Carrefour, fawatire hek bt2oul",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'meat' AND vendor IN ('Boucherie Kassab', 'Carrefour') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q087",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "3tine el arkhas ben Happy w O&C la nafs 3elbet el cacao",
+   "question": "3tine el arkhas ben Abou Jihad w Carrefour la nafs 3elbet el ahwe",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'coffee' AND vendor IN ('Abou Jihad', 'Carrefour') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q088",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "ma baddi 2aren el fetoura kella, bas se3er el 7abash ben O&C w Happy",
+   "question": "ma baddi 2aren el fetoura kella, bas se3er el samak ben Carrefour w Fahed",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'fish' AND vendor IN ('Carrefour', 'Fahed Supermarket') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q089",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "wen dafa3et aktar 3a nafs 3elbet el ma3joun, bi Hibou aw Fahed",
+   "question": "wen dafa3et aktar 3a nafs 3elbet el popcorn, bi Hibou aw Fahed",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'popcorn' AND vendor IN ('Hibou', 'Fahed Supermarket') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q090",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "nafs el pan Tefal w nafs el size, Khoury Home aw Abed Tahan kallefne a2al",
+   "question": "nafs el kyess zbele w nafs el size, Hibou aw Fahed kallefne a2al",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount), 2) AS average_price FROM purchases WHERE item_name = 'garbage bags' AND vendor IN ('Hibou', 'Fahed Supermarket') AND size_unit = 'pcs' GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q091",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "el souris Logitech li jebta men Abed Tahan kenet arkhas men Virgin? shouf el fetourten",
+   "question": "el bouza li jebta men Hibou kenet arkhas men Carrefour? shouf el fetourten",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'ice cream' AND vendor IN ('Hibou', 'Carrefour') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q092",
+   "template": "T13",
+   "type": "compare shops",
+   "language": "arabizi",
+   "seed": "el Ariel nafs el wazn, men Le Charcutier aw Happy dafa3et a2al",
+   "question": "el zayt nafs el 7ajem, men Fahed aw Carrefour dafa3et a2al",
+   "accept": [
+    {
+     "sql": "SELECT vendor, currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price FROM purchases WHERE item_name = 'oil' AND vendor IN ('Fahed Supermarket', 'Carrefour') AND size_unit IN ('g', 'ml') GROUP BY vendor, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q093",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "3eddele kam marra jebt shower gel hal sene",
+   "question": "3eddele kam marra jebt ahwe el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'coffee' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q094",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "soret 3eyshe 3al sushi, kam marra akalto hal shaher",
+   "question": "soret 3eyshe 3al shawarma, kam marra akalta hal shaher",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'shawarma' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q095",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "hal jemaa kam marra jebt chewing gum",
+   "question": "hal jemaa kam marra jebt croissant",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17'"
+    }
+   ]
+  },
+  {
+   "id": "Q096",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "kel shway byekhlas el savon, kam marra shtarayto ekher jem3ten",
+   "question": "kel shway byekhlas el kafta, kam marra shtarayta ekher jem3ten",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'kafta' AND receipt_date > '2027-12-29' AND receipt_date <= '2028-01-12'"
+    }
+   ]
+  },
+  {
+   "id": "Q097",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "kam marra jebt screen protector hal sene",
+   "question": "kam marra jebt fries el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'fries' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q098",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "3a ases 3ande kfeye notebooks, kam marra shtarayt ba3ed hal sene",
+   "question": "3a ases 3ande kfeye 3alla2at, kam marra shtarayt ba3ed el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'hangers' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q099",
+   "template": "T14",
+   "type": "times",
+   "language": "arabizi",
+   "seed": "chou 3adad el marraat li talab et fiya burger bi tam mouz",
+   "question": "chou 3adad el marraat li talab et fiya falafel bi ayloul",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'falafel' AND receipt_date >= '2027-09-01' AND receipt_date < '2027-10-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q100",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "kam 2anninet may shtarayt hal shaher",
+   "question": "kam 2anninet iced tea shtarayt el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity) AS quantity_bought FROM purchases WHERE item_name = 'iced tea' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q101",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "el socks li jebton hal sene, kam jawz tole3o",
+   "question": "el croissant li jebton hal sene, kam wa7ad tole3o",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity) AS quantity_bought FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q102",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "3a ases wa7ad bikaffine, kam phone case jebt hal sene",
+   "question": "3a ases wa7ad bikaffine, kam recharge jebt el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity) AS quantity_bought FROM purchases WHERE item_name = 'phone recharge' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q103",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "7seble 3adad el capsules taba3 el dishwasher li shtarayton hal shaher",
+   "question": "7seble 3adad el capsules taba3 el dishwasher li shtarayton el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'pcs') AS pieces FROM purchases WHERE item_name = 'dishwasher tablets' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q104",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "men kel el ma7allet sawa, adde 3elbet pansements jebt hal sene",
+   "question": "men kel el ma7allet sawa, adde 3elbet shay jebt el sene li mar2it",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity) AS quantity_bought FROM purchases WHERE item_name = 'tea' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q105",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "kam USB cable shtarayt men awal el sene, 7atta law jebt aktar men wa7ad bi nafs el fetoura",
+   "question": "kam shawarma shtarayt men awal el sene, 7atta law jebt aktar men wa7ad bi nafs el fetoura",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity) AS quantity_bought FROM purchases WHERE item_name = 'shawarma' AND receipt_date >= '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q106",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "kam kilo batata shtarayt hal shaher",
+   "question": "kam kilo batata shtarayt bi teshreen el awal",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000 AS kilos FROM purchases WHERE item_name = 'potatoes' AND receipt_date >= '2027-10-01' AND receipt_date < '2027-11-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q107",
+   "template": "T15",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "kam gram dahab shtarayt hal sene",
+   "question": "kam gram dahab shtarayt hal sene",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q108",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "kam dazine kebayet shtarayt la hal bet bel majmou3",
+   "question": "kam dazine 3alla2at shtarayt la hal bet bel majmou3",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'pcs') / 12 AS dozens FROM purchases WHERE item_name = 'hangers'"
+    }
+   ]
+  },
+  {
+   "id": "Q109",
+   "template": "T15",
+   "type": "quantity",
+   "language": "arabizi",
+   "seed": "el 7alib li jebto hal shaher, kam litre byetla3 kello sawa",
+   "question": "el 7alib li jebto el sene li mar2it, kam litre byetla3 kello sawa",
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'ml') / 1000 AS litres FROM purchases WHERE item_name = 'milk' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q110",
+   "template": "T15",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "adde litre painture shtarayt lal bet hal sene",
+   "question": "adde litre painture shtarayt lal bet hal sene",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q111",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "3eddele fawatir chaher january",
+   "question": "3eddele fawatir chaher january",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q112",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "adde fetoura sajjalet hal jemaa",
+   "question": "adde fetoura sajjalet hal jemaa",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17'"
+    }
+   ]
+  },
+  {
+   "id": "Q113",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "ma baddi majmou3 el masari, bas 3adad el fawatir hal sene",
+   "question": "ma baddi majmou3 el masari, bas 3adad el fawatir hal sene",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q114",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "3edde kel fawatir ekher 30 yom",
+   "question": "3edde kel fawatir ekher 30 yom",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date > '2027-12-13' AND receipt_date <= '2028-01-12'"
+    }
+   ]
+  },
+  {
+   "id": "Q115",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "shouf kam fetoura 3ande men nhar el tanayn la lyom",
+   "question": "shouf kam fetoura 3ande men nhar el tanayn la lyom",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date >= '2028-01-10' AND receipt_date <= '2028-01-12'"
+    }
+   ]
+  },
+  {
+   "id": "Q116",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "baddi 3adad fawatir ekher 3 shhour, kel el ma7allet sawa",
+   "question": "baddi 3adad fawatir ekher 3 shhour, kel el ma7allet sawa",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date > '2027-10-12' AND receipt_date <= '2028-01-12'"
+    }
+   ]
+  },
+  {
+   "id": "Q117",
+   "template": "T16",
+   "type": "receipts",
+   "language": "arabizi",
+   "seed": "el erb3a ktir daharet, 3edele el fwetir nhareta",
+   "question": "el erb3a ktir daharet, 3edele el fwetir nhareta",
+   "accept": [
+    {
+     "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date = '2028-01-12'"
+    }
+   ]
+  },
+  {
+   "id": "Q118",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "7asse khaffafet shopping, fawatire hal shaher bt2oul hek mo2aranatan bel shaher li mara2",
+   "question": "7asse khaffafet shopping, fawatire hal shaher bt2oul hek mo2aranatan bel shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-02-01' GROUP BY month, currency"
+    },
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Shopping' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-02-01' GROUP BY month, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q119",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "bi nisan sarafet aktar 3al skincare men ayyar?",
+   "question": "bi ab sarafet aktar 3al skincare men teshreen el tene?",
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('lip balm') AND (receipt_date >= '2027-08-01' AND receipt_date < '2027-09-01' OR receipt_date >= '2027-11-01' AND receipt_date < '2027-12-01') GROUP BY month, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q120",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "adde bel miyye zed aw na2as masroufe hal shaher 3an el shaher li mara2",
+   "question": "adde bel miyye zed aw na2as masroufe hal shaher 3an el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT ROUND((SUM(total_usd) FILTER (WHERE receipt_date >= '2028-01-01') - SUM(total_usd) FILTER (WHERE receipt_date < '2028-01-01')) / NULLIF(SUM(total_usd) FILTER (WHERE receipt_date < '2028-01-01'), 0) * 100, 1) AS percent_change FROM receipts WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-02-01'"
+    },
+    {
+     "sql": "SELECT ROUND((SUM(total_usd) FILTER (WHERE receipt_date >= '2028-01-01') - SUM(total_usd) FILTER (WHERE receipt_date < '2028-01-01')) / NULLIF(SUM(total_usd) FILTER (WHERE receipt_date < '2028-01-01'), 0) * 100, 2) AS percent_change FROM receipts WHERE receipt_date >= '2027-12-01' AND receipt_date < '2028-02-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q121",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "el groceries akhado menne aktar bi december aw january",
+   "question": "el groceries akhado menne aktar bi december aw january",
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Groceries' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-02-01' GROUP BY month, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q122",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "el ahwe barra, 3am edfa3 3laya aktar hal shaher aw el shaher li mara2",
+   "question": "el akel barra, 3am edfa3 3laya aktar hal shaher aw el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(amount) AS total_spent FROM category_spending WHERE category = 'Dining' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-02-01' GROUP BY month, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q123",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "hal shaher ba3do ma kholis, 2aren masroufe la lyom ma3 nafs el fatra men el shaher li mara2",
+   "question": "hal shaher ba3do ma kholis, 2aren masroufe la lyom ma3 nafs el fatra men el shaher li mara2",
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(total) AS total_spent FROM receipts WHERE ((receipt_date >= '2028-01-01' AND receipt_date <= '2028-01-12') OR (receipt_date >= '2027-12-01' AND receipt_date <= '2027-12-12')) GROUP BY month, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q124",
+   "template": "T17",
+   "type": "compare months",
+   "language": "arabizi",
+   "seed": "wen ken el masrouf a3la, bi january aw february, w adde el fare2",
+   "question": "wen ken el masrouf a3la, bi teshreen el tene aw kanoun el awal, w adde el fare2",
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2027-11-01' AND receipt_date < '2028-01-01' GROUP BY month, currency"
+    },
+    {
+     "sql": "SELECT date_trunc('month', receipt_date) AS month, SUM(total_usd) AS total_spent_usd FROM receipts WHERE receipt_date >= '2027-11-01' AND receipt_date < '2028-01-01' GROUP BY month"
+    },
+    {
+     "sql": "SELECT SUM(total_usd) FILTER (WHERE receipt_date < '2027-12-01') - SUM(total_usd) FILTER (WHERE receipt_date >= '2027-12-01') AS difference_usd FROM receipts WHERE receipt_date >= '2027-11-01' AND receipt_date < '2028-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q125",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(aday tole3 aalaye mberha bi spinneys aal khodra?) w ghayro?",
+   "question": "w ghayro?",
+   "history": [
+    {
+     "question": "aday tole3 aalaye bi Abou Jihad aal khodra el shaher li mara2?",
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('cucumber', 'eggplant') AND vendor = 'Abou Jihad' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name NOT IN ('cucumber', 'eggplant') AND vendor = 'Abou Jihad' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    },
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('cucumber', 'eggplant') AND vendor <> 'Abou Jihad' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q126",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(adde sarfet 3a conditioner hal shaher?) bas L'Oréal",
+   "question": "bas Wooden Bakery",
+   "history": [
+    {
+     "question": "adde sarfet 3a khebez el sene li mar2it?",
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'bread' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'bread' AND brand = 'wooden bakery' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q127",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(kam kilo batata jebt hal shaher?) la2 azde el shaher li mara2",
+   "question": "la2 azde hal shaher",
+   "history": [
+    {
+     "question": "kam kilo kafta jebt el shaher li mara2?",
+     "sql": "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000 AS kilos FROM purchases WHERE item_name = 'kafta' AND receipt_date >= '2027-12-01' AND receipt_date < '2028-01-01'"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000 AS kilos FROM purchases WHERE item_name = 'kafta' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q128",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(adde sarfet 3a shampoo hal sene?) w kam marra shtarayto?",
+   "question": "w kam marra shtarayta?",
+   "history": [
+    {
+     "question": "adde sarfet 3a kafta hal sene?",
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'kafta' AND receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'kafta' AND receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q129",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(adde sarfet 3a sneakers hal sene?) 2arenle ma3 el sene li abla",
+   "question": "2arenle ma3 el sene li abla",
+   "history": [
+    {
+     "question": "adde sarfet 3a croissant hal sene?",
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT date_trunc('year', receipt_date) AS year, currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2027-01-01' AND receipt_date < '2029-01-01' GROUP BY year, currency"
+    },
+    {
+     "sql": "SELECT EXTRACT(YEAR FROM receipt_date) AS year, currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2027-01-01' AND receipt_date < '2029-01-01' GROUP BY year, currency"
+    }
+   ]
+  },
+  {
+   "id": "Q130",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(adde sarfet 3al skincare hal shaher?) w el makeup kamen?",
+   "question": "w el makeup kamen?",
+   "history": [
+    {
+     "question": "adde sarfet 3al skincare bi teshreen el tene?",
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('lip balm') AND receipt_date >= '2027-11-01' AND receipt_date < '2027-12-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('lipstick') AND receipt_date >= '2027-11-01' AND receipt_date < '2027-12-01' GROUP BY currency"
+    },
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name IN ('lip balm', 'lipstick') AND receipt_date >= '2027-11-01' AND receipt_date < '2027-12-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q131",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(kam marra akalet sushi bi tamouz?) w bi ab? 7asse aktar",
+   "question": "w bi ab? 7asse aktar",
+   "history": [
+    {
+     "question": "kam marra akalet croissant bi tamouz?",
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2027-07-01' AND receipt_date < '2027-08-01'"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = 'croissant' AND receipt_date >= '2027-08-01' AND receipt_date < '2027-09-01'"
+    }
+   ]
+  },
+  {
+   "id": "Q132",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(adde sarfet bi Feel22 hal sene?) la2 mesh hal sene, men awal november",
+   "question": "la2 mesh hal sene, men awal november",
+   "history": [
+    {
+     "question": "adde sarfet bi Kababji hal sene?",
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Kababji' AND receipt_date >= '2028-01-01' AND receipt_date < '2029-01-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE vendor = 'Kababji' AND receipt_date >= '2027-11-01' AND receipt_date <= '2028-01-12' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q133",
+   "template": "F",
+   "type": "follow-up",
+   "language": "arabizi",
+   "seed": "(adde sarfet 3a ma3joun snen hal sene?) Colgate bas, mesh kel el brands",
+   "question": "Al Wadi bas, mesh kel el brands",
+   "history": [
+    {
+     "question": "adde sarfet 3a t7ine el sene li mar2it?",
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'tahini' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ],
+   "accept": [
+    {
+     "sql": "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'tahini' AND brand = 'al wadi' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01' GROUP BY currency"
+    }
+   ]
+  },
+  {
+   "id": "Q134",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "2arenle hal shaher ma3 el shaher el tene",
+   "question": "2arenle hal shaher ma3 el shaher el tene",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q135",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "adde sarfet 3and el mahal li 7ad el jem3a",
+   "question": "adde sarfet 3and el mahal li 7ad el jem3a",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q136",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "baddi se3er el dawa li jebto la mama",
+   "question": "baddi se3er el dawa li jebto la mama",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q137",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "7seble masroufe ben el 5 wel 12",
+   "question": "7seble masroufe ben el 5 wel 12",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q138",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "el wa7ad el azra2 arkhas men el abyad?",
+   "question": "el wa7ad el azra2 arkhas men el abyad?",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q139",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "shetrit sama3at men Tech Stop bas mesh sheyfe el fetoura, fik tle2iya b esm tene?",
+   "question": "shetrit sama3at men Tech Stop bas mesh sheyfe el fetoura, fik tle2iya b esm tene?",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q140",
+   "template": "C",
+   "type": "clarify",
+   "language": "arabizi",
+   "seed": "farjine top 3 categories bi kanoun",
+   "question": "farjine top 3 categories bi kanoun",
+   "accept": [
+    {
+     "reply": "CLARIFY"
+    }
+   ]
+  },
+  {
+   "id": "Q141",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "7ottele budget lal shopping hal shaher",
+   "question": "7ottele budget lal shopping hal shaher",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q142",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "adde ra7 esrof el shaher el jeye",
+   "question": "adde ra7 esrof el shaher el jeye",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q143",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "wen fi offers 3al furniture hal weekend",
+   "question": "wen fi offers 3al furniture hal weekend",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q144",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "adde lezim ykoun ma3ashe la 3ish merte7a",
+   "question": "adde lezim ykoun ma3ashe la 3ish merte7a",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q145",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "kam sarfet ekhte hal shaher",
+   "question": "kam sarfet ekhte hal shaher",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q146",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "emta byenzal se3er el PlayStation",
+   "question": "emta byenzal se3er el PlayStation",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q147",
+   "template": "U",
+   "type": "unsupported",
+   "language": "arabizi",
+   "seed": "fik tetloble nafs el keyboard marra tenye",
+   "question": "fik tetloble nafs el keyboard marra tenye",
+   "accept": [
+    {
+     "reply": "UNSUPPORTED"
+    }
+   ]
+  },
+  {
+   "id": "Q148",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "hi kifak",
+   "question": "hi kifak",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q149",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "mar7aba, fi 7ada?",
+   "question": "mar7aba, fi 7ada?",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q150",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "aloooooo",
+   "question": "aloooooo",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q151",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "merci ktir",
+   "question": "merci ktir",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q152",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "shokhran khaye",
+   "question": "shokhran khaye",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q153",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "marhaba habibi",
+   "question": "marhaba habibi",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q154",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "yalla merci bye",
+   "question": "yalla merci bye",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  },
+  {
+   "id": "Q155",
+   "template": "R",
+   "type": "reply",
+   "language": "arabizi",
+   "seed": "mne7ke ba3den",
+   "question": "mne7ke ba3den",
+   "accept": [
+    {
+     "reply": "REPLY"
+    }
+   ]
+  }
+ ]
+}

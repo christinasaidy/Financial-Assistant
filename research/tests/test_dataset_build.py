@@ -175,6 +175,17 @@ def test_near_duplicates_of_test_questions_are_dropped():
     assert found == ["near-duplicate of a test question: How much did I spend on laban?"]
 
 
+def test_the_test_set_its_seeds_and_its_earlier_questions_are_always_kept_out(tmp_path):  # decided 2026-11-08
+    kept_out = build_module.test_questions(None)
+    assert "kel yom Furn el Hara, adde sarle def3a 3andon hal jemaa" in kept_out  # as asked
+    assert "kel yom Starbucks, adde sarle def3a 3andon hal jemaa" in kept_out  # as the user wrote it
+    assert "adde sarfet 3a croissant hal sene?" in kept_out  # a follow-up's earlier question
+    assert "How much did I spend this month?" in kept_out  # the pilot
+    extra = tmp_path / "more.txt"
+    extra.write_text("adde sarafet 3al zaatar?\n", encoding="utf-8")
+    assert set(build_module.test_questions(extra)) == set(kept_out) | {"adde sarafet 3al zaatar?"}
+
+
 # --- The writers ---
 
 

@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, text
 
 from research.evaluation import run
 from research.evaluation.expected_model import ExpectedAnswersModel, question_in
-from research.evaluation.questions import load_questions
+from research.evaluation.questions import TEST_QUESTIONS_FILE, load_questions
 from research.evaluation.wiring import build_evaluation
 
 TODAY, QUESTIONS = load_questions()
@@ -146,3 +146,33 @@ def test_the_pilot_findings_are_scored_as_decided(settings):
     reports = evaluated(settings, ScriptedModel({"P28": QWEN_P28, "P34": QWEN_P34}))
     assert reports["P28"].score.correct
     assert (reports["P34"].score.correct, reports["P34"].score.reason) == (False, "wrong result")
+
+
+# --- the test set, asked as synthetic user 31 (decided with the user on 2026-11-08) ---
+
+TEST_TODAY, TEST_QUESTIONS = load_questions(TEST_QUESTIONS_FILE)
+
+
+def dataset_users(settings) -> int:
+    with create_engine(settings.database_url).connect() as conn:
+        return conn.execute(text("SELECT count(*) FROM users WHERE email LIKE 'dataset-%@dataset.local'")).scalar()
+
+
+def test_the_expected_answers_score_the_whole_test_set_as_user_31_and_the_user_is_removed(settings):
+    before = dataset_users(settings)
+    with tempfile.TemporaryDirectory() as storage:
+        evaluation = build_evaluation(settings, ExpectedAnswersModel(TEST_QUESTIONS), TEST_TODAY, Path(storage))
+        reports = run.evaluate(evaluation, TEST_QUESTIONS, TEST_TODAY, user=31)
+    assert [r.question.id for r in reports if not r.score.correct] == []
+    assert all(r.score.first_try for r in reports)
+    assert dataset_users(settings) == before
+    empty = [r.question.id for r in reports if r.outcome.result is not None and not any(
+        value not in (None, 0) for row in r.outcome.result.rows for value in row)]  # fmt: skip
+    assert empty == []  # an empty answer would match any query that also finds nothing
+
+
+def test_the_test_set_refuses_a_day_that_is_not_user_31s_today(settings):
+    with tempfile.TemporaryDirectory() as storage:
+        evaluation = build_evaluation(settings, ExpectedAnswersModel(TEST_QUESTIONS), TODAY, Path(storage))
+        with pytest.raises(ValueError, match="2028-01-12"):
+            run.evaluate(evaluation, TEST_QUESTIONS, TODAY, user=31)

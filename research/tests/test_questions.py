@@ -1,4 +1,5 @@
-"""The pilot questions file (approved by the user on 2026-11-05). Nothing here touches a database."""
+"""The pilot questions file (approved by the user on 2026-11-05) and the test set (2026-11-08). Nothing here
+touches a database."""
 
 import json
 from datetime import date
@@ -7,7 +8,8 @@ import pytest
 
 from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.sql.sql_guard import SqlGlotGuard
-from research.evaluation.questions import expand, load_questions, seed_names
+from research.evaluation.questions import (QUESTIONS_FILE, TEST_QUESTIONS_FILE, data_user, expand, load_questions,
+                                          seed_names)
 
 TODAY, QUESTIONS = load_questions()
 NAMES = seed_names()
@@ -57,3 +59,39 @@ def test_a_file_with_a_repeated_id_is_refused(tmp_path):
     path.write_text(json.dumps({"today": "2026-11-03", "questions": [entry, {**entry, "question": "r"}]}))
     with pytest.raises(ValueError, match="unique"):
         load_questions(path)
+
+
+# --- the test set (decided with the user on 2026-11-08) ---
+
+TEST_TODAY, TEST_QUESTIONS = load_questions(TEST_QUESTIONS_FILE)
+TEST_ENTRIES = json.loads(TEST_QUESTIONS_FILE.read_text(encoding="utf-8"))["questions"]
+SECTIONS = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
+            "T17", "F", "C", "U", "R"]  # fmt: skip
+
+
+def test_the_test_set_is_a_third_of_each_seed_section_asked_as_user_31():
+    from research.dataset.catalogue import load_catalogue
+    from research.dataset.users import make_user
+
+    counts = [6, 6, 9, 6, 5, 7, 7, 6, 6, 9, 7, 7, 11, 7, 11, 7, 7, 9, 7, 7, 8]
+    assert [sum(e["template"] == s for e in TEST_ENTRIES) for s in SECTIONS] == counts and len(TEST_QUESTIONS) == 155
+    assert data_user(TEST_QUESTIONS_FILE) == 31 and data_user(QUESTIONS_FILE) is None
+    assert TEST_TODAY == make_user(load_catalogue(), 31).today == date(2028, 1, 12)
+
+
+def test_no_test_question_is_left_among_the_seeds_the_generator_sees():
+    from research.dataset.generator_prompt import load_seeds
+
+    seen = {question for questions in load_seeds().questions.values() for question in questions}
+    asked = [e["seed"] for e in TEST_ENTRIES] + [q.question for q in TEST_QUESTIONS]
+    asked += [turn.question for q in TEST_QUESTIONS for turn in q.history]
+    assert [question for question in asked if question in seen] == []
+    assert sum(len(questions) for questions in load_seeds().questions.values()) == 465 - 155
+
+
+def test_the_test_questions_are_unique_and_the_changed_ones_are_kept_with_their_seed():
+    assert len({q.question for q in TEST_QUESTIONS}) == 155  # the expected-answers model looks them up by text
+    starbucks = next(e for e in TEST_ENTRIES if e["seed"].startswith("kel yom Starbucks"))
+    assert starbucks["question"] == "kel yom Furn el Hara, adde sarle def3a 3andon hal jemaa"
+    tasli7 = next(e for e in TEST_ENTRIES if "tasli7" in e["seed"])
+    assert tasli7["question"] == tasli7["seed"] and tasli7["accept"] == [{"reply": "CLARIFY"}]

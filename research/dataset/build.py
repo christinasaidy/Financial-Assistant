@@ -38,7 +38,7 @@ from research.dataset.templates import Spec, UserData, make_specs
 from research.dataset.users import USER_COUNT, make_user, remove_user, seed_user
 from research.dataset.wiring import QuestionWriter, QwenWriter, StandInWriter
 from research.evaluation.expected_model import ExpectedAnswersModel
-from research.evaluation.questions import QUESTIONS_FILE
+from research.evaluation.questions import QUESTIONS_FILE, TEST_QUESTIONS_FILE
 from research.evaluation.wiring import build_evaluation, load_settings
 
 DATASET_DIR = Path(__file__).parent
@@ -220,9 +220,12 @@ def _seed(spec_id: str) -> int:
 
 
 def test_questions(extra: Path | None) -> tuple[str, ...]:
-    """The questions no training example may be a near-duplicate of: the pilot questions, and the user's own test
-    set when given (a JSON file with a "questions" list, as the pilot's, or one question per line)."""
+    """The questions no training example may be a near-duplicate of: the pilot questions; the test set, as asked, as
+    the user wrote it and with its follow-ups' earlier questions; and any extra file given (a JSON file with a
+    "questions" list, as the pilot's, or one question per line)."""
     found = [q["question"] for q in json.loads(QUESTIONS_FILE.read_text(encoding="utf-8"))["questions"]]
+    for entry in json.loads(TEST_QUESTIONS_FILE.read_text(encoding="utf-8"))["questions"]:
+        found += [entry["question"], entry["seed"]] + [turn["question"] for turn in entry.get("history", ())]
     if extra:
         text = extra.read_text(encoding="utf-8")
         found += [q["question"] for q in json.loads(text)["questions"]] if extra.suffix == ".json" else [
@@ -237,7 +240,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--users", type=int, default=USER_COUNT, help="build users 1..N (default all 30)")
     parser.add_argument("--per-user", type=int, default=SPECS_PER_USER, help="things to ask per user")
     parser.add_argument("--keep-users", action="store_true", help="leave the synthetic users in the database")
-    parser.add_argument("--test-questions", type=Path, help="the user's test set, to keep near-duplicates out")
+    parser.add_argument("--test-questions", type=Path, help="more test questions to keep near-duplicates of out (the test set always is)")
     parser.add_argument("--workers", type=int, default=WORKERS, help="writer calls at once (default 8)")
     parser.add_argument("--yes", action="store_true", help="confirm the calls to a real model")
     args = parser.parse_args(argv)
