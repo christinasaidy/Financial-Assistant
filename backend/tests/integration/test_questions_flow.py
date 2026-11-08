@@ -525,3 +525,19 @@ def test_the_answer_kind_is_saved_as_answer(container, model, alice):
     result = container.assistant.ask(user_id, None, "How much did I spend on groceries this month?")
     assert result.answer.details.kind is AnswerKind.ANSWER
     assert result.answer.details.duration_ms is not None
+
+
+# --- The names in the prompt, for the research dataset (added 2026-11-08) ---
+
+
+def test_prompt_names_are_exactly_the_names_the_model_is_sent(client, container, model, alice):
+    """The dataset builds its training prompts with these names, so they must be the ones the app sends."""
+    headers, user_id, _ = alice
+    model.sql_replies, model.answer_replies = [E1_SQL], [E1_ANSWER]
+    ask(client, headers, "How much did I spend on groceries this month?")
+
+    names = container.assistant.prompt_names(user_id)
+    sent = model.sql_prompts[0]
+    for label, values in (("items", names.items), ("vendors", names.vendors), ("categories", names.categories)):
+        assert f"The user's {label}: " + ", ".join(f'"{v}"' for v in values) in sent
+    assert "laban" in names.items and "Spinneys" in names.vendors and "Uncategorized" in names.categories

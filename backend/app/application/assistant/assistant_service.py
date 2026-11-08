@@ -115,13 +115,7 @@ class AssistantService:
         `ask` answers with it, and the research evaluation scores it, so both always run exactly the same step.
         Raises ModelUnavailable if no model is configured."""
         question = clean_question(question)
-        with self._uow(user_id) as work:
-            names = UserNames(
-                items=names_for_prompt(work.receipts.known_item_names(ITEM_NAMES_LIMIT, MAX_NAME_WORDS),
-                                       ITEM_NAMES_LIMIT),
-                vendors=work.vendors.recent_names(VENDOR_NAMES_LIMIT),
-                categories=[category.name for category in work.categories.list_all()] + list(VIEW_CATEGORIES),
-            )  # fmt: skip
+        names = self.prompt_names(user_id)
         attempts: list[Attempt] = []
         outcome = self._write_sql(user_id, question, names, list(history), attempts)
         return QuestionOutcome(
@@ -129,6 +123,17 @@ class AssistantService:
             reply=outcome if isinstance(outcome, answers.ModelReply) else None,
             attempts=tuple(attempts),
         )
+
+    def prompt_names(self, user_id: int) -> UserNames:
+        """The user's item, vendor and category names exactly as the SQL step's prompt lists them. The research
+        dataset builds its training prompts with these, so training matches what the app sends."""
+        with self._uow(user_id) as work:
+            return UserNames(
+                items=names_for_prompt(work.receipts.known_item_names(ITEM_NAMES_LIMIT, MAX_NAME_WORDS),
+                                       ITEM_NAMES_LIMIT),
+                vendors=work.vendors.recent_names(VENDOR_NAMES_LIMIT),
+                categories=[category.name for category in work.categories.list_all()] + list(VIEW_CATEGORIES),
+            )  # fmt: skip
 
     def _answer(
         self, user_id: int, question: str, history: list[Exchange], waiting: int
