@@ -13,7 +13,7 @@
     "Household": ["aghrad el bet", "ghrad el bait", "eshya lal bayt", "mostalzamat el bet", "household"],
     "Entertainment": ["tarfih", "entertainment", "tesleye"],
     "Pets": ["pets", "7ayawanet alife", "aghrad el besas", "aghrad el kleb", "ghrad el bsainet"],
-    "Beauty": ["beauty", "tajmil"],
+    "Beauty": ["beauty", "tajmil", "tejmil"],
     "Tobacco": ["dekhan", "dokhan"],
     "Subscriptions": ["eshtiraket", "ishtirakat", "subscriptions", "abonnements", "eshtirak"],
     "Shopping": [],
@@ -30,7 +30,7 @@
     "makeup": ["makeup", "maquillage"],
     "skincare": ["skincare"],
     "snacks": [],
-    "suggested": {"snacks": ["snacks", "tasliye"], "skincare": ["creme lal wejj"]},
+    "suggested": {"snacks": ["snacks", "fawe7esh", "na2rashe"], "skincare": ["creme lal wejj"]},
     "note": "A question about a group always filters item_name IN the user's items of that group. A private category's own words (dekhan, pets, eshtiraket, beauty) filter category = '<it>' when the user has that category, and item_name IN its items when not. Delivery is the shop Toters and the item 'delivery fee'; gifts (hadeye) and repairs (tasli7) have no items, so questions about them are CLARIFY."
   },
   "shop_kinds": ["supermarket", "minimarket", "bakery", "sweets", "nuts", "butcher", "pharmacy", "fuel", "cafe", "restaurant", "fast_food", "delivery", "clothes", "department_store", "sports", "electronics", "home", "bookstore", "beauty", "toys", "pets", "cinema", "gym", "taxi", "car_wash", "utility", "subscription", "tobacco"],
