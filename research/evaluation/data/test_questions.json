@@ -1064,7 +1064,7 @@
    "type": "average price",
    "language": "arabizi",
    "seed": "bel 3ade adde 3am edfa3 7a2 sa7sou7et el jale",
-   "question": "bel 3ade adde 3am edfa3 7a2 sa7sou7et el jale",
+   "question": "bel 3ade adde 3am edfa3 7a2 sabon el jale",
    "accept": [
     {
      "sql": "SELECT currency, ROUND(AVG(COALESCE(unit_price, line_total / quantity)), 2) AS average_price FROM purchases WHERE item_name = 'dishwashing liquid' GROUP BY currency"
