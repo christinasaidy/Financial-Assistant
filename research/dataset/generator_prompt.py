@@ -1,7 +1,7 @@
 """What the question writer (Qwen) is sent for one thing to ask (decisions approved by the user on 2026-11-05/07).
 
-It gets a plain description of the question (never the SQL), the names and spellings to use, today's date, five of
-the user's seed questions for that kind of question (picked at random each call, so phrasings do not copy the same
+It gets a plain description of the question (never the SQL), the names and spellings to use, today's date,
+the user's seed questions for that kind of question (ten, picked at random each call, so phrasings do not copy the same
 few), and the spelling lines that matter for this question. It returns JSON: six versions, three in Arabizi, one
 mixing Arabizi and English, two in English. For CLARIFY and REPLY each version carries its own reply, in the
 question's language; for a follow-up, each version also carries the earlier question it follows.
@@ -18,7 +18,7 @@ from research.dataset.templates import Spec
 
 SEED_FILE = Path(__file__).parent / "seed_questions.md"
 LANGUAGES = ("arabizi", "arabizi", "arabizi", "mixed", "english", "english")
-SEEDS_PER_CALL = 5
+SEEDS_PER_CALL = 10  # more examples give more natural, varied wording (5 until 2026-11-08)
 WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 # The seed section each template learns its style from: new templates use the nearest one.
 SEED_SECTION = {"T3g": "T3", "T11k": "T11", "T12k": "T12", "T18": "T15", "T19": "T17", "T20": "T17"}
@@ -141,3 +141,22 @@ def _json_form(spec: Spec) -> str:
         fields += f', "reply": "{start}: <the reply, in the language of the question>"'
     languages = ", ".join(f'"{language}"' for language in dict.fromkeys(LANGUAGES))
     return f'{{"versions": [{{{fields}}}, ...]}}  (6 versions; language is one of {languages})'
+
+
+def versions_schema(spec: Spec) -> dict:
+    """The exact JSON the writer must return, for vLLM's guided decoding: six versions, each with a known language,
+    the question, and the fields this kind of question needs (the earlier question of a follow-up, the reply of a
+    CLARIFY or REPLY). Nothing else is allowed, so no paid call is lost to a malformed reply."""
+    properties: dict = {"language": {"type": "string", "enum": list(dict.fromkeys(LANGUAGES))}}
+    required = ["language"]
+    if spec.base is not None:
+        properties["first"] = {"type": "string"}
+        required.append("first")
+    properties["question"] = {"type": "string"}
+    required.append("question")
+    if spec.kind in ("clarify", "reply"):
+        properties["reply"] = {"type": "string"}
+        required.append("reply")
+    version = {"type": "object", "properties": properties, "required": required, "additionalProperties": False}
+    return {"type": "object", "additionalProperties": False, "required": ["versions"], "properties": {
+        "versions": {"type": "array", "minItems": len(LANGUAGES), "maxItems": len(LANGUAGES), "items": version}}}

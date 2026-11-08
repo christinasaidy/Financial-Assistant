@@ -1,6 +1,6 @@
 """The dataset's question writers: the free stand-in, and Qwen through an OpenAI-compatible API (vLLM).
 
-The app's model client always uses temperature 0; the generator needs about 0.8 for varied phrasings, so it has
+The app's model client always uses temperature 0; the generator needs sampling for varied phrasings, so it has
 its own small client here (decided with the user on 2026-11-07) rather than a research-only option in the app.
 """
 
@@ -10,10 +10,13 @@ from typing import Protocol
 
 import httpx
 
-from research.dataset.generator_prompt import LANGUAGES
+from research.dataset.generator_prompt import LANGUAGES, versions_schema
 from research.dataset.templates import Spec
 
-TEMPERATURE = 0.8
+# Qwen's recommended sampling for non-thinking mode (decided 2026-11-08, was temperature 0.8 only).
+TEMPERATURE = 0.7
+TOP_P = 0.8
+TOP_K = 20
 TIMEOUT = 180.0  # seconds; six versions with replies can take a while on a busy server
 RETRYABLE = frozenset({429, 500, 502, 503, 504})
 
@@ -52,8 +55,9 @@ class StandInWriter:
 
 
 class QwenWriter:
-    """Qwen (or any model) through the OpenAI-compatible chat API, as vLLM serves it: thinking off, temperature
-    0.8, JSON output, and a seed per call so a run can be repeated. A temporary failure is tried once more."""
+    """Qwen (or any model) through the OpenAI-compatible chat API, as vLLM serves it: thinking off, Qwen's
+    recommended sampling, the reply held to the exact JSON schema (guided decoding), and a seed per call so a run
+    can be repeated. A temporary failure is tried once more."""
 
     def __init__(self, base_url: str, api_key: str, model: str, client: httpx.Client | None = None,
                  wait: float = 5.0) -> None:  # fmt: skip
@@ -66,7 +70,9 @@ class QwenWriter:
     def write(self, spec: Spec, prompt: str, seed: int) -> str:
         body = {
             "model": self.name, "messages": [{"role": "user", "content": prompt}], "temperature": TEMPERATURE,
-            "seed": seed, "response_format": {"type": "json_object"},
+            "top_p": TOP_P, "top_k": TOP_K, "seed": seed,
+            "response_format": {"type": "json_schema", "json_schema": {
+                "name": "versions", "strict": True, "schema": versions_schema(spec)}},
             "chat_template_kwargs": {"enable_thinking": False},
         }  # fmt: skip
         for attempt in (1, 2):

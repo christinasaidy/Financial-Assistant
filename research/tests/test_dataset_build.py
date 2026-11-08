@@ -27,6 +27,7 @@ from research.dataset.generator_prompt import (
     build_generator_prompt,
     load_seeds,
     seed_section,
+    versions_schema,
 )
 from research.dataset.templates import Spec, UserData, make_specs
 from research.dataset.users import make_user
@@ -77,7 +78,7 @@ def test_the_prompt_describes_the_question_and_never_shows_the_sql():
     assert "3 in Lebanese Arabizi" in prompt and "1 mixing Arabizi and English" in prompt and "2 in English" in prompt
     examples = [line[2:] for line in prompt.split("Examples of how people ask this kind of question:\n")[1]
                 .split("\n\n")[0].splitlines()]  # fmt: skip
-    assert len(examples) == 5 and set(examples) <= set(SEEDS.questions["T9"])
+    assert len(examples) == 10 and set(examples) <= set(SEEDS.questions["T9"])  # 10 seeds (changed 2026-11-08)
 
 
 def test_the_seeds_shown_change_from_call_to_call():
@@ -186,7 +187,7 @@ def test_the_stand_in_writes_six_versions_that_pass_the_checks():
             assert all(problems(v, spec, CATALOGUE) == [] for v in versions), spec.template
 
 
-def test_qwen_is_called_with_thinking_off_temperature_08_json_and_a_seed():
+def test_qwen_is_called_with_thinking_off_qwens_sampling_the_json_schema_and_a_seed():
     sent = []
 
     def handler(request):
@@ -199,8 +200,11 @@ def test_qwen_is_called_with_thinking_off_temperature_08_json_and_a_seed():
     body = json.loads(sent[0].content)
     assert str(sent[0].url) == "http://pod/v1/chat/completions"
     assert sent[0].headers["Authorization"] == "Bearer key-123"
+    # Qwen's recommended non-thinking sampling, and the exact JSON shape enforced (decided 2026-11-08)
     assert body == {"model": "Qwen/Qwen3.8-27B", "messages": [{"role": "user", "content": "the prompt"}],
-                    "temperature": 0.8, "seed": 4017, "response_format": {"type": "json_object"},
+                    "temperature": 0.7, "top_p": 0.8, "top_k": 20, "seed": 4017,
+                    "response_format": {"type": "json_schema", "json_schema": {
+                        "name": "versions", "strict": True, "schema": versions_schema(spec_with(()))}},
                     "chat_template_kwargs": {"enable_thinking": False}}  # fmt: skip
 
 
@@ -247,3 +251,20 @@ def test_the_build_writes_chat_examples_with_the_apps_own_prompt_and_removes_the
     with create_engine(settings.database_url).connect() as conn:
         left = conn.execute(text("SELECT COUNT(*) FROM users WHERE email LIKE 'dataset-28-%'")).scalar_one()
     assert left == 0
+
+
+def test_the_json_schema_asks_for_exactly_six_versions_with_the_fields_each_kind_needs():
+    sql = versions_schema(spec_with(()))
+    assert (sql["properties"]["versions"]["minItems"], sql["properties"]["versions"]["maxItems"]) == (6, 6)
+    item = sql["properties"]["versions"]["items"]
+    assert item["required"] == ["language", "question"] and item["additionalProperties"] is False
+    assert item["properties"]["language"]["enum"] == ["arabizi", "mixed", "english"]
+    clarify = versions_schema(spec_with((), kind="clarify"))["properties"]["versions"]["items"]
+    assert clarify["required"] == ["language", "question", "reply"]
+    follow = versions_schema(spec_with((), template="F1", base=spec_with(())))["properties"]["versions"]["items"]
+    assert follow["required"] == ["language", "first", "question"]
+    for spec in specs_of(4)[1]:  # the stand-in's replies fit the schema of their spec
+        fields = set(versions_schema(spec)["properties"]["versions"]["items"]["properties"])
+        for version in json.loads(StandInWriter().write(spec, "", seed=0))["versions"]:
+            assert set(version) <= fields and set(versions_schema(spec)["properties"]["versions"]["items"][
+                "required"]) <= set(version)  # fmt: skip
