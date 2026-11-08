@@ -187,6 +187,29 @@ def test_a_follow_up_needs_its_earlier_question():
     assert problems(Version("english", "and last month?", first="How much on water?"), follow, CATALOGUE) == []
 
 
+def test_a_follow_ups_earlier_question_must_mention_what_it_asked_plurals_allowed():  # approved 2026-11-08
+    base = spec_with((("burger", "berger"), ("weekend", "wikend")), template="T9", labels={"item": "burger"})
+    follow = spec_with((), template="F1", base=base)
+    ok = Version("arabizi", "w el shaher li mara2?", first="adde sarfet 3al burgers hal weekend?")
+    assert problems(ok, follow, CATALOGUE) == []
+    wrong = Version("arabizi", "w el shaher li mara2?", first="adde sarfet 3al burger mberha?")
+    assert problems(wrong, follow, CATALOGUE) == ["the earlier question does not mention any of: weekend, wikend"]
+
+
+def test_buying_a_service_or_bill_in_arabizi_is_dropped_but_recharge_and_tickets_are_bought():  # approved 2026-11-08
+    wash = spec_with((("car wash", "ghasil sayara"),), template="T14", labels={"item": "car wash"})
+    assert problems(Version("arabizi", "nsit b adde jebt el ghasil sayara"), wash, CATALOGUE) == [
+        "buys a service: car wash"]
+    assert problems(Version("arabizi", "adde dafa3et 3al ghasil sayara"), wash, CATALOGUE) == []
+    assert problems(Version("english", "how many times did I buy a car wash"), wash, CATALOGUE) == []
+    recharge = spec_with((("phone recharge", "recharge"),), template="T14", labels={"item": "phone recharge"})
+    assert problems(Version("arabizi", "kam marra jebt recharge"), recharge, CATALOGUE) == []
+    internet = spec_with((("internet",),), template="T9", labels={"item": "internet"})
+    follow = spec_with((), template="F2", labels={}, base=internet)
+    bought = Version("mixed", "w el shaher li mara2?", first="adde shtarayt internet hal shaher?")
+    assert problems(bought, follow, CATALOGUE) == ["buys a service: internet"]
+
+
 def test_near_duplicates_of_test_questions_are_dropped():
     tests = ("How much did I spend on laban?",)
     assert near_duplicate("how much did i spend on laban", tests) == tests[0]

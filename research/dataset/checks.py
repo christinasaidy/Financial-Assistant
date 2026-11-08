@@ -6,6 +6,8 @@ A version is dropped, with the reason logged, when:
   own name (kleenex, nutella: listed among the item's spellings);
 - it has Arabic script;
 - it is blank or longer than 300 characters;
+- a follow-up's earlier question misses what it asked (its item, shop or period; a plural is fine);
+- its Arabizi buys a service or bill (jebt el ghasil sayara);
 - its reply does not start the way its kind needs (CLARIFY: / REPLY:), or a REPLY states a number
   (digits inside a word are Arabizi letters, not numbers);
 - a follow-up has no earlier question;
@@ -24,6 +26,12 @@ from research.dataset.templates import Spec
 MAX_LENGTH = 300
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
+# Services and bills are paid for, not bought ("jebt el ghasil sayara" makes no sense); a phone recharge and a cinema
+# ticket are bought (decided with the user on 2026-11-08).
+SERVICES = frozenset({"car wash", "electricity bill", "internet", "generator subscription", "gym membership", "parking",
+                      "delivery fee", "streaming subscription", "music subscription"})
+_BUYING = re.compile(r"\b(jebt|jebet|jibt|jebto|jebta|jebton|shtarayt|shtarit|shtrit|shetrit|chtarit|shtarayto|"
+                     r"shtarayta|shtarayton|shtrito)\b")
 # A number stands alone: digits inside a word are Arabizi letters (3afak, b2a2ak), found 2026-11-08.
 _NUMBER = re.compile(r"(?<![^\W\d_])\d+(?![^\W\d_])")
 _ARABIC = re.compile(r"[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]")
@@ -104,6 +112,14 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
             found.append("a REPLY states a number")
     if spec.base is not None and not version.first:
         found.append("a follow-up without its earlier question")
+    elif spec.base is not None:  # it is paired with the SQL of what it should ask, so it must ask that (2026-11-08)
+        for words in spec.base.mentions:
+            if not any(contains(version.first, word) or contains(version.first, word + "s") for word in words):
+                found.append(f"the earlier question does not mention any of: {', '.join(words[:4])}")
+    if version.language != "english":
+        items = {spec.labels.get("item"), spec.base.labels.get("item") if spec.base else None} & SERVICES
+        if items and _BUYING.search(normalized(question + " " + (version.first or ""))):
+            found.append(f"buys a service: {', '.join(sorted(items))}")
     duplicate = near_duplicate(question, test_questions)
     if duplicate:
         found.append(f"near-duplicate of a test question: {duplicate}")
