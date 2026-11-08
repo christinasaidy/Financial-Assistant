@@ -4,10 +4,10 @@
     python -m research.dataset.build --model Qwen/Qwen3.8-27B --base-url URL --yes
 
 For each synthetic user: seed them in the database through the app, take their names exactly as the app's prompt
-lists them, make the things to ask, have the writer phrase each one six ways, check every version, run every SQL
-target through the app's guard, answering rules and read-only role, and write one training example per version that
-passed, in chat format: the app's own prompt (build_prompt) as the user message and the target as the reply. Then
-the user is removed. Users 1-27 are training, 28-30 validation.
+lists them, make the things to ask, run every SQL target through the app's guard, answering rules and read-only
+role, and remove the user. Then the writer phrases each thing six ways (several calls at once), every version is
+checked, and one training example is written per version that passed, in chat format: the app's own prompt
+(build_prompt) as the user message and the target as the reply. Users 1-27 are training, 28-30 validation.
 
 A stand-in run writes under research/dataset/raw/ (not committed), so it can never replace the real dataset.
 """
@@ -17,14 +17,17 @@ import json
 import random
 import sys
 import tempfile
+import threading
 from collections import Counter
 from collections.abc import Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 from app.domain.assistant.conversation import clean_question
 from app.domain.assistant.errors import QueryFailed, QueryRejected, UnsafeQuery
-from app.domain.assistant.prompt import Exchange, build_prompt
+from app.domain.assistant.prompt import Exchange, UserNames, build_prompt
 from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.sql.sql_guard import SqlGlotGuard
 
@@ -43,6 +46,7 @@ DATA_DIR = DATASET_DIR / "data"
 RAW_DIR = DATASET_DIR / "raw"
 SPECS_PER_USER = 24
 VALIDATION_USERS = range(28, USER_COUNT + 1)
+WORKERS = 8  # writer calls at once; vLLM serves them together (decided 2026-11-08)
 
 
 @dataclass
@@ -64,73 +68,129 @@ class Summary:
         return "\n".join(lines)
 
 
+@dataclass(frozen=True)
+class Job:
+    """One thing to ask, ready for the writer: everything the example needs is known before the call."""
+
+    spec: Spec
+    spec_id: str
+    number: int
+    split: str
+    today: date
+    names: UserNames
+    rows: int | None
+    prompt: str
+
+
 def build(writer: QuestionWriter, users: Sequence[int], out_dir: Path, raw_dir: Path, specs_per_user: int = SPECS_PER_USER,
-          keep_users: bool = False, test_questions: tuple[str, ...] = ()) -> Summary:  # fmt: skip
-    settings = load_settings()
+          keep_users: bool = False, test_questions: tuple[str, ...] = (), workers: int = WORKERS) -> Summary:  # fmt: skip
+    """Three phases, so the paid calls are not held up by the database: (1) each user in turn is seeded, their SQL
+    targets run and their prompts made, then the user is removed; (2) all the writer calls, `workers` at a time;
+    (3) the replies are checked and the examples written in the original order, so the dataset is the same however
+    many calls ran at once."""
     catalogue, seeds = load_catalogue(), load_seeds()
-    guard, rules = SqlGlotGuard(), SqlGlotQueryRules()
     summary = Summary()
     out_dir.mkdir(parents=True, exist_ok=True)
     raw_dir.mkdir(parents=True, exist_ok=True)
-    files = {split: (out_dir / f"{split}.jsonl").open("w", encoding="utf-8") for split in ("train", "validation")}
-    replies = (raw_dir / "generator_replies.jsonl").open("w", encoding="utf-8")
-    drops = (raw_dir / "drops.jsonl").open("w", encoding="utf-8")
-    try:
-        for number in users:
-            user = make_user(catalogue, number)
-            split = "validation" if number in VALIDATION_USERS else "train"
-            with tempfile.TemporaryDirectory() as storage:
-                services = build_evaluation(settings, ExpectedAnswersModel([]), user.today, Path(storage))
-                user_id = seed_user(services, user)
-                try:
-                    names = services.assistant.prompt_names(user_id)
-                    data = UserData(user, catalogue)
-                    rng = random.Random(f"fyp-dataset/prompts/{number}")
-                    for index, spec in enumerate(make_specs(data, specs_per_user, f"fyp-dataset/specs/{number}")):
-                        spec_id = f"{number}-{index}"
+    with (raw_dir / "drops.jsonl").open("w", encoding="utf-8") as drops:
 
-                        def drop(reason: str, question: str | None = None, spec=spec, spec_id=spec_id) -> None:
-                            summary.drops[reason.split(":")[0]] += 1
-                            drops.write(json.dumps({"spec": spec_id, "template": spec.template, "reason": reason,
-                                                    "question": question}) + "\n")  # fmt: skip
+        def drop(job_spec: Spec, spec_id: str, reason: str, question: str | None = None) -> None:
+            summary.drops[reason.split(":")[0]] += 1
+            drops.write(json.dumps({"spec": spec_id, "template": job_spec.template, "reason": reason,
+                                    "question": question}) + "\n")  # fmt: skip
 
-                        try:
-                            rows = _run(spec, services, user_id, names, user.today, guard, rules)
-                        except (QueryRejected, UnsafeQuery, QueryFailed) as exc:
-                            drop(f"the SQL target failed: {exc}")
-                            continue
-                        prompt = build_generator_prompt(spec, catalogue, seeds, user.today, rng)
-                        text = writer.write(spec, prompt, seed=_seed(spec_id))
-                        replies.write(json.dumps({"spec": spec_id, "template": spec.template, "prompt": prompt,
-                                                  "reply": text}) + "\n")  # fmt: skip
-                        try:
-                            versions = read_versions(text)
-                        except UnreadableReply as exc:
-                            drop(f"unreadable reply: {exc}")
-                            continue
-                        for version in versions:
-                            found = problems(version, spec, catalogue, test_questions)
-                            if found:
-                                for reason in found:
-                                    drop(reason, version.question)
-                                continue
-                            example = _example(spec, version, names, user.today, rows, number, split, spec_id)
-                            files[split].write(json.dumps(example, ensure_ascii=False) + "\n")
-                            summary.examples[split] += 1
-                            summary.kinds["follow_up" if spec.base else spec.kind] += 1
-                            summary.languages[version.language] += 1
-                            summary.templates[spec.template] += 1
-                            if spec.kind == "sql":
-                                summary.sql_examples += 1
-                                summary.empty_results += rows == 0
-                finally:
-                    if not keep_users:
-                        remove_user(services, user_id)
-            print(f"user {number}: done ({sum(summary.examples.values())} examples so far)", flush=True)
-    finally:
-        for handle in (*files.values(), replies, drops):
-            handle.close()
+        jobs = _prepare(users, catalogue, seeds, specs_per_user, keep_users, drop)
+        print(f"{len(jobs)} things to ask; calling the writer ({workers} at a time)", flush=True)
+        replies = _call(writer, jobs, workers)
+        files = {split: (out_dir / f"{split}.jsonl").open("w", encoding="utf-8") for split in ("train", "validation")}
+        try:
+            with (raw_dir / "generator_replies.jsonl").open("w", encoding="utf-8") as log:
+                for job, reply in zip(jobs, replies, strict=True):
+                    log.write(json.dumps({"spec": job.spec_id, "template": job.spec.template, "prompt": job.prompt,
+                                          "reply": reply if isinstance(reply, str) else None}) + "\n")  # fmt: skip
+                    if isinstance(reply, Exception):
+                        drop(job.spec, job.spec_id, f"the writer failed: {reply}")
+                        continue
+                    try:
+                        versions = read_versions(reply)
+                    except UnreadableReply as exc:
+                        drop(job.spec, job.spec_id, f"unreadable reply: {exc}")
+                        continue
+                    for version in versions:
+                        found = problems(version, job.spec, catalogue, test_questions)
+                        for reason in found:
+                            drop(job.spec, job.spec_id, reason, version.question)
+                        if not found:
+                            _write(files[job.split], job, version, summary)
+        finally:
+            for handle in files.values():
+                handle.close()
     return summary
+
+
+def _prepare(users, catalogue, seeds, specs_per_user, keep_users, drop) -> list[Job]:
+    """Phase 1: for each user, seed them, run every SQL target as the app would, and make the writer's prompts."""
+    settings = load_settings()
+    guard, rules = SqlGlotGuard(), SqlGlotQueryRules()
+    jobs: list[Job] = []
+    for number in users:
+        user = make_user(catalogue, number)
+        split = "validation" if number in VALIDATION_USERS else "train"
+        with tempfile.TemporaryDirectory() as storage:
+            services = build_evaluation(settings, ExpectedAnswersModel([]), user.today, Path(storage))
+            user_id = seed_user(services, user)
+            try:
+                names = services.assistant.prompt_names(user_id)
+                data = UserData(user, catalogue)
+                rng = random.Random(f"fyp-dataset/prompts/{number}")
+                for index, spec in enumerate(make_specs(data, specs_per_user, f"fyp-dataset/specs/{number}")):
+                    spec_id = f"{number}-{index}"
+                    try:
+                        rows = _run(spec, services, user_id, names, user.today, guard, rules)
+                    except (QueryRejected, UnsafeQuery, QueryFailed) as exc:
+                        drop(spec, spec_id, f"the SQL target failed: {exc}")
+                        continue
+                    prompt = build_generator_prompt(spec, catalogue, seeds, user.today, rng)
+                    jobs.append(Job(spec, spec_id, number, split, user.today, names, rows, prompt))
+            finally:
+                if not keep_users:
+                    remove_user(services, user_id)
+        print(f"user {number}: seeded, {sum(j.number == number for j in jobs)} SQL targets run, removed", flush=True)
+    return jobs
+
+
+def _call(writer: QuestionWriter, jobs: list[Job], workers: int) -> list:
+    """Phase 2: every writer call, `workers` at a time, in the jobs' order. A call that still fails after the
+    writer's own retry is kept as its error, so one bad call never stops a paid run."""
+    done = 0
+    lock = threading.Lock()
+
+    def one(job: Job):
+        nonlocal done
+        try:
+            return writer.write(job.spec, job.prompt, seed=_seed(job.spec_id))
+        except Exception as exc:  # noqa: BLE001 - logged as a drop
+            return exc
+        finally:
+            with lock:
+                done += 1
+                if done % 50 == 0 or done == len(jobs):
+                    print(f"  {done}/{len(jobs)} replies", flush=True)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        return list(pool.map(one, jobs))
+
+
+def _write(handle, job: Job, version, summary: Summary) -> None:
+    example = _example(job.spec, version, job.names, job.today, job.rows, job.number, job.split, job.spec_id)
+    handle.write(json.dumps(example, ensure_ascii=False) + "\n")
+    summary.examples[job.split] += 1
+    summary.kinds["follow_up" if job.spec.base else job.spec.kind] += 1
+    summary.languages[version.language] += 1
+    summary.templates[job.spec.template] += 1
+    if job.spec.kind == "sql":
+        summary.sql_examples += 1
+        summary.empty_results += job.rows == 0
 
 
 def _run(spec: Spec, services, user_id: int, names, today, guard, rules) -> int | None:
@@ -178,6 +238,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--per-user", type=int, default=SPECS_PER_USER, help="things to ask per user")
     parser.add_argument("--keep-users", action="store_true", help="leave the synthetic users in the database")
     parser.add_argument("--test-questions", type=Path, help="the user's test set, to keep near-duplicates out")
+    parser.add_argument("--workers", type=int, default=WORKERS, help="writer calls at once (default 8)")
     parser.add_argument("--yes", action="store_true", help="confirm the calls to a real model")
     args = parser.parse_args(argv)
 
@@ -195,7 +256,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not api_key:
             raise SystemExit("No API key: set ASSISTANT_API_KEY")
         writer, out_dir, raw_dir = QwenWriter(base_url, api_key, args.model), DATA_DIR, RAW_DIR
-    summary = build(writer, users, out_dir, raw_dir, args.per_user, args.keep_users, test_questions(args.test_questions))
+    summary = build(writer, users, out_dir, raw_dir, args.per_user, args.keep_users,
+                    test_questions(args.test_questions), args.workers)
     print(summary.text())
     print(f"\nExamples: {out_dir}\nGenerator replies and drops: {raw_dir}")
     return 0

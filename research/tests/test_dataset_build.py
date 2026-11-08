@@ -268,3 +268,51 @@ def test_the_json_schema_asks_for_exactly_six_versions_with_the_fields_each_kind
         for version in json.loads(StandInWriter().write(spec, "", seed=0))["versions"]:
             assert set(version) <= fields and set(versions_schema(spec)["properties"]["versions"]["items"][
                 "required"]) <= set(version)  # fmt: skip
+
+
+def test_a_brand_people_use_as_the_items_own_name_is_allowed_in_t9():  # decided 2026-11-08
+    tissues = spec_with((("tissues", "kleenex"),), labels={"item": "tissues"})
+    assert problems(Version("arabizi", "adde sarafet 3al kleenex hal shaher?"), tissues, CATALOGUE) == []
+    spread = spec_with((("chocolate spread", "nutella"),), labels={"item": "chocolate spread"})
+    assert problems(Version("english", "How much did I spend on nutella?"), spread, CATALOGUE) == []
+    water = spec_with((("water", "may"),))
+    assert problems(Version("english", "How much on Rim water?"), water, CATALOGUE) == [
+        "a T9 question names a brand: rim"]  # a brand that is not a name for the item is still dropped
+
+
+class _CountingWriter(StandInWriter):
+    """The stand-in, slowed down, counting how many calls are in flight at once; one spec's call fails."""
+
+    def __init__(self, fail_spec=None):
+        import threading
+
+        self.lock, self.now, self.most, self.fail_spec = threading.Lock(), 0, 0, fail_spec
+
+    def write(self, spec, prompt, seed):
+        import time
+
+        with self.lock:
+            self.now += 1
+            self.most = max(self.most, self.now)
+        try:
+            time.sleep(0.05)
+            if seed == self.fail_spec:
+                raise RuntimeError("the server went away")
+            return super().write(spec, prompt, seed)
+        finally:
+            with self.lock:
+                self.now -= 1
+
+
+def test_calls_run_in_parallel_and_give_the_same_dataset_as_one_at_a_time(settings):  # decided 2026-11-08
+    runs = []
+    for workers in (1, 8):
+        out, raw = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+        writer = _CountingWriter(fail_spec=1003)  # user 1, spec 3
+        summary = build_module.build(writer, [1], out, raw, specs_per_user=12, workers=workers)
+        runs.append(((out / "train.jsonl").read_text(encoding="utf-8"), writer.most, summary,
+                     (raw / "drops.jsonl").read_text(encoding="utf-8")))  # fmt: skip
+    (one, most_one, _, drops_one), (eight, most_eight, summary, drops_eight) = runs
+    assert one == eight and one  # the same examples, in the same order
+    assert (most_one, most_eight) == (1, 8)
+    assert summary.drops["the writer failed"] == 1 and drops_one == drops_eight  # logged; the run went on

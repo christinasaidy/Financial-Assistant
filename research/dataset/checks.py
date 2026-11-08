@@ -2,7 +2,8 @@
 
 A version is dropped, with the reason logged, when:
 - it does not contain one word of each group the question must mention (its item, shop, category or period);
-- it is a T9 question (no brand) that names one of its item's brands;
+- it is a T9 question (no brand) that names one of its item's brands, unless people use that brand as the item's
+  own name (kleenex, nutella: listed among the item's spellings);
 - it has Arabic script;
 - it is blank or longer than 300 characters;
 - its reply does not start the way its kind needs (CLARIFY: / REPLY:), or a REPLY states a number;
@@ -88,6 +89,7 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
     if spec.template == "T9":  # its own item's brands only: some brands are ordinary words ("fine", "always")
         item = catalogue.item(spec.labels["item"])
         brands = set(item.brands) | {word for words in item.brand_words.values() for word in words}
+        brands -= set(item.spellings)  # a brand people use as the item's own name ("kleenex") is not naming a brand
         named = sorted(brand for brand in brands if contains(question, brand))
         if named:
             found.append(f"a T9 question names a brand: {', '.join(named)}")
