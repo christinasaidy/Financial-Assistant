@@ -401,3 +401,18 @@ def test_a_replay_rebuilds_the_same_dataset_from_the_saved_replies_without_calli
     assert (again / "train.jsonl").read_text(encoding="utf-8") == first and first
     with pytest.raises(KeyError):
         replay.write(Spec("T1", "sql", "", "SELECT 1"), "a prompt that was never sent", seed=1)
+
+
+def test_questions_dropped_in_review_stay_out_of_every_rebuild(settings, tmp_path):  # reviewed 2026-11-08
+    out, raw = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    build_module.build(StandInWriter(), [3], out, raw, specs_per_user=12)
+    examples = [json.loads(line) for line in (out / "train.jsonl").read_text(encoding="utf-8").splitlines()]
+    target = examples[0]
+    question = target["messages"][0]["content"].rsplit("\nQuestion: ", 1)[1].split("\nReply:", 1)[0]
+    review = tmp_path / "review_drops.json"
+    review.write_text(json.dumps([{"spec": target["labels"]["spec"], "question": question, "why": "garbled"}]))
+    again, raw_again = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    summary = build_module.build(StandInWriter(), [3], again, raw_again, specs_per_user=12, review=review)
+    kept = (again / "train.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(kept) == len(examples) - 1 and summary.drops["dropped in review"] == 1
+    assert all(f"\nQuestion: {question}\nReply:" not in line for line in kept if target["labels"]["spec"] in line)

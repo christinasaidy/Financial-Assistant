@@ -45,6 +45,8 @@ from research.evaluation.wiring import build_evaluation, load_settings
 DATASET_DIR = Path(__file__).parent
 DATA_DIR = DATASET_DIR / "data"
 RAW_DIR = DATASET_DIR / "raw"
+# Questions read one by one and dropped (garbled, not Lebanese, or not asking what they should), 2026-11-08.
+REVIEW_FILE = DATASET_DIR / "review_drops.json"
 SPECS_PER_USER = 24
 VALIDATION_USERS = range(28, USER_COUNT + 1)
 WORKERS = 8  # writer calls at once; vLLM serves them together (decided 2026-11-08)
@@ -84,12 +86,15 @@ class Job:
 
 
 def build(writer: QuestionWriter, users: Sequence[int], out_dir: Path, raw_dir: Path, specs_per_user: int = SPECS_PER_USER,
-          keep_users: bool = False, test_questions: tuple[str, ...] = (), workers: int = WORKERS) -> Summary:  # fmt: skip
+          keep_users: bool = False, test_questions: tuple[str, ...] = (), workers: int = WORKERS,
+          review: Path | None = REVIEW_FILE) -> Summary:  # fmt: skip
     """Three phases, so the paid calls are not held up by the database: (1) each user in turn is seeded, their SQL
     targets run and their prompts made, then the user is removed; (2) all the writer calls, `workers` at a time;
     (3) the replies are checked and the examples written in the original order, so the dataset is the same however
     many calls ran at once."""
     catalogue, seeds = load_catalogue(), load_seeds()
+    reviewed = {(entry["spec"], entry["question"]) for entry in json.loads(review.read_text(encoding="utf-8"))} if (
+        review and review.exists()) else set()  # fmt: skip
     summary = Summary()
     out_dir.mkdir(parents=True, exist_ok=True)
     raw_dir.mkdir(parents=True, exist_ok=True)
@@ -121,6 +126,8 @@ def build(writer: QuestionWriter, users: Sequence[int], out_dir: Path, raw_dir: 
                         rng = random.Random(f"fyp-dataset/replies/{job.spec_id}/{index}")
                         version = users_reply(version, job.spec, catalogue, rng)  # noqa: PLW2901
                         found = problems(version, job.spec, catalogue, test_questions)
+                        if (job.spec_id, clean_question(version.question)) in reviewed:
+                            found.append("dropped in review")
                         for reason in found:
                             drop(job.spec, job.spec_id, reason, version.question)
                         if not found:

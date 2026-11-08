@@ -1,0 +1,2846 @@
+[
+ {
+  "spec": "1-0",
+  "question": "adde fi el bank account el mabni el yom",
+  "first": null,
+  "why": "garbled or not Lebanese (mabni)"
+ },
+ {
+  "spec": "1-0",
+  "question": "shu el masari li el 7e3a 3amleha bel mall",
+  "first": null,
+  "why": "garbled or not Lebanese (7e3a)"
+ },
+ {
+  "spec": "1-0",
+  "question": "shu el balance el mabni fi el bank",
+  "first": null,
+  "why": "garbled or not Lebanese (mabni)"
+ },
+ {
+  "spec": "1-7",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction, not thanks)"
+ },
+ {
+  "spec": "1-13",
+  "question": "3am bemza7 ma3ak",
+  "first": null,
+  "why": "does not ask what it should (joke, not what can you do)"
+ },
+ {
+  "spec": "1-15",
+  "question": "adde dafa3et 3al shop hal shaher w adde bi el shaher li mara2",
+  "first": null,
+  "why": "does not ask what it should (on shop)"
+ },
+ {
+  "spec": "1-15",
+  "question": "compare my shop spending hal shaher with el shaher li mara2",
+  "first": null,
+  "why": "does not ask what it should (shop spending)"
+ },
+ {
+  "spec": "1-16",
+  "question": "kel ma na2asne shi benzal 3a Netflix, kam marra nezlet hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "1-18",
+  "question": "w el shaher li ablo?",
+  "first": "shu se3er el energy drink hal shaher?",
+  "why": "does not ask what it should (this month vs last purchase)"
+ },
+ {
+  "spec": "1-18",
+  "question": "w el marra l2a3a?",
+  "first": "kam dafa3et 3al energy drink mberha?",
+  "why": "garbled or not Lebanese (l2a3a)"
+ },
+ {
+  "spec": "1-19",
+  "question": "2arenle masrouf el groceries hal shaher ma3 el shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (groceries only)"
+ },
+ {
+  "spec": "1-19",
+  "question": "el ma7rou2at hal shaher nafs el masrouf ta2riban aw fi fare2 3an el shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (fuel only)"
+ },
+ {
+  "spec": "1-23",
+  "question": "7seble adde kallefne el ma2ade el jem3a el madye",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "2-0",
+  "question": "shu el nesbe el fare2 fi masroufe hal shaher 3an el shaher el fayed",
+  "first": null,
+  "why": "garbled or not Lebanese (fayed)"
+ },
+ {
+  "spec": "2-1",
+  "question": "wen el shop li 3andak aktar masari fih hal weekend",
+  "first": null,
+  "why": "does not ask what it should (money you have)"
+ },
+ {
+  "spec": "2-3",
+  "question": "shu fik tse3edne with this receipt?",
+  "first": null,
+  "why": "does not ask what it should (asks for help, not small talk)"
+ },
+ {
+  "spec": "2-8",
+  "question": "mnih ekher marra?",
+  "first": "adde dafa3et 3al popcorn?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "2-10",
+  "question": "kam fowat so7iye shtarayt ekher 3 7afat",
+  "first": null,
+  "why": "not a Lebanese word (7afat)"
+ },
+ {
+  "spec": "2-10",
+  "question": "adde fawet se7iye jebt bi ekher 3 7afat",
+  "first": null,
+  "why": "not a Lebanese word (7afat)"
+ },
+ {
+  "spec": "2-10",
+  "question": "7seble kam pads 3ande el majmou3 ekher 3 7afat",
+  "first": null,
+  "why": "not a Lebanese word (7afat)"
+ },
+ {
+  "spec": "2-10",
+  "question": "kam pads jebt ekher 3 7afat, mesh kam marra",
+  "first": null,
+  "why": "not a Lebanese word (7afat)"
+ },
+ {
+  "spec": "2-11",
+  "question": "shu tole3it 3a labne Candia hal omar men 1 la 13 7zayran",
+  "first": null,
+  "why": "garbled or not Lebanese (hal omar)"
+ },
+ {
+  "spec": "2-12",
+  "question": "3tini el nesbe el fare2 ben masrouf april w el shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (april)"
+ },
+ {
+  "spec": "2-13",
+  "question": "shu tole3 3laye el fawe7esh men awal tleteh shhour",
+  "first": null,
+  "why": "does not ask what it should (since the start of 3 months)"
+ },
+ {
+  "spec": "2-14",
+  "question": "2arenle masrouf 3and Maliks hal shaher wel shaher li mara2",
+  "first": null,
+  "why": "does not ask what it should (Maliks)"
+ },
+ {
+  "spec": "2-15",
+  "question": "shu btaamel/btaamol/bta3mol",
+  "first": null,
+  "why": "garbled or not Lebanese (slashes)"
+ },
+ {
+  "spec": "2-15",
+  "question": "shu fine, can you help me with this?",
+  "first": null,
+  "why": "does not ask what it should (asks for help)"
+ },
+ {
+  "spec": "2-19",
+  "question": "shu total li dafa3et el 2 shhour el 7ayr",
+  "first": null,
+  "why": "not a Lebanese word (7ayr)"
+ },
+ {
+  "spec": "3-0",
+  "question": "w el shereen li ablo?",
+  "first": "shu el 7a2 li 3abbayt feta bha ekher shereen?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-0",
+  "question": "w el tanayn mn ablo?",
+  "first": "kam dafa3et 3al feta el tanayn marra?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-1",
+  "question": "shu bikhlas el m3shar el 7a2i shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (7a2i)"
+ },
+ {
+  "spec": "3-1",
+  "question": "adde bykoun el total el ma3shar el 7a2i shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (7a2i)"
+ },
+ {
+  "spec": "3-1",
+  "question": "bikhlas 7a2i shaher aktar aw aqal mn el shaher el li 3am",
+  "first": null,
+  "why": "garbled or not Lebanese (7a2i aqal)"
+ },
+ {
+  "spec": "3-1",
+  "question": "shu bikhlas el budget el 7a2i shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (7a2i)"
+ },
+ {
+  "spec": "3-2",
+  "question": "shu el bel miyye el fare2 ben masroufe bi ayyar w el shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (ayyar)"
+ },
+ {
+  "spec": "3-3",
+  "question": "w el fetoura li ablo?",
+  "first": "kam dafa3et 3al kahraba bi el fetoura el 2ayra?",
+  "why": "garbled or not Lebanese (2ayra)"
+ },
+ {
+  "spec": "3-4",
+  "question": "masroufe hal shaher ta2riban 3an el ayyam el 2a li mara2?",
+  "first": null,
+  "why": "garbled or not Lebanese (el 2a)"
+ },
+ {
+  "spec": "3-4",
+  "question": "adde dafa3et hal shaher 3a el ayyam el 2a mn el shaher li ablo",
+  "first": null,
+  "why": "garbled or not Lebanese (el 2a)"
+ },
+ {
+  "spec": "3-4",
+  "question": "3tine total masrouf hal shaher w total el ayyam el 2a bi el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese (el 2a)"
+ },
+ {
+  "spec": "3-8",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el chocolate li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-9",
+  "question": "shu a7san 7a2 el 7ob bi 7sebe lal week",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-9",
+  "question": "shu a7san 7a2 el 7ob bi 7sebe lal week",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-10",
+  "question": "adde eshtri el zowej mnih el 2abel",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-11",
+  "question": "Crepaway men awal el sene la halla2, kam marra shetrit men 3andon fi 6 shhour?",
+  "first": null,
+  "why": "does not ask what it should (contradictory periods)"
+ },
+ {
+  "spec": "3-16",
+  "question": "nsit b adde jebt el mouzil 3ara2, shouf ekher marra shtarayto",
+  "first": null,
+  "why": "garbled or not Lebanese (mouzil jebt)"
+ },
+ {
+  "spec": "3-16",
+  "question": "baddi ekher se3er dafa3to 3a el deodorant lal ghasil",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-17",
+  "question": "adde sarfet 3al transport hal shaher, 7seble 3ayy",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "3-22",
+  "question": "7asse 3ande ma7all shey, kam dazzine jebt mn awal el sene",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "4-0",
+  "question": "adde dafa3et bi kanoun last month",
+  "first": null,
+  "why": "does not ask what it should (kanoun last month)"
+ },
+ {
+  "spec": "4-1",
+  "question": "ma ba3ref iza msajjal 3andak b esm tene, shu baddi 3afak?",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "4-6",
+  "question": "aya tlete taba3 akhalo aktar 7essa ekher shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "4-6",
+  "question": "farjini el top 3 categories el rafetne aktar li ablo",
+  "first": null,
+  "why": "garbled or not Lebanese (rafetne)"
+ },
+ {
+  "spec": "4-6",
+  "question": "shu el 3 categories el rafetne aktar last month",
+  "first": null,
+  "why": "garbled or not Lebanese (rafetne)"
+ },
+ {
+  "spec": "4-7",
+  "question": "shu sert sarfe 3al el resto hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "4-11",
+  "question": "el jawab el 7adeth mabashar, shu mabashar bihi?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "4-11",
+  "question": "la fhemet, 7e2la abssat 3amra?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "4-19",
+  "question": "aya mahal ra7o fi aktar shi hal sabet",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "4-20",
+  "question": "el falafel, kam marra talabet el jemaa li mar2it ekher 2 jem3a",
+  "first": null,
+  "why": "does not ask what it should (contradictory periods)"
+ },
+ {
+  "spec": "5-7",
+  "question": "kam marra shtarayt cinema ticket el wikend hal shaher",
+  "first": null,
+  "why": "does not ask what it should (contradictory periods)"
+ },
+ {
+  "spec": "5-8",
+  "question": "shlonak? ana 7a2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-8",
+  "question": "eh, teslam. khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (thanks, not small talk)"
+ },
+ {
+  "spec": "5-9",
+  "question": "farjine el top 5 categories 3am bi sir aktar el khamis el ekher",
+  "first": null,
+  "why": "garbled or not Lebanese (bi sir)"
+ },
+ {
+  "spec": "5-9",
+  "question": "adde 3am bi sir aktar shi el khamis el ekher, baddi el top 5",
+  "first": null,
+  "why": "garbled or not Lebanese (bi sir)"
+ },
+ {
+  "spec": "5-9",
+  "question": "give me the top 5 categories 3am bi sir aktar el khamis el ekher",
+  "first": null,
+  "why": "garbled or not Lebanese (bi sir)"
+ },
+ {
+  "spec": "5-13",
+  "question": "shu el budget li 7a2it lal shopping el howe?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-13",
+  "question": "ezze baddal el budget lal shopping lal month el jay?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-13",
+  "question": "shu el budget li 7a2it lal shopping el howe?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-15",
+  "question": "la, mesh heda li kan baddi, shu betqder t3mli?",
+  "first": null,
+  "why": "not a Lebanese word (betqder)"
+ },
+ {
+  "spec": "5-15",
+  "question": "ma fhemet el jawab, 2awwe7o li",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-17",
+  "question": "adde dafa3et 3a cinema ticket el sayf li 2adi",
+  "first": null,
+  "why": "garbled or not Lebanese (2adi)"
+ },
+ {
+  "spec": "5-17",
+  "question": "3tine total li sarafto 3a ticket cinema el sayf li 2adi",
+  "first": null,
+  "why": "garbled or not Lebanese (2adi)"
+ },
+ {
+  "spec": "5-18",
+  "question": "w fi el fetoura li ablo?",
+  "first": "shu el 7a2 el hummus fi el fetoura el a7ira?",
+  "why": "not a Lebanese word (a7ira)"
+ },
+ {
+  "spec": "5-18",
+  "question": "w el safra el taaniya mn el a7ira?",
+  "first": "kam dafa3et 3al el hummus 7a2?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-20",
+  "question": "shu a7san eshtri lal 7a2ef el masarif",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "5-20",
+  "question": "shu a7san eshtri lal 7a2ef el masarif",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "6-4",
+  "question": "ja3 la ekher marra jebt fiya lip balm w 2elle adde dafa3et 7a2o",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "6-6",
+  "question": "shu kenit refi2te sherye el 3ayyem el 2ayen",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "6-16",
+  "question": "shu el 5 categories li 7a2hom aktar masrouf mn ayyar 7ad el yom",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "6-16",
+  "question": "aya 5 taba3 akhaldoon aktar shi men ayyar",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "6-18",
+  "question": "3am bemza7 ma3ak",
+  "first": null,
+  "why": "does not ask what it should (joke, not thanks)"
+ },
+ {
+  "spec": "6-20",
+  "question": "w adde kallefoune?",
+  "first": "shu 7a2 toothbrush dafa3to 7al marra?",
+  "why": "does not ask what it should (asks price, not shop)"
+ },
+ {
+  "spec": "6-20",
+  "question": "adde mennon men JouéClub?",
+  "first": "kam fetoura 3ande bi toothbrush?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "6-21",
+  "question": "adde bekhlas el masari el shahr el 2a7ir",
+  "first": null,
+  "why": "garbled or not Lebanese (2a7ir)"
+ },
+ {
+  "spec": "6-21",
+  "question": "shu el budget li be2eddo lal shahr el 2a7ir",
+  "first": null,
+  "why": "garbled or not Lebanese (2a7ir)"
+ },
+ {
+  "spec": "6-21",
+  "question": "b adde bekhlas mn el karta el shahr el 2a7ir",
+  "first": null,
+  "why": "garbled or not Lebanese (2a7ir)"
+ },
+ {
+  "spec": "7-3",
+  "question": "adde masrouf hal shaher ta2riban w adde el shaher li mara2 fi el nafs el 7ayat",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-3",
+  "question": "2arenle total masrouf hal shaher w total el shaher li mara2 sambah",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-4",
+  "question": "eh hek",
+  "first": null,
+  "why": "does not ask what it should (not a greeting)"
+ },
+ {
+  "spec": "7-5",
+  "question": "adde dafa3et bi cereal el 2ayyena",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-6",
+  "question": "shu btaamel/btaamol/bta3mol",
+  "first": null,
+  "why": "garbled or not Lebanese (slashes)"
+ },
+ {
+  "spec": "7-6",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction)"
+ },
+ {
+  "spec": "7-6",
+  "question": "shu bta3mol 3al receipts dyali?",
+  "first": null,
+  "why": "not a Lebanese word (dyali)"
+ },
+ {
+  "spec": "7-10",
+  "question": "men awal el 3 shhour la halla2, kam marra nezlet 3a Carrefour",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "7-11",
+  "question": "adde ra7bte shal mn el bank mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-11",
+  "question": "shu kenit refi2te sherye lal 2amili",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-11",
+  "question": "emta bekhlas el salary 3andi 3al 2abel",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-16",
+  "question": "shu adde el marra li mara2et 3a Toters mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-18",
+  "question": "2arenle masroufe hal shaher wel shaher li mara2 w 2oulini el nesbe el mafe2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-19",
+  "question": "shu el budget li baddni el7et 3aleh el shahr el jay",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-22",
+  "question": "shu el budget li 2ayt lo shopping el 7a2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-22",
+  "question": "amra 3adda el budget el masari?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "7-22",
+  "question": "adde el budget li 2ayt lal groceries el 7a2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-1",
+  "question": "3tine total masrouf hal shaher w total el ayyam el 7a2a el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-1",
+  "question": "safaret aktar hal shaher 3an el shaher li ablo 3al ayyam el 7a2a?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-1",
+  "question": "compare masrouf hal shaher with el shaher li mara2 3al ayyam el 7a2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-9",
+  "question": "adde dafa3et 3al tasli7 el 7a2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-9",
+  "question": "adde dafa3et 3al tasli7 el 7a2a, need the total",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-11",
+  "question": "shetrit razors men Carrefour w Pharmacie Mazloum, 3and min dafa3et a2al 7a2 el hatta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-11",
+  "question": "el razors nafs el 7a2, Carrefour aw Pharmacie Mazloum kenet el saf2a a7san 7asab li dafa3to",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-13",
+  "question": "shu el budget li 7adet lal shopping el shahr el 2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-13",
+  "question": "afak fiha adde ba2e mn el budget el shopping",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-13",
+  "question": "shu el budget li 7adet lal shopping el shahr el 2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-18",
+  "question": "shu btaamel/btaamol/bta3mol",
+  "first": null,
+  "why": "garbled or not Lebanese (slashes)"
+ },
+ {
+  "spec": "8-18",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction)"
+ },
+ {
+  "spec": "8-20",
+  "question": "adde el budget li 7otit l shopping el month hal",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-20",
+  "question": "shu el budget li setit l masari el ghar",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-20",
+  "question": "shu el budget li setit l shopping el month hal",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "8-21",
+  "question": "masroufe 3al groceries zed aw na2as bi november 3an october, w b adde nesbe?",
+  "first": null,
+  "why": "does not ask what it should (groceries nov/oct)"
+ },
+ {
+  "spec": "8-21",
+  "question": "shu el nesbe el fare2 ben masrouf el bet hal shaher w el shaher li ablo?",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "9-2",
+  "question": "adde sarfet bi kanoun el 3alawel",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-6",
+  "question": "adde el 5 categories li 7asabit aktar masrouf men tneen shhour",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-7",
+  "question": "kam marra re7et 3a Shahid ekher 3 shhour",
+  "first": null,
+  "why": "does not ask what it should (months not weeks)"
+ },
+ {
+  "spec": "9-7",
+  "question": "Shahid ekher 3 shhour, kam marra shtarayt men 3andon",
+  "first": null,
+  "why": "does not ask what it should (months not weeks)"
+ },
+ {
+  "spec": "9-8",
+  "question": "kam dafa3et bi macdonalds el shahr el hadi",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-8",
+  "question": "adde sarfet bi McDonald's el saba3",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-13",
+  "question": "ja3 la ekher marra jebt fiya may w 2elle adde dafa3et 7a2 liter",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-14",
+  "question": "w abel hal marra?",
+  "first": "kam sarfet 3al frez bi el fetourat?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "9-15",
+  "question": "adde sarfet 3al spaghetti men awal tammouz la a7reho",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-19",
+  "question": "adde sarfet 3al groceries bi shbat",
+  "first": null,
+  "why": "does not ask what it should (in, not since)"
+ },
+ {
+  "spec": "9-19",
+  "question": "7seble adde kallefne el ma2ade men awal shbat",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "9-19",
+  "question": "shu el masrouf 3al aghrad el bet bi chbat",
+  "first": null,
+  "why": "does not ask what it should (aghrad el bet)"
+ },
+ {
+  "spec": "9-19",
+  "question": "adde sarfet 3al groceries bi shbat",
+  "first": null,
+  "why": "does not ask what it should (in, not since)"
+ },
+ {
+  "spec": "9-23",
+  "question": "2arenle masroufe hal shaher el 18 yaar wel 18 yaar el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-23",
+  "question": "adde dafa3et hal shaher 3an el 18 yaar wel adde dafa3et fi el 18 yaar el shaher li ablo",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-23",
+  "question": "fi fare2 3al masrouf hal shaher el 18 yaar 3an el 18 yaar el shaher li mara2?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "9-23",
+  "question": "compare masroufe hal shaher el 18 yaar with el 18 yaar el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "10-1",
+  "question": "farjine el top 3 taba3 el wikend 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "10-4",
+  "question": "adde dafa3et 3and Pharmacie Mazloum ekher 3 3oum",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "10-4",
+  "question": "shu tole3 majmou3 fawatire men saydaliyet mazloum el 3 a7ad el 3adide",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "10-4",
+  "question": "7seble kel li dafa3to 3and mazloum el 3 3oum el 3adide",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "10-5",
+  "question": "7seble se3er el jazar men akyes el zebbele li jebton men Hibou w O&C, aya awfar",
+  "first": null,
+  "why": "does not ask what it should (garbage bags)"
+ },
+ {
+  "spec": "10-9",
+  "question": "adde ken 7a2 el fatoura el 2aliya",
+  "first": null,
+  "why": "garbled or not Lebanese (2ali)"
+ },
+ {
+  "spec": "10-9",
+  "question": "kam ken 7a2 el shi el 2ali",
+  "first": null,
+  "why": "garbled or not Lebanese (2ali)"
+ },
+ {
+  "spec": "10-9",
+  "question": "adde dafa3et bi el wa7ad el 2ali",
+  "first": null,
+  "why": "garbled or not Lebanese (2ali)"
+ },
+ {
+  "spec": "10-10",
+  "question": "adde sarfet 3al utilities hal shaher, la 3anjad 7seble",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "10-12",
+  "question": "2arenle masrouf el groceries hal shaher ma3 el shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (groceries)"
+ },
+ {
+  "spec": "10-13",
+  "question": "bas mn a7ad lal a7ad?",
+  "first": "kam dafa3et 3al groceries hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "10-13",
+  "question": "nafs el shi bas lal a7ad",
+  "first": "farjine masroufe 7asab el categories hal shaher",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "10-14",
+  "question": "farjini el top 5 taba3 hal shaher 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "10-14",
+  "question": "baddi a3ref el khamse taba3 el akbar 7asab el masari hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "10-14",
+  "question": "show me the top 5 categories li 3am bi sir aktar shi hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (bi sir)"
+ },
+ {
+  "spec": "10-19",
+  "question": "2arenle masrouf el bet zed aw na2as hal shaher 3an li mara2 w b adde bil miye",
+  "first": null,
+  "why": "does not ask what it should (masrouf el bet)"
+ },
+ {
+  "spec": "10-21",
+  "question": "w mn ablo?",
+  "first": "shu el 7a2 li dafa3to 3a jacket hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "10-21",
+  "question": "w el shaher li ablo?",
+  "first": "kam dafa3et 3al jacket bi december?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "10-22",
+  "question": "shakle 3am edfa3 ma3ash el mwazafin, min aktar mahal dafa3etlo el sabet li 2adda",
+  "first": null,
+  "why": "garbled or not Lebanese (2adda)"
+ },
+ {
+  "spec": "10-22",
+  "question": "wen ba3za2et aktar shi el sabet li 2adda",
+  "first": null,
+  "why": "garbled or not Lebanese (2adda)"
+ },
+ {
+  "spec": "10-22",
+  "question": "aya shop elo akbar 7essa men masroufe el sabet li 2adda",
+  "first": null,
+  "why": "garbled or not Lebanese (2adda)"
+ },
+ {
+  "spec": "10-22",
+  "question": "baddi a3ref wen sarafet aktar shi el sabet li 2adda, esm el shop w el total",
+  "first": null,
+  "why": "garbled or not Lebanese (2adda)"
+ },
+ {
+  "spec": "10-23",
+  "question": "eh hek tamam",
+  "first": null,
+  "why": "does not ask what it should (not a greeting)"
+ },
+ {
+  "spec": "11-0",
+  "question": "adde b2a2ef eshtri el shahr el jay",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-0",
+  "question": "shu el total el masari bekhallif 3am el shahr el jay",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-0",
+  "question": "adde b2a2ef spend el shahr el jay",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-5",
+  "question": "adde kalsat hal summer?",
+  "first": "kam fetoura 3ande bi phone recharge hal summer?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "11-6",
+  "question": "farjine el top 3 taba3 hal shaher 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "11-7",
+  "question": "shu el salary li kenit refi2te sherye mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-7",
+  "question": "adde el bank balance li kenit refi2te sherye mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-7",
+  "question": "shu el masari li kenit refi2te sherye mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-7",
+  "question": "shu el salary li kenit refi2te sherye mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-10",
+  "question": "baddi 3adad el marraat li shetrit fiya tawouk men awal el 6 shhour",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "11-11",
+  "question": "el ma7rou2at 3al ma2ade zed aw na2as bi july 3an september",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "11-12",
+  "question": "7asse 3ande ma7all donut, adde jebt el sayf li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-14",
+  "question": "w adde fi adar?",
+  "first": "adde dafa3et 3a tissues el 7 yawm el 2ayereen?",
+  "why": "garbled or not Lebanese (2ayereen)"
+ },
+ {
+  "spec": "11-14",
+  "question": "nafs el shi bas fi adar",
+  "first": "shu el total el tissues el 7 yawm el 2ayereen?",
+  "why": "garbled or not Lebanese (2ayereen)"
+ },
+ {
+  "spec": "11-14",
+  "question": "w el total for adar?",
+  "first": "adde dafa3et 3a tissues el 7 yawm el 2ayereen?",
+  "why": "garbled or not Lebanese (2ayereen)"
+ },
+ {
+  "spec": "11-15",
+  "question": "adde dafa3et 3a jebneh men awal el sene la halla2, bas 6 shuhur",
+  "first": null,
+  "why": "does not ask what it should (contradictory periods)"
+ },
+ {
+  "spec": "11-16",
+  "question": "ma baddi arkh as se3er wala aghla, baddi moyenne 7a2 litre energy drink bel fawatire mn 6 ila 15 kanoun el tene",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-17",
+  "question": "kam marra jebt tissues ekher 3 shhour",
+  "first": null,
+  "why": "does not ask what it should (months not weeks)"
+ },
+ {
+  "spec": "11-17",
+  "question": "el wara2 ma7arem, kam marra jebt mennon ekher 3 shhour",
+  "first": null,
+  "why": "does not ask what it should (months not weeks)"
+ },
+ {
+  "spec": "11-21",
+  "question": "shu el ra2em el 2am li sarfet",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-21",
+  "question": "kam dafa3et el kaml mn awal el sene",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "11-21",
+  "question": "3tini el total el masroufe li 2am",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "11-23",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el kilo el noodles li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-3",
+  "question": "adde dafa3et 3al shop hal shaher w adde bi el shaher li mara2",
+  "first": null,
+  "why": "does not ask what it should (shop)"
+ },
+ {
+  "spec": "12-3",
+  "question": "show me my shop spending hal shaher compared to el shaher li mara2",
+  "first": null,
+  "why": "does not ask what it should (shop)"
+ },
+ {
+  "spec": "12-4",
+  "question": "adde kaak shtarayt hal nisan",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "12-7",
+  "question": "7seble masroufe 3al jibne President men awal el sene",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "12-9",
+  "question": "aya mahal sarafet fi aktar shi el 30 yom el 7ala",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-9",
+  "question": "baddi a3ref wen dafa3et aktar shi el 30 yom el 7ala w 7essa el total",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-9",
+  "question": "shu el shop li 3andak aktar masari fi el last 30 days",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "12-12",
+  "question": "w croissan?",
+  "first": "kam marra 3abbayt tuna men september?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-13",
+  "question": "wen el shop li 3andak aktar masriyete el jemaa li mar2it",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "12-15",
+  "question": "shu sert sarfe 3al aghrad el kleb hal sayf",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-19",
+  "question": "adde sarfet 3al gifts el s7a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-20",
+  "question": "adde dafa3et hal shaher 3a el 19 bi 2are2 ma3 el nafs el ayyam el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "12-23",
+  "question": "7seble kam kilo zaytoun 3abbayt hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (3abbayt)"
+ },
+ {
+  "spec": "13-1",
+  "question": "khalas, teslam 3ala el 3oml",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "13-3",
+  "question": "adde dafa3et 3a frying pan tefal hal shaher",
+  "first": null,
+  "why": "does not ask what it should (no period)"
+ },
+ {
+  "spec": "13-3",
+  "question": "shu tole3 majmou3 li dafa3to 3a poele tefal men awal el sene",
+  "first": null,
+  "why": "does not ask what it should (no period)"
+ },
+ {
+  "spec": "13-3",
+  "question": "7seble masroufe 3al me2laye tefal bi teshreen el awal",
+  "first": null,
+  "why": "does not ask what it should (no period)"
+ },
+ {
+  "spec": "13-3",
+  "question": "adde dafa3et 3a tefal frying pan hal shaher",
+  "first": null,
+  "why": "does not ask what it should (no period)"
+ },
+ {
+  "spec": "13-4",
+  "question": "kam kenet el masrouf el a7ir bi Petzone",
+  "first": null,
+  "why": "not a Lebanese word (a7ir)"
+ },
+ {
+  "spec": "13-6",
+  "question": "w soda?",
+  "first": "kam fetoura 3ande fi pistachios el 6 as7ar el adar?",
+  "why": "garbled or not Lebanese (as7ar)"
+ },
+ {
+  "spec": "13-6",
+  "question": "bas soda",
+  "first": "kam marra shtarayt pistachios hal 6 as7ar?",
+  "why": "garbled or not Lebanese (as7ar)"
+ },
+ {
+  "spec": "13-6",
+  "question": "nafs el shi bas la gazoz",
+  "first": "kam fetoura fiha pistachios mn el 6 as7ar el adar?",
+  "why": "garbled or not Lebanese (as7ar)"
+ },
+ {
+  "spec": "13-6",
+  "question": "w soda?",
+  "first": "kam marra shtarayt pistachios hal 6 as7ar?",
+  "why": "garbled or not Lebanese (as7ar)"
+ },
+ {
+  "spec": "13-10",
+  "question": "adde sarfet 3a kakao men kel el fawatir el 6 shaher el a7ir",
+  "first": null,
+  "why": "not a Lebanese word (a7ir)"
+ },
+ {
+  "spec": "13-10",
+  "question": "3tine total li dafa3to 3a cacao men kel el ma7allet li shetrit menna el 6 shaher el a7ir",
+  "first": null,
+  "why": "not a Lebanese word (a7ir)"
+ },
+ {
+  "spec": "13-12",
+  "question": "shu moyenne se3er el semsom li shtarayto fi el wikend, w shu el aghla w el as se3er",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "13-14",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction, not thanks)"
+ },
+ {
+  "spec": "13-15",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction, not thanks)"
+ },
+ {
+  "spec": "13-16",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el kilo el batikh li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "13-22",
+  "question": "taleta aday ba3za2et aa tyeb hal sene",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "13-23",
+  "question": "7seble kam lipstick 3ande bi el fawatir el 30 yom el 7al",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "14-5",
+  "question": "adde el nesbe el fare2 ben masroufe bi june w may",
+  "first": null,
+  "why": "does not ask what it should (june/may)"
+ },
+ {
+  "spec": "14-10",
+  "question": "nafs el shi bas lal shbat",
+  "first": "kam sarfet 3a EDL mn el tanayn lal 10 ayyam?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "14-13",
+  "question": "w abel hal marra?",
+  "first": "shu ekher se3er dafa3to 3a soda?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "14-13",
+  "question": "men aya mahal?",
+  "first": "kam soda shtarayt ekher marra?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "14-21",
+  "question": "wen ba3za2et aktar shi hal shaher, esm el mahal w el masra3?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "14-23",
+  "question": "7seble fare2 masrouf el bet ben july w ayyar",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "14-23",
+  "question": "el benzin kallefne aktar bi july aw ayyar",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "14-23",
+  "question": "adde dafa3et 3a akel el bisse bi july w adde bi ayyar",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "15-5",
+  "question": "el ma2ade hal shaher zed aw na2as 3an el shaher li mara2?",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "15-5",
+  "question": "adde dafa3et 3a aghrad el bet hal shaher w adde bi el shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (aghrad el bet)"
+ },
+ {
+  "spec": "15-6",
+  "question": "7seble bel miyye el fare2 ben masrouf june w may",
+  "first": null,
+  "why": "does not ask what it should (june/may)"
+ },
+ {
+  "spec": "15-11",
+  "question": "adde dafa3et bi Roadster Diner, ma 3andi fattoura 3andi",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "15-16",
+  "question": "shu se3er el dekhan li jebto ekher marra?",
+  "first": null,
+  "why": "does not ask what it should (not unclear)"
+ },
+ {
+  "spec": "15-17",
+  "question": "w el 3 shaher li ablo?",
+  "first": "adde sarfet bi O&C hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "15-17",
+  "question": "same question but for the last 3 months",
+  "first": "adde sarfet 3al groceries hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "15-20",
+  "question": "men aya mahal jebto?",
+  "first": "adde dafa3et 3al croissant el 2 shaher el adwar?",
+  "why": "garbled or not Lebanese (adwar)"
+ },
+ {
+  "spec": "15-20",
+  "question": "bi aya 2abel?",
+  "first": "kam sarfet 3al croissant mn el 2 shaher el adwar?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "15-20",
+  "question": "w men fein el ekher marra?",
+  "first": "shu el total 3al croissant hal 2 shaher?",
+  "why": "not a Lebanese word (fein)"
+ },
+ {
+  "spec": "15-21",
+  "question": "shu el masariyete 3al ma2ade hal shaher",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "15-21",
+  "question": "bde 7asef adde dafa3et 3al aghrad el bet hal shaher",
+  "first": null,
+  "why": "does not ask what it should (aghrad el bet)"
+ },
+ {
+  "spec": "16-1",
+  "question": "shu average li dafa3to 3a 3elbet internet",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "16-3",
+  "question": "2arenle masrouf el shop hal shaher wel shaher li ablo",
+  "first": null,
+  "why": "does not ask what it should (shop)"
+ },
+ {
+  "spec": "16-3",
+  "question": "el ma7rou2at hal shaher nafs el masrouf ta2riban aw fi fare2 3an el shaher li ablo",
+  "first": null,
+  "why": "not a Lebanese word (ma7rou2at)"
+ },
+ {
+  "spec": "16-7",
+  "question": "shlonak",
+  "first": null,
+  "why": "does not ask what it should (how are you, not thanks)"
+ },
+ {
+  "spec": "16-9",
+  "question": "el jawab el 7a2i ma fhemto, 7a2o abssat?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "16-16",
+  "question": "tayeb w 3al service?",
+  "first": "kam marra re7et 3a pistachios mn september?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "16-17",
+  "question": "aya 3 taba3 akhadit aktar shi mn masriyete hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "16-17",
+  "question": "farjine el 3 categories el aktar tbe3zi 3alayon hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "16-22",
+  "question": "el ma7rou2at hal shaher zed aw na2as 3an el shaher li mara2 3a nafs el tarikh",
+  "first": null,
+  "why": "not a Lebanese word (ma7rou2at)"
+ },
+ {
+  "spec": "17-1",
+  "question": "w el se3ra li ablo?",
+  "first": "adde dafa3et 3al salt ekher se3ra?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "17-1",
+  "question": "w el marra el taaniya?",
+  "first": "kam dafa3et 3al salt el marra el akhera?",
+  "why": "not a Lebanese word (akhera)"
+ },
+ {
+  "spec": "17-2",
+  "question": "adde el nesbe el 7are2 fi masrouf el bet ben september w august",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "17-2",
+  "question": "2arenle el bel miyye el 7are2 3al masrouf hal shaher 3an el shaher li ablo",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "17-3",
+  "question": "shouf fawatire w 2elle kam marra jebt 5ass bi chbat men awal teshreen el awal",
+  "first": null,
+  "why": "does not ask what it should (contradictory periods)"
+ },
+ {
+  "spec": "17-5",
+  "question": "shu sert sarfe 3al el electroniques hal jem3a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "17-18",
+  "question": "bas bghit a3ref, kam marra re7et 3a Khoury Home hal shaher?",
+  "first": null,
+  "why": "not a Lebanese word (bghit)"
+ },
+ {
+  "spec": "17-21",
+  "question": "shu fine es2alak 3an fawatire",
+  "first": null,
+  "why": "does not ask what it should (asks what it can do)"
+ },
+ {
+  "spec": "17-21",
+  "question": "shu fine but I am just bored",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "17-23",
+  "question": "w abel hal 7in?",
+  "first": "shu el 7a2 li dafa3to 3al shawarma a7ir 7in?",
+  "why": "not a Lebanese word (a7ir)"
+ },
+ {
+  "spec": "17-23",
+  "question": "w el 7in li ablo?",
+  "first": "kam dafa3et 3al shawarma ekher 7in?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "18-5",
+  "question": "w kam marra re7et 3a ghasil sayara?",
+  "first": "adde dafa3et 3a tissues shaher el li ablo?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "18-8",
+  "question": "aday tole3 aalaye el mawed el tandif hal shaher... la 3anjad 7seble el wikend",
+  "first": null,
+  "why": "does not ask what it should (contradictory periods)"
+ },
+ {
+  "spec": "18-10",
+  "question": "farjini el top 5 categories li khallitni aktar masari ekher shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "18-10",
+  "question": "aya 5 taba3 sa7abit menne aktar shi li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "18-10",
+  "question": "show me the top 5 categories li khallitni aktar masari ekher shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "18-11",
+  "question": "adde sarfet bi Bolt el a7er",
+  "first": null,
+  "why": "not a Lebanese word (a7er)"
+ },
+ {
+  "spec": "18-12",
+  "question": "w qablha?",
+  "first": "shu el se3er li dafa3to 3a toothpaste el 3ajel?",
+  "why": "not a Lebanese word (qablha)"
+ },
+ {
+  "spec": "18-12",
+  "question": "w el shaher li ablo?",
+  "first": "kam dafa3et 3a toothpaste hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "18-13",
+  "question": "aya 5 taba3 sa7abit menne aktar masari hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "18-15",
+  "question": "shu el nesbe el fare2 ben masroufe bi october w september",
+  "first": null,
+  "why": "does not ask what it should (oct/sep)"
+ },
+ {
+  "spec": "18-16",
+  "question": "shu average li dafa3to 3a 3elbet el kebbeye, b adde aghla w adde aghar",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "18-16",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el kebeyet li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "18-18",
+  "question": "3tine total li dafa3et 3a banadora men awal sayf la ahir",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-0",
+  "question": "baddi a3ref el khamse categories el aktar safra lyoum",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-0",
+  "question": "aya 5 taba3 akalo akbar 7essa el yom",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "19-2",
+  "question": "farjine el top 5 taba3 ekher 2 jem3a 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "19-3",
+  "question": "ja3 la ekher marra jebt noodles, 2elle adde dafa3et 7a2o el kilo",
+  "first": null,
+  "why": "garbled or not Lebanese (ja3 la)"
+ },
+ {
+  "spec": "19-6",
+  "question": "adde bkhlas el masari el m3e7 el 7ayef",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-7",
+  "question": "farjine el top 3 taba3 hal shaher 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "19-8",
+  "question": "3and min taraket aktar masari hal 14 yom",
+  "first": null,
+  "why": "garbled or not Lebanese (taraket)"
+ },
+ {
+  "spec": "19-9",
+  "question": "adde bkhallas shher el jay",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-10",
+  "question": "w adde kallefoune abel hal marra?",
+  "first": "kam dafa3et 3al iced coffee bi el tanayn?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-15",
+  "question": "adde dafa3et bi gifts el men el shop",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-19",
+  "question": "adde el salary li 3ayto el shahr el 2adi",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-19",
+  "question": "shu el balance el bank 3andak 2al",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-20",
+  "question": "shu el budget li 7ayt 3ale shopping el shahr?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-20",
+  "question": "am fi budget 3ale el masari el 7a2a?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-20",
+  "question": "am 2abte el budget el shopping?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "19-20",
+  "question": "shu el budget li 7ayt 3ale el shopping?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "20-3",
+  "question": "w abel hal marra?",
+  "first": "kam dafa3et 3al recharge ekher 3 3omane?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "20-4",
+  "question": "7sebleli nesbe el taghyeer fi masroufe hal shaher 3an november",
+  "first": null,
+  "why": "does not ask what it should (november)"
+ },
+ {
+  "spec": "20-5",
+  "question": "taleta adde dafa3et aal tondif hal jemaa",
+  "first": null,
+  "why": "garbled or not Lebanese (taleta)"
+ },
+ {
+  "spec": "20-9",
+  "question": "min taraket aktar masari el 2 shhour el 2ayyerin",
+  "first": null,
+  "why": "garbled or not Lebanese (taraket)"
+ },
+ {
+  "spec": "20-12",
+  "question": "el cinema ticket, men Vox aw Grand, 7asab li dafa3to fey 7a2a a2al?",
+  "first": null,
+  "why": "garbled or not Lebanese (fey)"
+ },
+ {
+  "spec": "20-13",
+  "question": "eh hek tamam",
+  "first": null,
+  "why": "does not ask what it should (not a greeting)"
+ },
+ {
+  "spec": "20-14",
+  "question": "el sticks, kam marra ken fi fawatire el sayf el 2a2ir",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "20-15",
+  "question": "shlonak? ehk? ma kent metwa23a 3al hal masrouf",
+  "first": null,
+  "why": "garbled or not Lebanese (mashup)"
+ },
+ {
+  "spec": "20-15",
+  "question": "sabeh el wared, ehk el 7ayat? wow 3am bemza7",
+  "first": null,
+  "why": "garbled or not Lebanese (mashup)"
+ },
+ {
+  "spec": "20-15",
+  "question": "khalas bala ma tfajja3ne, ehk? teslam",
+  "first": null,
+  "why": "garbled or not Lebanese (mashup)"
+ },
+ {
+  "spec": "20-15",
+  "question": "shlonak? ehk? wow ma kent metwa23a 3al hal masrouf",
+  "first": null,
+  "why": "garbled or not Lebanese (mashup)"
+ },
+ {
+  "spec": "20-19",
+  "question": "adde kallefoune?",
+  "first": "shu el total 3al internet bi March?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "20-20",
+  "question": "shu el budget li wad3to lal shopping, 3amla check aw la?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "20-22",
+  "question": "mnih?",
+  "first": "kam dafa3et 3al bag bi ekher fetoura?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "21-0",
+  "question": "shu el masare 3al ma2ade el tlete shhour el 7al",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "21-0",
+  "question": "bde 7sef adde dafa3et aal aghrad el bet bi tleteh shhour",
+  "first": null,
+  "why": "does not ask what it should (aghrad el bet)"
+ },
+ {
+  "spec": "21-5",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction, not thanks)"
+ },
+ {
+  "spec": "21-11",
+  "question": "adde dafa3et bi IQOS Boutique, ma 3andni receipt",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "21-15",
+  "question": "farjine el top 5 taba3 hal shaher 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "21-16",
+  "question": "3a ases ma ba2a fout 3a Al Rifai, kam marra rje3et re7et hal khamis",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "21-17",
+  "question": "3and min taraket aktar masari men 7 l 14 tammouz",
+  "first": null,
+  "why": "garbled or not Lebanese (taraket)"
+ },
+ {
+  "spec": "21-19",
+  "question": "adde sh3ayriye shtarayt bi chbat",
+  "first": null,
+  "why": "does not ask what it should (chbat vs no period)"
+ },
+ {
+  "spec": "21-20",
+  "question": "mnih shtarayto ekher marra?",
+  "first": "shu el total dafa3to 3al kousa hal 30 yom?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "21-21",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el parfum li shtarayto",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "21-23",
+  "question": "adde masroufe 3andak hal shaher w adde bi el ablo?",
+  "first": null,
+  "why": "garbled or not Lebanese (3andak)"
+ },
+ {
+  "spec": "21-23",
+  "question": "shu el fare2 el kbar, hal shahr aw li ata3?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "22-0",
+  "question": "bi aya store?",
+  "first": "shu el se3er el shower gel li shtarayto akher 7in?",
+  "why": "garbled or not Lebanese (7in)"
+ },
+ {
+  "spec": "22-0",
+  "question": "mnih?",
+  "first": "kam dafa3et 3al shower gel hal shaher?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "22-1",
+  "question": "2arenle masroufe 3and Maliks hal shaher wel shaher li mara2 w 3tini el nesbe",
+  "first": null,
+  "why": "does not ask what it should (Maliks)"
+ },
+ {
+  "spec": "22-1",
+  "question": "el ma7rou2at hal shaher zed aw na2as 3an el shaher li ablo bi adde bel miyye",
+  "first": null,
+  "why": "not a Lebanese word (ma7rou2at)"
+ },
+ {
+  "spec": "22-2",
+  "question": "shu kenit ra2s el masari el shahri",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "22-2",
+  "question": "shu shtarit el 7amila li 3andek",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "22-3",
+  "question": "shu el 5 taba3 el a3la bi masrouf hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "22-5",
+  "question": "adde dafa3et 3a akel el bisse bi september w adde bi shbat",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "22-5",
+  "question": "7seble fare2 masrouf el bet ben september w shbat",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "22-6",
+  "question": "shu el budget li w3adet lal shopping el shahr el 7al",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "22-6",
+  "question": "adde ba2e bi 7sebe el budget el mabni lal groceries",
+  "first": null,
+  "why": "garbled or not Lebanese (mabni)"
+ },
+ {
+  "spec": "22-6",
+  "question": "shu el budget li w3adet lal shopping el shahr el 7al",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "22-13",
+  "question": "adde ken 7a2 el wa7ad el ta2bi?",
+  "first": null,
+  "why": "garbled or not Lebanese (ta2bi)"
+ },
+ {
+  "spec": "22-13",
+  "question": "la2 mesh hayda el se3er el 3adi?",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "22-13",
+  "question": "adde dafa3et bi el fatoura el ta2bi?",
+  "first": null,
+  "why": "garbled or not Lebanese (ta2bi)"
+ },
+ {
+  "spec": "22-13",
+  "question": "adde ken el item el ta2bi?",
+  "first": null,
+  "why": "garbled or not Lebanese (ta2bi)"
+ },
+ {
+  "spec": "22-20",
+  "question": "bi shbat, el la7me jebto arkhas men Charcutier Aoun aw Happy",
+  "first": null,
+  "why": "does not ask what it should (chbat vs no period)"
+ },
+ {
+  "spec": "23-0",
+  "question": "shu btaamel/btaamol/bta3mol",
+  "first": null,
+  "why": "garbled or not Lebanese (slashes)"
+ },
+ {
+  "spec": "23-0",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction)"
+ },
+ {
+  "spec": "23-0",
+  "question": "shu btaamel/btaamol/bta3mol with my receipts",
+  "first": null,
+  "why": "garbled or not Lebanese (slashes)"
+ },
+ {
+  "spec": "23-1",
+  "question": "farjini el top 3 categories li 3am bi sir aktar shi el sayf",
+  "first": null,
+  "why": "garbled or not Lebanese (bi sir)"
+ },
+ {
+  "spec": "23-7",
+  "question": "kam fetoura 3ande tarikha mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-12",
+  "question": "shu 7a2 el 7seble li dafa3to bi Toters",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-12",
+  "question": "adde sarfet bi Toters, ma 3andni fiwara",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-14",
+  "question": "jame3le taman el khobz li dafa3et 3le men kel el fawatir men ayyar",
+  "first": null,
+  "why": "does not ask what it should (since, not in)"
+ },
+ {
+  "spec": "23-15",
+  "question": "adde kilou brownies 3abbayt mbere7",
+  "first": null,
+  "why": "garbled or not Lebanese (3abbayt)"
+ },
+ {
+  "spec": "23-16",
+  "question": "shu el total elay dafa3et 3ala gifts",
+  "first": null,
+  "why": "not a Lebanese word (elay)"
+ },
+ {
+  "spec": "23-18",
+  "question": "adde el budget el shopping li 2ayto lal shahr",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-18",
+  "question": "shu ba2e mn el budget el masari li 2ayto",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-18",
+  "question": "adde el budget li 2ayto lal shopping",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-19",
+  "question": "farjine el top 3 taba3 mn awal ayloul 7asab masroufe",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "23-20",
+  "question": "kam dollar sarle sarfe men awal el shaher",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "23-20",
+  "question": "kel li dafa3to mbere7 bel dollar, adde byetla3 el total",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "23-21",
+  "question": "shu el budget li 2ayyeto lal shopping el shahr",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-21",
+  "question": "adde ba2e bi 7sebe bel budget el ma7allet",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-22",
+  "question": "la2 mesh hek, shu baddi 3erf be2d",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-22",
+  "question": "heda ma kan ma baddo, 2a shu baddi 3erf",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "23-22",
+  "question": "la2 mesh hek, I didn't mean that, shu baddi 3erf be2d",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "24-2",
+  "question": "khalas bala ma tfajja3ne aktar",
+  "first": null,
+  "why": "does not ask what it should (reaction, not thanks)"
+ },
+ {
+  "spec": "24-5",
+  "question": "shu a7san eshtri lal ghirad bi 7sebe",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "24-5",
+  "question": "shu a7san eshtri lal ghirad bi 7sebe",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "24-8",
+  "question": "7seble masroufe 3a javel clorox men awal el sene",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "24-8",
+  "question": "shu tole3it 3laya 3a klor clorox hal shaher",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "24-12",
+  "question": "shu tole3 3laye el ma2ade bi ab",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "24-12",
+  "question": "7seble adde dafa3et 3al aghrad el bet bi ab",
+  "first": null,
+  "why": "does not ask what it should (aghrad el bet)"
+ },
+ {
+  "spec": "24-18",
+  "question": "shu el 5 taba3 el li sa7abit menne aktar shi hal shaher",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "24-20",
+  "question": "kam dollar sarle sarfe men awal el shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "24-20",
+  "question": "kel li dafa3to mbere7 bel dollar, adde byetla3 el total",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "24-20",
+  "question": "farjine majmou3 li dafa3to bel USD hal osbou3",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "24-20",
+  "question": "jame3le masroufe hal sene w 7awwel el total la USD",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "24-21",
+  "question": "w aya el shop?",
+  "first": "adde dafa3et 3al paint hal sene?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "24-21",
+  "question": "mnih?",
+  "first": "kam dafa3et 3al paint 3al ekher?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "24-23",
+  "question": "adde dafa3et hal shaher 3al 13 yom w adde dafa3et el 13 yom el 7al bi el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "24-23",
+  "question": "baddi chouf iza masroufe hal shaher 3al 13 yom zed aw na2as 3an el 13 yom el 7al bi el shaher li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-0",
+  "question": "adde sarfet 3and Maison M el 3 ayyam el khalfeen",
+  "first": null,
+  "why": "not a Lebanese word (khalfeen)"
+ },
+ {
+  "spec": "25-3",
+  "question": "bas el marra el ta3nya?",
+  "first": "adde dafa3et 3al board game ekher marra?",
+  "why": "not a Lebanese word (ta3nya)"
+ },
+ {
+  "spec": "25-3",
+  "question": "w el marra li ablo?",
+  "first": "kam dafa3et 3al board game el marra el ekhera?",
+  "why": "not a Lebanese word (ekhera)"
+ },
+ {
+  "spec": "25-4",
+  "question": "shu el budget li wade3to lal shopping el 7a2?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-4",
+  "question": "adde ba2e el budget el shopping li fi 2am?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-4",
+  "question": "shu el budget li wade3to lal shopping el 7a2?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-4",
+  "question": "shu el budget li wade3to lal shopping el 7a2?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-5",
+  "question": "adde el budget li wa2aftou 3al shopping el month hal",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-5",
+  "question": "shu el budget el 3ameli lal groceries, baddni 3amli plan",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-5",
+  "question": "ez baddni 7awel budget 3al masari el yom, adde b3afak?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-5",
+  "question": "shu el budget li setit 3al shopping, abed over?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-7",
+  "question": "3ed kam marra re7et 3a Hallab hal sene",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-7",
+  "question": "ma baddi adde dafa3et, bas kam marra re7et 3a Hallab men awal el sene",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-7",
+  "question": "saro ya3rfoune bi Hallab, kam marra re7et hal shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-11",
+  "question": "adde dafa3et 3a mcvitie's digestive biscuits hal shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-11",
+  "question": "7seble masroufe 3al mcvitie's digestive biscuits men awal el sene",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-11",
+  "question": "shu sarle def3a 3a mcvitie's digestive biscuits bi teshreen el awal",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-11",
+  "question": "adde ra7 men jaybte 3a mcvitie's digestive biscuits hal sayfiye",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-12",
+  "question": "tayeb kam toothbrush?",
+  "first": "kam marra shtarayt kaak hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "25-14",
+  "question": "bala el akel w bala shi, bde bas masrouf el na2rashe bi adar",
+  "first": null,
+  "why": "does not ask what it should (in, not since)"
+ },
+ {
+  "spec": "25-16",
+  "question": "masroufe 3al groceries hal shaher zed aw na2as 3an el shaher li mara2 3al nafs el ayyam?",
+  "first": null,
+  "why": "does not ask what it should (groceries)"
+ },
+ {
+  "spec": "25-17",
+  "question": "kam dafa3et bi Abou Jihad el 7a2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-20",
+  "question": "bas el marra ta3la?",
+  "first": "kam dafa3et 3a laban ekher shi?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "25-21",
+  "question": "adde sarfet 3al transport hal shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-21",
+  "question": "shu el masrouf el 7a2 3al na2el ekher shahr",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "25-21",
+  "question": "adde sarfet 3al transport this month",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "26-2",
+  "question": "nafs el shi hal shaher?",
+  "first": "kam dafa3et 3al soap summer 2026?",
+  "why": "does not ask what it should (year written)"
+ },
+ {
+  "spec": "26-2",
+  "question": "bas hal shaher?",
+  "first": "adde sarfet 3al soap summer 2026?",
+  "why": "does not ask what it should (year written)"
+ },
+ {
+  "spec": "26-6",
+  "question": "el total el li 7seblet el marra el ta2a, adde ken",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-6",
+  "question": "kam ken el masroof el li kallefet 3aleh el 7efte el 2adi",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-15",
+  "question": "w el shaher el madaf 3alayn?",
+  "first": "shu se3er el taxi li khadet el shaher el madaf 3alayn?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-15",
+  "question": "w el sene li ablo?",
+  "first": "kam dafa3et 3al taxi hal sene?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "26-18",
+  "question": "adde bekhlas men masari el shahr el 7ayef",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-18",
+  "question": "shu el budget li baddni 7awez lal shahr el 7ayef",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-18",
+  "question": "be2der nawfel el masari el shahr el 7ayef?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-18",
+  "question": "adde bekhlas men masari el shahr el 7ayef if I keep spending like this",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "26-19",
+  "question": "baddi a3ref kam marra shtarayt ghee men awal el 6 shhour",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "26-21",
+  "question": "mnih 3al Anghami",
+  "first": "shu el 7a2 li dafa3to 3al music subscription hal shaher?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "27-4",
+  "question": "7seble fare2 masrouf el bet ben november w 7zayran",
+  "first": null,
+  "why": "does not ask what it should (masrouf el bet)"
+ },
+ {
+  "spec": "27-5",
+  "question": "adde ken 7a2 el shay el 3a2r?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-5",
+  "question": "el 7a2 el 3a2r, ken ar2ad men el 7a2 el hali?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-5",
+  "question": "adde dafa3et 3a el shay el 3a2r?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-5",
+  "question": "adde ken 7a2 el item el 3a2r?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-6",
+  "question": "7seble masroufe 3a biscuits Oreo men awal el 2 jem3a",
+  "first": null,
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "27-9",
+  "question": "adde ra7 men jaybte 3a deodorant Rexona hal sene",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "27-9",
+  "question": "shu sarle def3a 3a mouzil 3ara2 Rexona men awal el sene",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "27-9",
+  "question": "baddi total masroufe 3a deo Rexona bi teshreen el awal",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "27-9",
+  "question": "adde dafa3et 3a deodorant Rexona hal shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "27-12",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el kilo pistachios li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-13",
+  "question": "adde el solde el bank el 7a2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-13",
+  "question": "shu el roush li 2abeto mnih el shahr",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-13",
+  "question": "fi balak adde khalas el 3ayel el 7a2a?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-13",
+  "question": "shu el balance el bank el 7a2a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-16",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el nail polish li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-17",
+  "question": "nafs el shi bas lal Sephora",
+  "first": "shu el majmou3 el sarrafat 3al sunscreen hal summer?",
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "27-18",
+  "question": "7seble adde dafa3et aal ma2ade bi hal shahr",
+  "first": null,
+  "why": "not a Lebanese word (ma2ade)"
+ },
+ {
+  "spec": "27-18",
+  "question": "shu el 7a2 el aghrad el bet hal chaher",
+  "first": null,
+  "why": "does not ask what it should (aghrad el bet)"
+ },
+ {
+  "spec": "27-21",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el energy drink li shtarayta",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-2",
+  "question": "3a ases ma ba2a fout 3a EDL, kam marra rje3et re7et el ablo",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-3",
+  "question": "7seble masroufe 3a wifi men awal ayyar la halla2",
+  "first": null,
+  "why": "does not ask what it should (since, not in)"
+ },
+ {
+  "spec": "28-4",
+  "question": "la2 mesh hek, shu baddi 3ref 3alek?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-4",
+  "question": "adde dafa3et honik? la2, shu baddi 3ref?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-5",
+  "question": "3tine total li sarafto 3a shahid men awal ayloul",
+  "first": null,
+  "why": "does not ask what it should (since, not in)"
+ },
+ {
+  "spec": "28-5",
+  "question": "7seble masroufe 3a netflix hal shaher ayloul",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-8",
+  "question": "el maamoul, adde 3am totla3 3laye bel moyenne mn el tneen shaher el a7ir",
+  "first": null,
+  "why": "not a Lebanese word (a7ir)"
+ },
+ {
+  "spec": "28-8",
+  "question": "ma baddi arkh as se3er wala aghla se3er, baddi moyenne se3er el maamoul li shtarayto bel tneen shaher",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-8",
+  "question": "shu average li dafa3to 3a 3elbet maamoul mn el tneen shaher el a7ir",
+  "first": null,
+  "why": "not a Lebanese word (a7ir)"
+ },
+ {
+  "spec": "28-9",
+  "question": "fik t2elle adde sarfet el 5 iyem hal 2a kanoun el tene",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-10",
+  "question": "el masrouf zed aw na2as bi 7el bel miyye hal shaher?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-13",
+  "question": "shu fik tse3edne with this receipt?",
+  "first": null,
+  "why": "does not ask what it should (asks for help)"
+ },
+ {
+  "spec": "28-14",
+  "question": "shu el percent el fare2 fi masroufe hal shaher men el shaher el 2ayyef",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-16",
+  "question": "shu fine you?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-17",
+  "question": "adde dafa3et 3a pen Pilot ekher 3 shu3or",
+  "first": null,
+  "why": "garbled or not Lebanese (shu3or)"
+ },
+ {
+  "spec": "28-17",
+  "question": "7seble masroufe 3a stylo Pilot hal 3 shu3or",
+  "first": null,
+  "why": "garbled or not Lebanese (shu3or)"
+ },
+ {
+  "spec": "28-17",
+  "question": "adde sarfet 3a pen Pilot hal 3 shu3or",
+  "first": null,
+  "why": "garbled or not Lebanese (shu3or)"
+ },
+ {
+  "spec": "28-19",
+  "question": "adde ken el salary el mdir mbare7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-19",
+  "question": "shu ken el balance el bank el wald",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-19",
+  "question": "adde salfat el 3osina bel mall",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-19",
+  "question": "adde ken el salary el boss mbare7",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "28-20",
+  "question": "aya categories sa7abit menne aktar masari ekher 3 shu2af",
+  "first": null,
+  "why": "garbled or not Lebanese (shu2af)"
+ },
+ {
+  "spec": "28-20",
+  "question": "wen ken aktar tbe3zi2 ekher 3 shu2af",
+  "first": null,
+  "why": "garbled or not Lebanese (shu2af)"
+ },
+ {
+  "spec": "28-20",
+  "question": "shou aktar no3 masrouf akal el ma3ash ekher 3 shu2af",
+  "first": null,
+  "why": "garbled or not Lebanese (shu2af)"
+ },
+ {
+  "spec": "28-20",
+  "question": "farjini el top 3 categories 7asab masrouf ekher 3 shu2af",
+  "first": null,
+  "why": "garbled or not Lebanese (shu2af)"
+ },
+ {
+  "spec": "28-21",
+  "question": "adde dafa3et 3a deodorant Nivea bi 7zayran",
+  "first": null,
+  "why": "does not ask what it should (in, not since)"
+ },
+ {
+  "spec": "28-21",
+  "question": "shu sarle def3a 3a deo Nivea bi 7zayran",
+  "first": null,
+  "why": "does not ask what it should (in, not since)"
+ },
+ {
+  "spec": "28-23",
+  "question": "adde dafa3et aal dining hal shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "28-23",
+  "question": "7seble adde kallefne el resto ekher jem3ten",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "28-23",
+  "question": "aday tole3 3laye el akel barra hal jem3a",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "28-23",
+  "question": "adde sarfet 3al dining bi teshreen",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "29-4",
+  "question": "shu a7san masraf fine waffer lal jem3a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "29-4",
+  "question": "shu a7san masraf fine waffer lal jem3a",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "29-8",
+  "question": "shu el budget li 2ayyit lal shopping el shahr el 7ayir?",
+  "first": null,
+  "why": "garbled or not Lebanese (7ayir)"
+ },
+ {
+  "spec": "29-8",
+  "question": "adde ba2i fi el budget el masari mn el receipt el 7ayir?",
+  "first": null,
+  "why": "garbled or not Lebanese (7ayir)"
+ },
+ {
+  "spec": "29-8",
+  "question": "shu el budget li 2ayyit lal shopping, over budget?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "29-10",
+  "question": "mn aya mahal jebto?",
+  "first": "adde dafa3et 7a2 brownies ekher marra?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "29-10",
+  "question": "w adde kallefoune?",
+  "first": "kam marra shtarayt brownies hal shaher?",
+  "why": "does not ask what it should"
+ },
+ {
+  "spec": "29-13",
+  "question": "w el mahal? mnih?",
+  "first": "kam fetoura 3ande 3al limoun bi ab?",
+  "why": "garbled or not Lebanese (mnih)"
+ },
+ {
+  "spec": "29-15",
+  "question": "3and min taraket aktar masari men el 7 la el 18 ayloul",
+  "first": null,
+  "why": "garbled or not Lebanese (taraket)"
+ },
+ {
+  "spec": "29-20",
+  "question": "w mn qabl?",
+  "first": "shu el se3er dafa3to 3al music subscription ekher marra?",
+  "why": "not a Lebanese word (qabl)"
+ },
+ {
+  "spec": "29-23",
+  "question": "aya 2 taba3 sa7abit menne aktar shi el tleeta",
+  "first": null,
+  "why": "garbled or not Lebanese (taba3)"
+ },
+ {
+  "spec": "30-3",
+  "question": "shu adde el marra li mara2et 3a O&C osbou3 li mara2",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "30-10",
+  "question": "masroufe 3al el shop zed hal shaher aw el shaher li ablo?",
+  "first": null,
+  "why": "does not ask what it should (shop)"
+ },
+ {
+  "spec": "30-10",
+  "question": "show me if I spent more this month or last month on my shop receipts",
+  "first": null,
+  "why": "does not ask what it should (shop)"
+ },
+ {
+  "spec": "30-12",
+  "question": "adde sarfet aal beauty hal shaher",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "30-12",
+  "question": "7seble adde kallefne el tajmil ekher 3 shhour",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "30-12",
+  "question": "ma t2elle adde dafa3et aal tejmil hal sene",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "30-12",
+  "question": "bde 3erf adde sarfet aal beauty products hal jem3a",
+  "first": null,
+  "why": "does not ask what it should (period, asked no period)"
+ },
+ {
+  "spec": "30-15",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet el ba2dounes",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "30-19",
+  "question": "kellafit el budget el food wala 2abet?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "30-19",
+  "question": "b adde el budget el shopping li 2abito?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "30-19",
+  "question": "shu el budget li 2abito lal shopping?",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ },
+ {
+  "spec": "30-21",
+  "question": "khalas, teslam 3al es2ada",
+  "first": null,
+  "why": "garbled or not Lebanese"
+ }
+]
