@@ -176,3 +176,18 @@ def test_the_test_set_refuses_a_day_that_is_not_user_31s_today(settings):
         evaluation = build_evaluation(settings, ExpectedAnswersModel(TEST_QUESTIONS), TODAY, Path(storage))
         with pytest.raises(ValueError, match="2028-01-12"):
             run.evaluate(evaluation, TEST_QUESTIONS, TODAY, user=31)
+
+
+def test_between_the_5th_and_the_12th_accepts_a_clarifying_question_or_5_to_12_january(settings):  # 2026-11-08
+    question = next(q for q in TEST_QUESTIONS if q.question == "7seble masroufe ben el 5 wel 12")
+    january = ("SELECT currency, SUM(total) AS total_spent, SUM(total_usd) AS total_spent_usd FROM receipts "
+               "WHERE receipt_date >= '2028-01-05' AND receipt_date <= '2028-01-12' GROUP BY currency")
+
+    class Answering(ExpectedAnswersModel):
+        def write_sql(self, prompt: str) -> str:
+            return january if question_in(prompt) == question.question else super().write_sql(prompt)
+
+    with tempfile.TemporaryDirectory() as storage:
+        evaluation = build_evaluation(settings, Answering([question]), TEST_TODAY, Path(storage))
+        [report] = run.evaluate(evaluation, [question], TEST_TODAY, user=31)
+    assert report.outcome.result is not None and report.score.correct

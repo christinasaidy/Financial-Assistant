@@ -1874,6 +1874,9 @@
    "accept": [
     {
      "reply": "CLARIFY"
+    },
+    {
+     "sql": "SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= '2028-01-05' AND receipt_date < '2028-01-13' GROUP BY currency"
     }
    ]
   },
