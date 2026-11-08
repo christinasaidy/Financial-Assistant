@@ -22,6 +22,7 @@ from research.dataset.checks import (
     problems,
     read_versions,
 )
+from research.dataset.replies import GREETINGS, THANKS
 from research.dataset.generator_prompt import (
     LANGUAGES,
     build_generator_prompt,
@@ -346,3 +347,34 @@ def test_calls_run_in_parallel_and_give_the_same_dataset_as_one_at_a_time(settin
     assert one == eight and one  # the same examples, in the same order
     assert (most_one, most_eight) == (1, 8)
     assert summary.drops["the writer failed"] == 1 and drops_one == drops_eight  # logged; the run went on
+
+
+USERS_LINES = ("ma edert le2e fatoura 3an ", "ma la2ayt fatoura bi ", "7a2 shu? fik taati tafasil aktar", "azdak ",
+               "shu baddak ta3ref bel zabt?", "sabah el nour", "fie jewbak 3an masroufak", "hahaha, fie se3dak")
+
+
+def test_arabizi_clarify_and_reply_examples_get_the_users_own_lines(settings):  # written by the user 2026-11-08
+    out, raw = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    build_module.build(StandInWriter(), [2], out, raw, specs_per_user=24)
+    examples = [json.loads(line) for line in (out / "train.jsonl").read_text(encoding="utf-8").splitlines()]
+    talk = [e for e in examples if e["labels"]["kind"] in ("clarify", "reply")]
+    assert talk, "user 2's 24 things to ask include a CLARIFY or REPLY"
+    for example in talk:
+        said = example["messages"][1]["content"]
+        if example["labels"]["language"] == "english":
+            assert "ma edert" not in said and "fie " not in said  # Qwen's (here the stand-in's) English reply
+        else:
+            line = said.split(": ", 1)[1]
+            assert line.startswith(USERS_LINES) or line in GREETINGS + THANKS, line
+
+
+def test_a_replay_rebuilds_the_same_dataset_from_the_saved_replies_without_calling(settings, capsys):
+    out, raw = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    build_module.build(StandInWriter(), [3], out, raw, specs_per_user=12)
+    first = (out / "train.jsonl").read_text(encoding="utf-8")
+    replay = build_module.ReplayWriter(raw / "generator_replies.jsonl")
+    again, raw_again = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp())
+    build_module.build(replay, [3], again, raw_again, specs_per_user=12)
+    assert (again / "train.jsonl").read_text(encoding="utf-8") == first and first
+    with pytest.raises(KeyError):
+        replay.write(Spec("T1", "sql", "", "SELECT 1"), "a prompt that was never sent", seed=1)

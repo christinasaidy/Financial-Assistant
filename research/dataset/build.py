@@ -34,6 +34,7 @@ from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from research.dataset.catalogue import load_catalogue
 from research.dataset.checks import UnreadableReply, problems, read_versions
 from research.dataset.generator_prompt import build_generator_prompt, load_seeds
+from research.dataset.replies import users_reply
 from research.dataset.templates import Spec, UserData, make_specs
 from research.dataset.users import USER_COUNT, make_user, remove_user, seed_user
 from research.dataset.wiring import QuestionWriter, QwenWriter, StandInWriter
@@ -116,7 +117,9 @@ def build(writer: QuestionWriter, users: Sequence[int], out_dir: Path, raw_dir: 
                     except UnreadableReply as exc:
                         drop(job.spec, job.spec_id, f"unreadable reply: {exc}")
                         continue
-                    for version in versions:
+                    for index, version in enumerate(versions):
+                        rng = random.Random(f"fyp-dataset/replies/{job.spec_id}/{index}")
+                        version = users_reply(version, job.spec, catalogue, rng)  # noqa: PLW2901
                         found = problems(version, job.spec, catalogue, test_questions)
                         for reason in found:
                             drop(job.spec, job.spec_id, reason, version.question)
@@ -233,6 +236,23 @@ def test_questions(extra: Path | None) -> tuple[str, ...]:
     return tuple(found)
 
 
+class ReplayWriter:
+    """The replies a real run saved (raw/generator_replies.jsonl), looked up by the prompt that was sent: the dataset
+    can be rebuilt after a change to the checks or the replies without calling the model again (2026-11-08)."""
+
+    name = "replay"
+
+    def __init__(self, path: Path) -> None:
+        self._replies = {}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            entry = json.loads(line)
+            if entry["reply"] is not None:
+                self._replies[entry["prompt"]] = entry["reply"]
+
+    def write(self, spec: Spec, prompt: str, seed: int) -> str:
+        return self._replies[prompt]
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build the fine-tuning dataset.")
     parser.add_argument("--model", default="stand-in", help='"stand-in" (default, free) or the model to call')
@@ -243,10 +263,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--test-questions", type=Path, help="more test questions to keep near-duplicates of out (the test set always is)")
     parser.add_argument("--workers", type=int, default=WORKERS, help="writer calls at once (default 8)")
     parser.add_argument("--yes", action="store_true", help="confirm the calls to a real model")
+    parser.add_argument("--replay", action="store_true", help="rebuild from the saved replies of the last real run "
+                        "(no calls)")  # fmt: skip
     args = parser.parse_args(argv)
 
     users = range(1, args.users + 1)
-    if args.model == "stand-in":
+    if args.replay:
+        writer, out_dir, raw_dir = ReplayWriter(RAW_DIR / "generator_replies.jsonl"), DATA_DIR, RAW_DIR
+    elif args.model == "stand-in":
         writer, out_dir, raw_dir = StandInWriter(), RAW_DIR / "stand-in", RAW_DIR / "stand-in"
     else:
         settings = load_settings()
