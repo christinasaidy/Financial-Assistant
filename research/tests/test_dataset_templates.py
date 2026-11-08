@@ -316,7 +316,8 @@ def test_clarify_asks_about_what_the_user_does_not_have():
     for data, specs in all_specs():
         for spec in specs:
             if spec.template == "C1":
-                assert spec.labels["item"] not in data.items and spec.labels["suggestion"] in data.items
+                assert spec.labels["item"] not in data.items
+                assert spec.labels["suggestion"] is None or spec.labels["suggestion"] in data.items
             if spec.template == "C2":
                 assert spec.labels["shop"] not in data.shops
 

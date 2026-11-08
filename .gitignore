@@ -15,3 +15,6 @@ backend/sample_receipts/
 
 # Evaluation runs (copy what the report needs; the runs themselves are not committed).
 research/evaluation/results/
+
+# Dataset generator output and stand-in runs (the final train/validation files in research/dataset/data/ are committed).
+research/dataset/raw/

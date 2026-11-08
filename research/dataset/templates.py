@@ -567,20 +567,26 @@ FOLLOW_UPS = {"F1": f1_period, "F2": f2_shop, "F3": f3_item, "F4": f4_narrow_to_
 
 
 def _closest(data: UserData, item: Item) -> str | None:
-    same = [n for n in data.items if data.catalogue.item(n).group == item.group and item.group]
-    same = same or [n for n in data.items if data.catalogue.item(n).category == item.category]
-    return min(same) if same else None
+    """The user's item closest to the one asked about: one sharing a word ("oil" -> "olive oil", "sparkling water"
+    -> "water"), else one of the same kind of product, else none."""
+    words = set(item.name.split())
+    sharing = sorted((-len(words & set(name.split())), name) for name in data.items if words & set(name.split()))
+    if sharing:
+        return sharing[0][1]
+    same_group = sorted(n for n in data.items if item.group and data.catalogue.item(n).group == item.group)
+    return same_group[0] if same_group else None
 
 
 def c1_unknown_item(data: UserData, rng: random.Random) -> Spec | None:
-    missing = [item for item in data.catalogue.items if item.name not in data.items and _closest(data, item)]
+    missing = [item for item in data.catalogue.items if item.name not in data.items]
     if not missing:
         return None
     item = rng.choice(missing)
     suggestion = _closest(data, item)
+    ask = f" and ask whether they mean {suggestion}." if suggestion else " and ask which item they mean."
     return Spec("C1", "clarify", f"How much the user spent on {item.name}, which they have never bought.", None,
-                (item_words(item),), f"Say they have no {item.name} on their receipts and ask whether they mean "
-                f"{suggestion}.", labels={"item": item.name, "suggestion": suggestion})  # fmt: skip
+                (item_words(item),), f"Say they have no {item.name} on their receipts{ask}",
+                labels={"item": item.name, "suggestion": suggestion})  # fmt: skip
 
 
 def c2_unknown_shop(data: UserData, rng: random.Random) -> Spec | None:
