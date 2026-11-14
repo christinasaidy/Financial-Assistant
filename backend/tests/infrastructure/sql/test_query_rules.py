@@ -247,3 +247,12 @@ def test_last_years_month_is_refused_when_this_years_has_come():
     with pytest.raises(QueryRejected, match=r"A month named without a year is the most recent one: October is "
                                             r"receipt_date >= '2026-10-01' AND receipt_date < '2026-11-01'"):  # fmt: skip
         dates_checked(OCTOBER_2025, "How much did I spend in October?")
+
+
+def test_last_years_month_is_refused_in_that_same_month_this_year():
+    with pytest.raises(QueryRejected, match=r"November is receipt_date >= '2026-11-01' AND receipt_date < '2026-12-01'"):
+        dates_checked("receipt_date >= '2025-11-01' AND receipt_date < '2025-12-01'", "How much did I spend in November?")
+
+
+def test_a_range_of_months_is_left_alone():  # only a single named month is checked
+    dates_checked("receipt_date >= '2025-03-01' AND receipt_date < '2025-06-01'", "adde sraft men adar la ayyar")
