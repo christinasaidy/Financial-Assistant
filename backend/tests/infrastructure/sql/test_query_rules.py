@@ -295,3 +295,15 @@ NAMES_TOO = UserNames(items=["laban", "bread", "coffee"], vendors=["Spinneys", "
 )  # fmt: skip
 def test_what_the_query_looked_at(sql, understood):
     assert rules.describe(rules.prepare(guard.check(sql), NAMES_TOO, TODAY)) == understood
+
+
+def test_a_condition_it_cannot_read_leaves_no_line_rather_than_a_partial_one():
+    sql = "SELECT SUM(quantity) AS bought FROM purchases WHERE item_name = 'laban' AND quantity > 2"
+    assert rules.describe(rules.prepare(guard.check(sql), NAMES_TOO, TODAY)) is None
+
+
+def test_this_week_runs_monday_to_sunday():
+    sql = ("SELECT currency, SUM(total) AS total_spent FROM receipts WHERE receipt_date >= date_trunc('week', CURRENT_DATE) "
+           "AND receipt_date < date_trunc('week', CURRENT_DATE) + INTERVAL '1 week' GROUP BY currency")  # fmt: skip
+    assert rules.describe(rules.prepare(guard.check(sql), NAMES_TOO, TODAY)) == (
+        "Looked at: all your spending, 2–8 November 2026")
