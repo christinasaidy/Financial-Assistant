@@ -34,6 +34,7 @@ class MessageView:
     details: AnswerDetails | None
     source_receipts: list[SourceReceipt]
     rating: Rating | None
+    understood: str | None = None  # what the query looked at, worked out from its SQL (answers only)
 
 
 @dataclass(frozen=True)

@@ -31,6 +31,10 @@ class QueryRules(Protocol):
         """When the comparison's result misses a named shop and the item has a size kind at every one of them that
         the SQL left out: how to compare by it. Otherwise None."""
 
+    def describe(self, sql: str) -> str | None:
+        """What a query that ran looked at, for the line under its answer ("Looked at: laban at Spinneys, 1–31
+        October 2026"), read from its conditions. None when any of them cannot be read, rather than a guess."""
+
     def sources_query(self, sql: str) -> str | None:
         """A query for the receipt_ids the result is based on, or None when it cannot be worked out reliably
         (a UNION, a WITH, or a subquery in FROM)."""

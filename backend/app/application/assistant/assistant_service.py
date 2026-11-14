@@ -344,11 +344,17 @@ class AssistantService:
             else:
                 work.feedback.set(message_id, rating)
 
-    @staticmethod
-    def _view(work: UnitOfWork, message: Message, still_there: set[int] | None = None) -> MessageView:
-        receipt_ids = message.details.receipt_ids if message.details else ()
+    def _view(self, work: UnitOfWork, message: Message, still_there: set[int] | None = None) -> MessageView:
+        details = message.details
+        receipt_ids = details.receipt_ids if details else ()
         if still_there is None:
             still_there = work.receipts.existing_ids(list(receipt_ids))
+        understood = None
+        if details is not None and details.kind is AnswerKind.ANSWER and details.sql:
+            try:
+                understood = self._rules.describe(details.sql)
+            except QueryRejected:  # saved SQL that no longer parses: no line rather than an error
+                understood = None
         return MessageView(
             id=message.id,
             role=message.role,
@@ -357,4 +363,5 @@ class AssistantService:
             details=message.details,
             source_receipts=[SourceReceipt(receipt_id, receipt_id in still_there) for receipt_id in receipt_ids],
             rating=message.rating,
+            understood=understood,
         )

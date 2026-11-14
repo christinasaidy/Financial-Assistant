@@ -46,6 +46,7 @@ class MessageOut(BaseModel):
     sql: str | None  # the query that ran, for "show query"
     source_receipts: list[SourceReceiptOut]
     rating: str | None  # "up", "down" or none
+    understood: str | None = None  # answers: what the query looked at, from its SQL ("Looked at: ...")
     # Only when the answer is shown as a table (no sentence passed the number check): the result, as text.
     columns: list[str] | None = None
     rows: list[list[str | None]] | None = None
@@ -62,6 +63,7 @@ class MessageOut(BaseModel):
             sql=details.sql if details else None,
             source_receipts=[SourceReceiptOut(**vars(source)) for source in message.source_receipts],
             rating=message.rating.value if message.rating else None,
+            understood=message.understood,
             columns=list(details.columns) if details and details.columns is not None else None,
             rows=[list(row) for row in details.rows] if details and details.rows is not None else None,
         )

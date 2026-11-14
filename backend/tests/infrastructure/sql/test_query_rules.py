@@ -256,3 +256,42 @@ def test_last_years_month_is_refused_in_that_same_month_this_year():
 
 def test_a_range_of_months_is_left_alone():  # only a single named month is checked
     dates_checked("receipt_date >= '2025-03-01' AND receipt_date < '2025-06-01'", "adde sraft men adar la ayyar")
+
+
+# --- What the query looked at, shown under the answer (approved 2026-11-14). Today is Tuesday 3 November 2026. ---
+
+THIS_MONTH_SQL = ("receipt_date >= date_trunc('month', CURRENT_DATE) "
+                  "AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'")  # fmt: skip
+LAST_MONTH_SQL = ("receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' "
+                  "AND receipt_date < date_trunc('month', CURRENT_DATE)")  # fmt: skip
+NAMES_TOO = UserNames(items=["laban", "bread", "coffee"], vendors=["Spinneys", "Carrefour"],
+                      categories=["Groceries", "Dining"])  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("sql", "understood"),
+    [
+        (f"SELECT currency, SUM(total) AS total_spent FROM receipts WHERE {THIS_MONTH_SQL} GROUP BY currency",
+         "Looked at: all your spending, 1–30 November 2026"),
+        ("SELECT currency, SUM(amount) AS total_spent FROM category_spending "
+         f"WHERE category = 'Groceries' AND {LAST_MONTH_SQL} GROUP BY currency",
+         "Looked at: category Groceries, 1–31 October 2026"),
+        ("SELECT vendor, currency, COUNT(*) AS purchase_count, "
+         "ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price "
+         "FROM purchases WHERE item_name = 'laban' AND vendor IN ('Spinneys', 'Carrefour') "
+         "AND size_unit IN ('g', 'ml') GROUP BY vendor, currency, size_unit",
+         "Looked at: laban at Spinneys and Carrefour, per 100 g or ml, all dates"),
+        ("SELECT currency, SUM(line_total) AS total_spent FROM purchases "
+         "WHERE item_name = 'bread' AND receipt_date = CURRENT_DATE - 1 GROUP BY currency",
+         "Looked at: bread, 2 November 2026"),
+        ("SELECT currency, SUM(line_total) AS total_spent FROM purchases "
+         "WHERE item_name = 'coffee' AND brand = 'brazilian' GROUP BY currency",
+         "Looked at: coffee (brand brazilian), all dates"),
+        ("SELECT currency, SUM(total) AS total_spent FROM receipts "
+         "WHERE receipt_date > CURRENT_DATE - 7 AND receipt_date <= CURRENT_DATE GROUP BY currency",
+         "Looked at: all your spending, 28 October – 3 November 2026"),
+        ("WITH spent AS (SELECT SUM(total) AS total FROM receipts) SELECT total FROM spent", None),
+    ],
+)  # fmt: skip
+def test_what_the_query_looked_at(sql, understood):
+    assert rules.describe(rules.prepare(guard.check(sql), NAMES_TOO, TODAY)) == understood

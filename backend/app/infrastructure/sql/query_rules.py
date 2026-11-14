@@ -67,6 +67,16 @@ _SIZE_HINTS = {
 }  # fmt: skip
 
 
+# What the line under an answer says (approved 2026-11-14): only what the query filtered, never a guess.
+_VIEWS = frozenset({"receipts", "purchases", "category_spending"})
+_NAMED = ("item_name", "brand", "vendor", "category")
+_SIZE_LABELS = {
+    frozenset({"g/ml"}): "per 100 g or ml", frozenset({"pcs"}): "per piece",
+    frozenset({"none"}): "items without a size", frozenset({"g/ml", "pcs"}): "items with a size",
+}  # fmt: skip
+_TRUNCATED = {"WEEK", "MONTH", "YEAR"}
+
+
 @dataclass(frozen=True)
 class _Comparison:
     item: str
@@ -129,6 +139,45 @@ class SqlGlotQueryRules:
                 has, how = _SIZE_HINTS[kind]
                 return f"{comparison.item} {has} at {_all_of(comparison.vendors)}: {how}"
         return None
+
+    def describe(self, sql: str) -> str | None:
+        tree = _parse(sql)
+        if not isinstance(tree, exp.Select) or tree.args.get("with_") or tree.args.get("with") or tree.args.get("joins"):
+            return None
+        source = tree.args.get("from_") or tree.args.get("from")
+        if source is None or not isinstance(source.this, exp.Table) or source.this.name not in _VIEWS:
+            return None
+        where = tree.args.get("where")
+        conditions = [] if where is None else (
+            list(where.this.flatten()) if isinstance(where.this, exp.And) else [where.this])  # fmt: skip
+        found: dict[str, list[str]] = {"item_name": [], "brand": [], "vendor": [], "category": []}
+        sizes, start, end = None, None, None
+        for condition in conditions:
+            if condition.find(exp.Select) is not None:
+                return None
+            names = _names(condition)
+            if names is not None:
+                found[names[0]] += names[1]
+            elif _is_tax_left_out(condition):
+                continue
+            elif {column.name for column in condition.find_all(exp.Column)} <= _SIZE_COLUMNS and condition.find(exp.Column):
+                sizes = _SIZE_LABELS.get(frozenset(_size_kinds(condition)))
+                if sizes is None:
+                    return None
+            else:
+                bound = _date_bound(condition)
+                if bound is None:
+                    return None
+                start = max(filter(None, (start, bound[0])), default=None)
+                end = min(filter(None, (end, bound[1])), default=None)
+        what = _and(found["item_name"]) or (
+            f"categor{'y' if len(found['category']) == 1 else 'ies'} {_and(found['category'])}" if found["category"]
+            else "all your spending")  # fmt: skip
+        if found["brand"]:
+            what += f" (brand {_and(found['brand'])})"
+        if found["vendor"]:
+            what += f" at {_and(found['vendor'])}"
+        return "Looked at: " + ", ".join(part for part in (what, sizes, _days(start, end)) if part)
 
     def sources_query(self, sql: str) -> str | None:
         tree = _parse(sql)
@@ -294,6 +343,103 @@ def _is_column(node: exp.Expression, name: str) -> bool:
 
 def _is_text(node: exp.Expression) -> bool:
     return isinstance(node, exp.Literal) and node.is_string
+
+
+def _names(condition: exp.Expression) -> tuple[str, list[str]] | None:
+    """(column, names) for `item_name = 'laban'` or `vendor IN ('Spinneys', 'Carrefour')`, otherwise None."""
+    if isinstance(condition, exp.EQ) and isinstance(condition.this, exp.Column) and _is_text(condition.expression):
+        values = [condition.expression]
+    elif isinstance(condition, exp.In) and isinstance(condition.this, exp.Column) and condition.expressions:
+        values = condition.expressions
+    else:
+        return None
+    if condition.this.name not in _NAMED or not all(_is_text(value) for value in values):
+        return None
+    return condition.this.name, [value.this for value in values]
+
+
+def _is_tax_left_out(condition: exp.Expression) -> bool:  # the top categories leave this one out; nothing to say
+    return (isinstance(condition, exp.NEQ) and _is_column(condition.this, "category")
+            and _is_text(condition.expression) and condition.expression.this == "Tax, discounts & rounding")  # fmt: skip
+
+
+def _date_bound(condition: exp.Expression) -> tuple[date | None, date | None] | None:
+    """The first and last day (both included) a comparison of receipt_date with a readable date allows."""
+    if not isinstance(condition, (exp.EQ, exp.GTE, exp.GT, exp.LT, exp.LTE)) or not _is_receipt_date(condition.this):
+        return None
+    day = _day(condition.expression)
+    if day is None:
+        return None
+    one = timedelta(days=1)
+    return {exp.EQ: (day, day), exp.GTE: (day, None), exp.GT: (day + one, None), exp.LT: (None, day - one),
+            exp.LTE: (None, day)}[type(condition)]  # fmt: skip
+
+
+def _day(node: exp.Expression) -> date | None:
+    """The date of a date expression the rules leave in saved SQL: a date, CAST, DATE_TRUNC, plus or minus days or
+    an INTERVAL. None for anything else."""
+    if isinstance(node, exp.Paren):
+        return _day(node.this)
+    if isinstance(node, exp.Cast) or (isinstance(node, exp.Literal) and node.is_string):
+        return _date_of(node, date.min)
+    if isinstance(node, (exp.TimestampTrunc, exp.DateTrunc)):
+        day, unit = _day(node.this), str(node.args.get("unit") or "").upper().strip("'")
+        if day is None or unit not in _TRUNCATED:
+            return None
+        if unit == "WEEK":
+            return day - timedelta(days=day.weekday())
+        return day.replace(day=1) if unit == "MONTH" else day.replace(month=1, day=1)
+    if isinstance(node, (exp.Add, exp.Sub)):
+        day, sign = _day(node.this), 1 if isinstance(node, exp.Add) else -1
+        step = node.expression
+        if day is None:
+            return None
+        if isinstance(step, exp.Literal) and not step.is_string and str(step.this).isdigit():
+            return day + sign * timedelta(days=int(step.this))
+        if isinstance(step, exp.Interval):
+            return _plus(day, sign, step)
+    return None
+
+
+def _plus(day: date, sign: int, interval: exp.Interval) -> date | None:
+    words = f"{interval.this.this if isinstance(interval.this, exp.Literal) else ''} {interval.args.get('unit') or ''}"
+    parts = words.lower().split()
+    if len(parts) != 2 or not parts[0].isdigit():
+        return None
+    count, unit = int(parts[0]) * sign, parts[1].rstrip("s")
+    if unit == "day":
+        return day + timedelta(days=count)
+    if unit == "week":
+        return day + timedelta(weeks=count)
+    if unit in ("month", "year"):
+        months = day.year * 12 + day.month - 1 + (count if unit == "month" else 12 * count)
+        year, month = divmod(months, 12)
+        last = (_next_month(date(year, month + 1, 1)) - timedelta(days=1)).day
+        return date(year, month + 1, min(day.day, last))
+    return None
+
+
+def _days(start: date | None, end: date | None) -> str:
+    def day(d: date) -> str:
+        return f"{d.day} {_MONTHS[d.month - 1]} {d.year}"
+
+    if start is None and end is None:
+        return "all dates"
+    if start is None:
+        return f"until {day(end)}"
+    if end is None:
+        return f"from {day(start)}"
+    if start == end:
+        return day(start)
+    if (start.year, start.month) == (end.year, end.month):
+        return f"{start.day}–{day(end)}"
+    if start.year == end.year:
+        return f"{start.day} {_MONTHS[start.month - 1]} – {day(end)}"
+    return f"{day(start)} – {day(end)}"
+
+
+def _and(names: Sequence[str]) -> str:
+    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} and {names[-1]}" if names else ""
 
 
 def _all_of(vendors: Sequence[str]) -> str:

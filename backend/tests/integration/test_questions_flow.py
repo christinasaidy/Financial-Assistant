@@ -200,6 +200,21 @@ def test_e1_groceries_this_month(client, model, alice):
     assert "Row: USD | 8.00 | 8.00" in model.answer_prompts[0]
 
 
+def test_an_answer_says_what_its_query_looked_at_and_a_clarifying_question_does_not(client, model, alice):
+    headers, _, _ = alice  # approved 2026-11-14
+    model.sql_replies = [E1_SQL, "CLARIFY: The last what? A receipt, or a particular item?"]
+    model.answer_replies = [E1_ANSWER]
+
+    answer = ask(client, headers, "How much did I spend on groceries this month?")
+    clarify = ask(client, headers, "How much was the last one?", answer["conversation_id"])
+
+    assert answer["understood"] == "Looked at: category Groceries, 1–30 November 2026"
+    assert clarify["understood"] is None
+    reopened = client.get(f"/assistant/conversations/{answer['conversation_id']}", headers=headers).json()
+    assert [m["understood"] for m in reopened["messages"]] == [
+        None, "Looked at: category Groceries, 1–30 November 2026", None, None]
+
+
 def test_e2_and_last_month_uses_the_earlier_question_and_sql_never_its_numbers(client, model, alice):
     headers, _, r = alice
     model.sql_replies, model.answer_replies = [E1_SQL, E2_SQL], [E1_ANSWER, E2_ANSWER]
