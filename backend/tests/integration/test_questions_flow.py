@@ -278,6 +278,65 @@ def test_e6_vendor_comparison_without_sizes(client, model, alice):
     assert "Row: Spinneys | LBP | 1 | 200000.00 | 2026-10-25 | 0" in model.answer_prompts[0]
 
 
+def compare(item: str, size: str, where: str = "") -> str:
+    return ("SELECT vendor, currency, COUNT(*) AS purchase_count, ROUND(AVG(COALESCE(unit_price, line_total / quantity)"
+            f"{' / size_amount * 100' if 'g' in size else ''}), 2) AS average_price FROM purchases "
+            f"WHERE item_name = '{item}' AND vendor IN ('Spinneys', 'Carrefour') AND {size}{where} "
+            "GROUP BY vendor, currency, size_unit")  # fmt: skip
+
+
+PER_100 = "size_unit IN ('g', 'ml')"
+NO_SIZE = "size_amount IS NULL"
+
+
+# --- A comparison that misses a shop because of its size (approved 2026-11-14) ---
+
+
+def test_a_comparison_by_a_size_one_shop_lacks_is_repaired_with_the_size_both_have(client, model, alice):
+    headers, _, _ = alice
+    answer_text = "Per 100 g of laban, you paid $0.36 at Spinneys and $0.40 at Carrefour."
+    model.sql_replies, model.answer_replies = [compare("laban", NO_SIZE), E5_SQL], [answer_text]
+
+    answer = ask(client, headers, "Is laban cheaper at Spinneys or Carrefour?")
+
+    assert answer["content"] == answer_text
+    assert ("laban has sizes in g or ml at both Spinneys and Carrefour: compare per 100 g or ml, with "
+            "size_unit IN ('g', 'ml') and the price / size_amount * 100") in model.sql_prompts[1]  # fmt: skip
+
+
+def test_a_comparison_by_size_of_things_without_sizes_is_repaired_per_unit(client, model, alice):
+    headers, _, _ = alice
+    answer_text = "You paid $1.25 for bread at Spinneys and $1.00 at Carrefour."
+    model.sql_replies, model.answer_replies = [compare("bread", PER_100), E6_SQL], [answer_text]
+
+    answer = ask(client, headers, "Compare bread prices at Spinneys and Carrefour.")
+
+    assert answer["content"] == answer_text
+    assert ("bread has no sizes at both Spinneys and Carrefour: compare per unit, with size_amount IS NULL"
+            in model.sql_prompts[1])  # fmt: skip
+
+
+def test_a_shop_where_the_item_was_never_bought_is_simply_missing(client, model, alice):
+    headers, _, _ = alice
+    answer_text = "Per 100 ml of water, you paid $0.03 at Spinneys."
+    model.sql_replies, model.answer_replies = [compare("water", PER_100)], [answer_text]
+
+    answer = ask(client, headers, "Is water cheaper at Spinneys or Carrefour?")
+
+    assert answer["content"] == answer_text
+    assert len(model.sql_prompts) == 1  # not sent back
+
+
+def test_the_size_check_keeps_the_period(client, model, alice):  # this month only Spinneys has laban
+    headers, _, _ = alice
+    model.sql_replies = [compare("laban", NO_SIZE, f" AND {THIS_MONTH}")]
+
+    answer = ask(client, headers, "Is laban cheaper at Spinneys or Carrefour this month?")
+
+    assert (answer["kind"], answer["content"]) == ("answer", answers.NO_MATCHES)
+    assert len(model.sql_prompts) == 1
+
+
 def test_e7_water_is_not_the_water_heater(client, model, alice):
     headers, _, r = alice
     model.sql_replies, model.answer_replies = [E7_SQL], ["You spent $6.00 on water."]

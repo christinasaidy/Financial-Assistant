@@ -189,6 +189,9 @@ class AssistantService:
                     sql = self._rules.prepare(self._guard.check(reply.text), names, today)
                     self._rules.check_dates(sql, asked, today)
                     outcome: QueryResult | answers.ModelReply = self.run_query(user_id, sql)
+                    hint = self._size_hint(user_id, sql, outcome)
+                    if hint is not None:
+                        raise QueryRejected(hint)
                 else:
                     answers.check_numbers(reply.text, answers.numbers_in(question), "the question")
                     outcome = reply
@@ -204,6 +207,18 @@ class AssistantService:
             attempts.append(Attempt(Step.SQL, self._model.sql_model, output))
             return outcome
         return None
+
+    def _size_hint(self, user_id: int, sql: str, result: QueryResult) -> str | None:
+        """For a price comparison that misses a named shop: how to compare by a size every shop has, or None."""
+        query = self._rules.sizes_query(sql)
+        if query is None:
+            return None
+        try:
+            sizes = self.run_query(user_id, query)
+        except (UnsafeQuery, QueryFailed) as exc:
+            logger.warning("The sizes of a comparison could not be found: %s", exc)
+            return None
+        return self._rules.size_hint(sql, result, sizes)
 
     def _sources(self, user_id: int, sql: str) -> tuple[int, ...] | None:
         """The receipts the result is based on (at most the runner's row limit), or None if that cannot be told."""

@@ -16,15 +16,22 @@ It also builds the query for the receipts an answer is based on ("based on N rec
 And it checks the dates against what was asked (approved 2026-11-14, after the fine-tuned model invented periods):
 - only yesterday, when neither the question nor an earlier one names it (a yesterday word, its weekday or its day);
 - last year's month, when this year's has already come and no year was mentioned ("October" is the most recent one).
+
+And, for a price comparison between named shops whose result misses one of them, it finds the size kinds the item has
+at every one of those shops, so the comparison can be repaired with one the SQL left out (approved 2026-11-14: the
+fine-tuned model compared "without a size" items that every shop sells by weight, and found nothing).
 """
 
 import re
+from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import date, timedelta
 
 import sqlglot
 from sqlglot import exp
 from sqlglot.errors import SqlglotError
 
+from app.application.assistant.dtos import QueryResult
 from app.domain.assistant.errors import QueryRejected
 from app.domain.assistant.prompt import UserNames
 
@@ -48,6 +55,24 @@ _WEEKDAY_WORDS = (
 _YEAR_WORDS = ("year", "years", "sene", "sana")
 _MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
            "November", "December")  # fmt: skip
+# The size kinds a price comparison can use, in the order a repair suggests them, and what it says for each.
+_SIZE_COLUMNS = frozenset({"size_unit", "size_amount"})
+_SIZE_KIND = ("CASE WHEN size_unit IN ('g', 'ml') THEN 'g/ml' WHEN size_unit = 'pcs' THEN 'pcs' "
+              "WHEN size_amount IS NULL THEN 'none' END")  # fmt: skip
+_SIZE_HINTS = {
+    "g/ml": ("has sizes in g or ml", "compare per 100 g or ml, with size_unit IN ('g', 'ml') and the price / "
+                                     "size_amount * 100"),
+    "pcs": ("has sizes in pieces", "compare per piece, with size_unit = 'pcs' and the price / size_amount"),
+    "none": ("has no sizes", "compare per unit, with size_amount IS NULL"),
+}  # fmt: skip
+
+
+@dataclass(frozen=True)
+class _Comparison:
+    item: str
+    vendors: tuple[str, ...]
+    used: frozenset[str]  # the size kinds its size conditions let through
+    others: tuple[exp.Expression, ...]  # its other conditions (the item, the shops, the period)
 
 
 class SqlGlotQueryRules:
@@ -80,6 +105,30 @@ class SqlGlotQueryRules:
                     f"A month named without a year is the most recent one: {_MONTHS[start.month - 1]} is "
                     f"receipt_date >= '{latest}' AND receipt_date < '{_next_month(latest)}'"
                 )
+
+    def sizes_query(self, sql: str) -> str | None:
+        comparison = _comparison(_parse(sql))
+        if comparison is None:
+            return None
+        query = exp.select("vendor", f"{_SIZE_KIND} AS size_kind").distinct().from_("purchases")
+        return query.where(exp.and_(*comparison.others)).sql(dialect="postgres")
+
+    def size_hint(self, sql: str, result: QueryResult, sizes: QueryResult) -> str | None:
+        comparison = _comparison(_parse(sql))
+        if comparison is None or "vendor" not in result.columns:
+            return None
+        column = result.columns.index("vendor")
+        if {row[column] for row in result.rows} >= set(comparison.vendors):
+            return None
+        kinds: dict[str, set[str]] = {}
+        for vendor, kind in sizes.rows:
+            kinds.setdefault(vendor, set()).add(kind)
+        common = set.intersection(*(kinds.get(vendor, set()) for vendor in comparison.vendors))
+        for kind in _SIZE_HINTS:
+            if kind in common and kind not in comparison.used:
+                has, how = _SIZE_HINTS[kind]
+                return f"{comparison.item} {has} at {_all_of(comparison.vendors)}: {how}"
+        return None
 
     def sources_query(self, sql: str) -> str | None:
         tree = _parse(sql)
@@ -196,6 +245,61 @@ def _names_the_day(asked: str, day: date) -> bool:
 
 def _mentions_a_year(asked: str) -> bool:
     return re.search(r"(?<!\d)(19|20)\d\d(?!\d)", asked) is not None or any(_mentions(asked, w) for w in _YEAR_WORDS)
+
+
+def _comparison(tree: exp.Expression) -> _Comparison | None:
+    """A price comparison of one item between named shops in purchases, or None."""
+    if not isinstance(tree, exp.Select) or tree.args.get("with_") or tree.args.get("with") or tree.args.get("joins"):
+        return None
+    if tree.args.get("limit") or tree.args.get("having"):  # it may leave a shop out on purpose ("only the cheapest")
+        return None
+    source = tree.args.get("from_") or tree.args.get("from")
+    where = tree.args.get("where")
+    if source is None or not isinstance(source.this, exp.Table) or source.this.name != "purchases" or where is None:
+        return None
+    conditions = list(where.this.flatten()) if isinstance(where.this, exp.And) else [where.this]
+    item, vendors, used, others = None, (), {"g/ml", "pcs", "none"}, []
+    for condition in conditions:
+        columns = {column.name for column in condition.find_all(exp.Column)}
+        if columns & _SIZE_COLUMNS:
+            used &= _size_kinds(condition)
+            continue
+        others.append(condition)
+        if isinstance(condition, exp.EQ) and _is_column(condition.this, "item_name") and _is_text(condition.expression):
+            item = condition.expression.this
+        if isinstance(condition, exp.In) and _is_column(condition.this, "vendor"):
+            if all(_is_text(value) for value in condition.expressions):
+                vendors = tuple(value.this for value in condition.expressions)
+    if item is None or len(vendors) < 2:
+        return None
+    return _Comparison(item, vendors, frozenset(used), tuple(others))
+
+
+def _size_kinds(condition: exp.Expression) -> set[str]:
+    """The size kinds a size condition lets through; all of them when it is not one of the usual shapes."""
+    if isinstance(condition, exp.Is) and _is_column(condition.this, "size_amount"):
+        return {"none"}
+    if isinstance(condition, exp.Not) and isinstance(condition.this, exp.Is):
+        return {"g/ml", "pcs"} if _is_column(condition.this.this, "size_amount") else {"g/ml", "pcs", "none"}
+    if isinstance(condition, (exp.EQ, exp.In)) and _is_column(condition.this, "size_unit"):
+        units = [condition.expression] if isinstance(condition, exp.EQ) else condition.expressions
+        values = {value.this for value in units if _is_text(value)}
+        return {"g/ml"} if values and values <= {"g", "ml"} else {"pcs"} if values == {"pcs"} else {"g/ml", "pcs", "none"}
+    return {"g/ml", "pcs", "none"}
+
+
+def _is_column(node: exp.Expression, name: str) -> bool:
+    return isinstance(node, exp.Column) and node.name == name
+
+
+def _is_text(node: exp.Expression) -> bool:
+    return isinstance(node, exp.Literal) and node.is_string
+
+
+def _all_of(vendors: Sequence[str]) -> str:
+    if len(vendors) == 2:
+        return f"both {vendors[0]} and {vendors[1]}"
+    return f"all of {', '.join(vendors[:-1])} and {vendors[-1]}"
 
 
 def _is_aggregate(tree: exp.Select) -> bool:

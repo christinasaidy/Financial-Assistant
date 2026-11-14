@@ -23,6 +23,14 @@ class QueryRules(Protocol):
         questions and the question) never names it, or last year's month when this year's has come and no year
         was mentioned."""
 
+    def sizes_query(self, sql: str) -> str | None:
+        """For a price comparison of one item between named shops: a query of the (vendor, size kind) pairs the
+        item has there under the SQL's other conditions. None for any other SQL."""
+
+    def size_hint(self, sql: str, result: QueryResult, sizes: QueryResult) -> str | None:
+        """When the comparison's result misses a named shop and the item has a size kind at every one of them that
+        the SQL left out: how to compare by it. Otherwise None."""
+
     def sources_query(self, sql: str) -> str | None:
         """A query for the receipt_ids the result is based on, or None when it cannot be worked out reliably
         (a UNION, a WITH, or a subquery in FROM)."""
