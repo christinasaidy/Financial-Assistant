@@ -375,6 +375,33 @@ def test_e15_a_database_error_is_repaired(client, model, alice):
     assert 'column "totl" does not exist' in model.sql_prompts[1]
 
 
+YESTERDAY_SQL = MONEY.format(amount="total", view="receipts", where="receipt_date = CURRENT_DATE - 1")
+
+
+def test_a_yesterday_the_question_did_not_ask_for_is_repaired(client, model, alice):  # approved 2026-11-14
+    headers, _, _ = alice
+    model.sql_replies, model.answer_replies = [YESTERDAY_SQL, E13_SQL], ["You spent $22.00 this month."]
+
+    answer = ask(client, headers, "How much did I spend in total this month?")
+
+    assert answer["content"] == "You spent $22.00 this month."  # not yesterday's $14.00
+    assert "The question does not mention yesterday" in model.sql_prompts[1]
+
+
+def test_a_follow_up_keeps_the_yesterday_its_earlier_question_asked_for(client, model, alice):
+    headers, _, r = alice
+    at_barbar = YESTERDAY_SQL.replace("WHERE", "WHERE vendor = 'Barbar' AND")
+    model.sql_replies = [YESTERDAY_SQL, at_barbar]
+    model.answer_replies = ["You spent $14.00 yesterday.", "You spent $14.00 at Barbar yesterday."]
+    first = ask(client, headers, "How much did I spend yesterday?")
+
+    answer = ask(client, headers, "and at Barbar?", first["conversation_id"])
+
+    assert answer["content"] == "You spent $14.00 at Barbar yesterday."
+    assert sources(answer) == [r["R6"]]
+    assert len(model.sql_prompts) == 2  # neither was sent back for a repair
+
+
 def test_e16_two_failures_end_politely(client, container, model, alice):
     headers, user_id, _ = alice
     model.sql_replies = ["SELECT * FROM public.receipts", "Sure! Here is the query: SELECT 1"]

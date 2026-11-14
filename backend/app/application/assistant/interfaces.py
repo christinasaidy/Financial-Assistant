@@ -18,6 +18,11 @@ class QueryRules(Protocol):
         """Raise QueryRejected if the SQL breaks an answering rule (a loose or unknown name, the clock read
         directly); otherwise return it with CURRENT_DATE replaced by `today`."""
 
+    def check_dates(self, sql: str, asked: str, today: date) -> None:
+        """Raise QueryRejected if the SQL's dates were not asked for: only yesterday when `asked` (the earlier
+        questions and the question) never names it, or last year's month when this year's has come and no year
+        was mentioned."""
+
     def sources_query(self, sql: str) -> str | None:
         """A query for the receipt_ids the result is based on, or None when it cannot be worked out reliably
         (a UNION, a WITH, or a subquery in FROM)."""

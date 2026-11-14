@@ -178,6 +178,7 @@ class AssistantService:
         or the model could not be reached (it already waited and retried once by then)."""
         today = self._today()  # one date for the prompt and for CURRENT_DATE, so they can never disagree
         prompt = build_prompt(question, names, today, history)
+        asked = "\n".join([*(exchange.question for exchange in history), question])  # a follow-up keeps its period
         current = prompt
         for _ in range(ATTEMPTS_PER_STEP):
             output = None
@@ -186,6 +187,7 @@ class AssistantService:
                 reply = answers.read_reply(output)
                 if reply.form is ReplyForm.SQL:
                     sql = self._rules.prepare(self._guard.check(reply.text), names, today)
+                    self._rules.check_dates(sql, asked, today)
                     outcome: QueryResult | answers.ModelReply = self.run_query(user_id, sql)
                 else:
                     answers.check_numbers(reply.text, answers.numbers_in(question), "the question")

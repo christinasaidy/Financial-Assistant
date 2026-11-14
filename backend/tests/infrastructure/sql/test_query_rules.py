@@ -204,3 +204,46 @@ def test_the_size_queries_pass_the_guard_and_the_rules():
     price = prepared("SELECT AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 1000) FROM purchases "
                      "WHERE item_name = 'laban' AND size_unit = 'g'")  # fmt: skip
     assert "COALESCE(unit_price, line_total / quantity)" in price
+
+
+# --- The dates the question asked for (approved 2026-11-14). Today is Tuesday 3 November 2026. ---
+
+YESTERDAY = "receipt_date = CURRENT_DATE - 1"
+OCTOBER_2025 = "receipt_date >= '2025-10-01' AND receipt_date < '2025-11-01'"
+OCTOBER_2026 = "receipt_date >= '2026-10-01' AND receipt_date < '2026-11-01'"
+DECEMBER_2025 = "receipt_date >= '2025-12-01' AND receipt_date < '2026-01-01'"
+YEAR_2025 = "receipt_date >= '2025-01-01' AND receipt_date < '2026-01-01'"
+
+
+def dates_checked(where: str, asked: str) -> None:
+    rules.check_dates(prepared(f"SELECT SUM(total) FROM receipts WHERE {where}"), asked, TODAY)
+
+
+@pytest.mark.parametrize(
+    ("where", "asked"),
+    [
+        (YESTERDAY, "shu dafa3et 3al dekhan mberha"),
+        (YESTERDAY, "How much did I spend on Monday?"),
+        ("receipt_date = '2026-11-02'", "adde sraft nhar el tanayn"),
+        (YESTERDAY, "adde sraft mbere7? bas bi Spinneys?"),  # a follow-up: its earlier question, then the question
+        (OCTOBER_2026, "How much did I spend in October?"),
+        (OCTOBER_2025, "adde sraft bi teshreen el awal el sene li mar2it"),
+        (DECEMBER_2025, "adde sraft bi kanoun el awal"),
+        (YEAR_2025, "How much did I spend last year?"),
+    ],
+)
+def test_dates_the_question_asked_for_are_allowed(where, asked):
+    dates_checked(where, asked)
+
+
+@pytest.mark.parametrize("asked", ["adde sarle defe3 3al ahwe la halla2", "How much did I spend on bread?"])
+def test_yesterday_is_refused_when_the_question_does_not_mention_it(asked):
+    with pytest.raises(QueryRejected, match="The question does not mention yesterday: use the period it names, "
+                                            "or no date filter if it names none"):  # fmt: skip
+        dates_checked(YESTERDAY, asked)
+
+
+def test_last_years_month_is_refused_when_this_years_has_come():
+    with pytest.raises(QueryRejected, match=r"A month named without a year is the most recent one: October is "
+                                            r"receipt_date >= '2026-10-01' AND receipt_date < '2026-11-01'"):  # fmt: skip
+        dates_checked(OCTOBER_2025, "How much did I spend in October?")

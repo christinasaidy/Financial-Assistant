@@ -12,9 +12,14 @@ question the way it must, and are kept apart so the guard's own job and tests st
   the clock any other way (now(), CURRENT_TIMESTAMP, 'today'::date, ...) is refused, since receipts only have dates.
 
 It also builds the query for the receipts an answer is based on ("based on N receipts").
+
+And it checks the dates against what was asked (approved 2026-11-14, after the fine-tuned model invented periods):
+- only yesterday, when neither the question nor an earlier one names it (a yesterday word, its weekday or its day);
+- last year's month, when this year's has already come and no year was mentioned ("October" is the most recent one).
 """
 
-from datetime import date
+import re
+from datetime import date, timedelta
 
 import sqlglot
 from sqlglot import exp
@@ -32,6 +37,17 @@ _LABELS = {"item": "Item", "item_name": "Item", "vendor": "Vendor", "category": 
 _EXACT_COLUMN = {"item": "item_name", "item_name": "item_name", "vendor": "vendor", "category": "category"}
 # Queries that list rows keep their order and limit, so the sources are exactly the rows shown.
 _SOURCE_ALIAS = "source_receipt_id"
+# The words for yesterday, the weekdays and a year, as the research dataset spells them (research/dataset/periods.py).
+_YESTERDAY_WORDS = ("yesterday", "mbere7", "mberi7", "mbereh", "embere7", "mberha", "mberh")
+_WEEKDAY_WORDS = (
+    ("monday", "tanayn", "tanain", "tnen", "tnein", "etnen"), ("tuesday", "taleta", "tleeta", "tleta"),
+    ("wednesday", "erb3a", "orb3a", "erbaa", "arbi3a"), ("thursday", "khamis", "5amis", "khamees"),
+    ("friday", "nhar el jem3a", "yom el jem3a", "jom3a"), ("saturday", "sabet", "sebet", "sabt"),
+    ("sunday", "a7ad", "ahad"),
+)  # fmt: skip
+_YEAR_WORDS = ("year", "years", "sene", "sana")
+_MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+           "November", "December")  # fmt: skip
 
 
 class SqlGlotQueryRules:
@@ -45,6 +61,25 @@ class SqlGlotQueryRules:
             else node
         )
         return dated.sql(dialect="postgres")
+
+    def check_dates(self, sql: str, asked: str, today: date) -> None:
+        tree = _parse(sql)
+        yesterday = today - timedelta(days=1)
+        days = {_date_of(node.expression, today) for node in tree.find_all(exp.EQ) if _is_receipt_date(node.this)}
+        if yesterday in days and not _names_the_day(asked, yesterday):
+            raise QueryRejected(
+                "The question does not mention yesterday: use the period it names, or no date filter if it names none"
+            )
+        starts = {_date_of(node.expression, today) for node in tree.find_all(exp.GTE) if _is_receipt_date(node.this)}
+        ends = {_date_of(node.expression, today) for node in tree.find_all(exp.LT) if _is_receipt_date(node.this)}
+        for start in starts:
+            if (start and start.day == 1 and _next_month(start) in ends and start.year == today.year - 1
+                    and start.month <= today.month and not _mentions_a_year(asked)):  # fmt: skip
+                latest = start.replace(year=today.year)
+                raise QueryRejected(
+                    f"A month named without a year is the most recent one: {_MONTHS[start.month - 1]} is "
+                    f"receipt_date >= '{latest}' AND receipt_date < '{_next_month(latest)}'"
+                )
 
     def sources_query(self, sql: str) -> str | None:
         tree = _parse(sql)
@@ -122,6 +157,45 @@ def _check_no_clock(tree: exp.Expression) -> None:
         value = cast.this
         if isinstance(value, exp.Literal) and value.is_string and value.this.strip().lower() in _CLOCK_WORDS:
             raise QueryRejected(f"Use CURRENT_DATE for dates, not '{value.this}'")
+
+
+def _is_receipt_date(node: exp.Expression) -> bool:
+    return isinstance(node, exp.Column) and node.name == "receipt_date"
+
+
+def _date_of(node: exp.Expression, today: date) -> date | None:
+    """The date a simple date expression stands for ('2026-11-02', CAST(... AS DATE), CURRENT_DATE, minus days)."""
+    if isinstance(node, exp.CurrentDate):
+        return today
+    if isinstance(node, exp.Cast):
+        return _date_of(node.this, today)
+    if isinstance(node, exp.Literal) and node.is_string:
+        try:
+            return date.fromisoformat(node.this)
+        except ValueError:
+            return None
+    if isinstance(node, exp.Sub) and isinstance(node.expression, exp.Literal) and not node.expression.is_string:
+        day = _date_of(node.this, today)
+        return day - timedelta(days=int(node.expression.this)) if day and node.expression.this.isdigit() else None
+    return None
+
+
+def _next_month(day: date) -> date:
+    return date(day.year + day.month // 12, day.month % 12 + 1, 1)
+
+
+def _mentions(text: str, word: str) -> bool:
+    """A whole word or phrase (Arabizi digits count as letters: 'erb3a', 'a7ad')."""
+    return re.search(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])", text.lower()) is not None
+
+
+def _names_the_day(asked: str, day: date) -> bool:
+    words = _YESTERDAY_WORDS + _WEEKDAY_WORDS[day.weekday()] + (str(day.day), day.isoformat())
+    return any(_mentions(asked, word) for word in words)
+
+
+def _mentions_a_year(asked: str) -> bool:
+    return re.search(r"(?<!\d)(19|20)\d\d(?!\d)", asked) is not None or any(_mentions(asked, w) for w in _YEAR_WORDS)
 
 
 def _is_aggregate(tree: exp.Select) -> bool:
