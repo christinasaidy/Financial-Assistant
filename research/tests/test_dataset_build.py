@@ -143,6 +143,13 @@ def test_a_required_word_may_be_plural():  # approved 2026-11-14: "kilos", "boar
         "does not mention any of: board game, jeu de societe"]
 
 
+def test_mberha_counts_as_yesterday():  # approved 2026-11-14: "shu dafa3et 3al dekhan mberha"
+    spec = spec_with((("cigarettes", "dekhan"), ("yesterday", "mbere7", "mberi7")), labels={"item": "cigarettes"})
+    assert problems(Version("arabizi", "shu dafa3et 3al dekhan mberha?"), spec, CATALOGUE) == []
+    assert problems(Version("arabizi", "shu dafa3et 3al dekhan lyom?"), spec, CATALOGUE) == [
+        "does not mention any of: yesterday, mbere7, mberi7"]
+
+
 def test_a_t9_question_naming_its_items_brand_is_dropped():
     spec = spec_with((("water", "may"),))
     assert problems(Version("english", "How much on Rim water?"), spec, CATALOGUE) == [

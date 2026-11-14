@@ -24,6 +24,8 @@ from research.dataset.catalogue import Catalogue
 from research.dataset.templates import Spec
 
 MAX_LENGTH = 300
+# Spellings accepted by the checks but not listed in the period words, so the saved prompts (and replays) stay the same.
+ALSO_ACCEPTED = {"mbere7": ("mberha", "mberh")}  # approved 2026-11-14
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
 # Services and bills are paid for, not bought ("jebt el ghasil sayara" makes no sense); a phone recharge and a cinema
@@ -95,7 +97,8 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
             found.append("Arabic script")
             break
     for words in spec.mentions:  # plurals allowed, as for the earlier question ("kilos", "board games"; 2026-11-14)
-        if not any(contains(question, word) or contains(question, word + "s") for word in words):
+        accepted = words + tuple(alias for word in words for alias in ALSO_ACCEPTED.get(word, ()))
+        if not any(contains(question, word) or contains(question, word + "s") for word in accepted):
             found.append(f"does not mention any of: {', '.join(words[:4])}")
     if spec.template == "T9":  # its own item's brands only: some brands are ordinary words ("fine", "always")
         item = catalogue.item(spec.labels["item"])
