@@ -17,6 +17,9 @@ if [ ! -x /root/venv/bin/vllm ]; then
   /root/venv/bin/pip install "vllm==${VLLM_VERSION}"
 fi
 /root/venv/bin/pip install -q peft accelerate
+# Qwen3.5's fast linear-attention kernels: 33 s per step without them, 16 s with (measured 2026-11-09).
+# --no-deps so they cannot change the torch or transformers that vLLM pinned.
+/root/venv/bin/pip install -q --no-deps fla-core==0.6.0 flash-linear-attention==0.6.0
 export PATH="/root/venv/bin:${PATH}"
 unset HF_HOME  # the pod's own disk, as in serve.sh
 pkill -f "vllm serve" || true  # the GPU is needed for training

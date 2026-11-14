@@ -134,6 +134,15 @@ def test_a_question_must_contain_one_word_of_each_group_as_a_whole_word():
     assert contains("adde sarafet bel $", "$") and not contains("adde sarafet bel dollar", "$")
 
 
+def test_a_required_word_may_be_plural():  # approved 2026-11-14: "kilos", "board games" were dropped
+    spec = spec_with((("kafta", "kefta"), ("kilo", "kg"), ("14", "2 weeks")), labels={"item": "kafta"})
+    assert problems(Version("english", "How many kilos of kafta did I buy in the past 14 days?"), spec, CATALOGUE) == []
+    games = spec_with((("board game", "jeu de societe"),), template="T15", labels={"item": "board game"})
+    assert problems(Version("english", "How many board games did I buy?"), games, CATALOGUE) == []
+    assert problems(Version("english", "How many boards did I buy?"), games, CATALOGUE) == [
+        "does not mention any of: board game, jeu de societe"]
+
+
 def test_a_t9_question_naming_its_items_brand_is_dropped():
     spec = spec_with((("water", "may"),))
     assert problems(Version("english", "How much on Rim water?"), spec, CATALOGUE) == [

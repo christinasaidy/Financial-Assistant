@@ -94,8 +94,8 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
         if _ARABIC.search(text):
             found.append("Arabic script")
             break
-    for words in spec.mentions:
-        if not any(contains(question, word) for word in words):
+    for words in spec.mentions:  # plurals allowed, as for the earlier question ("kilos", "board games"; 2026-11-14)
+        if not any(contains(question, word) or contains(question, word + "s") for word in words):
             found.append(f"does not mention any of: {', '.join(words[:4])}")
     if spec.template == "T9":  # its own item's brands only: some brands are ordinary words ("fine", "always")
         item = catalogue.item(spec.labels["item"])
