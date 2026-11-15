@@ -328,7 +328,8 @@ considered, so the reasoning can be explained later.
 
 ## D023: Dark-mode "limit reached" is the light-mode red, brightened only as needed
 
-- **Status:** Accepted, 2026-11-15. Supersedes D022's dark "limit reached" (#d9737b, which Christina hated).
+- **Status:** Accepted "for now", 2026-11-15. Supersedes D022's dark "limit reached" (#d9737b, which Christina
+  hated). May be revisited once seen in the real app.
 - **Options considered** (all pass AA on #17181b): deep red #e0524f (4.6:1); clear red #e85c5c (5.2:1); bright red
   #ff7070 (6.6:1); no colour. A deeper red fails on dark paper (#c94f4f: 4.0:1).
 - **Decision:** #e0524f (hue 1): the light-mode red (#b0241b) brightened only as much as dark paper needs. Text
