@@ -242,7 +242,8 @@ considered, so the reasoning can be explained later.
 
 ## D018: The accent is pen blue
 
-- **Status:** Superseded by D019, 2026-11-15 (exact values were proposals: light #2443a8, dark #9db0ff)
+- **Status:** Accepted, 2026-11-15 (light #2443a8, dark #9db0ff). Briefly marked superseded by D019 through a
+  misreading; reinstated by D020.
 - **Context:** Real receipts are almost all black ink. The colour study showed three receipt-world accents in both
   themes.
 - **Options considered:** ink only with reverse print (no colour); thermal red (two-colour thermal paper); pen blue
@@ -269,6 +270,19 @@ considered, so the reasoning can be explained later.
   neutral black #111213 or blue-black #0e1116.
 - **Consequences:** The anti-AI-slop skill now bans the Claude look. All proposed values pass AA in all three
   themes (computed).
+
+## D020: Pen blue stays; budget colours and the dark paper change; no roughed-up budgets
+
+- **Status:** Accepted, 2026-11-15. Corrects D019.
+- **Context:** D019 recorded "pen blue dropped". That was a misreading: Christina meant to go back to pen blue
+  ("now pen blue again"). She also rejected the roughed-up budget variations.
+- **Decision:**
+  - The accent is pen blue, exactly as in D018 (light #2443a8, 7.8:1; dark #9db0ff, 9.0:1 on the new dark papers).
+  - Budget states: orange near the limit, red at the limit (values as in D019); plain bars, not roughed up.
+  - Dark mode: cool, no warm tint (D019 stands on this); paper still to choose, neutral black #111213 or
+    blue-black #0e1116.
+  - The four roughed-up budget variations (printed bars, stamps, pen marks, character bars) are dropped.
+- **Consequences:** The roughed-up type of D011 is not affected by this entry; only the budgets' treatment is.
 
 ---
 
