@@ -67,7 +67,7 @@ def last_five_months(today: date) -> Period:
     start = periods._months_before(today, 5) + timedelta(days=1)
     return Period("last_5_months", "receipt_date > CURRENT_DATE - INTERVAL '5 months' AND receipt_date <= CURRENT_DATE",
                   start, today + timedelta(days=1), "the last 5 months (up to today)",
-                  ("5", "five", "khamse", "5 2oshor", "5 ashhor", "5 shhour"))  # fmt: skip
+                  ("5", "five", "khamse", "khames", "5 2oshor", "5 ashhor", "5 shhour", "5 eshour"))  # fmt: skip
 
 
 COMMON = {"this_month": periods.this_month, "last_month": periods.last_month, "yesterday": periods.yesterday,
