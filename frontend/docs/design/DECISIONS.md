@@ -223,6 +223,23 @@ considered, so the reasoning can be explained later.
 - **Consequences:** Adds screen titles to the capitals of D012 (applied as a style). Every receipt-like heading is
   now Mono capitals; only sentences are Sans.
 
+## D016: The light theme looks like real thermal paper
+
+- **Status:** Accepted, 2026-11-15
+- **Options considered:** real thermal paper (a slightly cool, greyish white); plain neutral white; warm cream
+  (rejected up front: one of the most common AI-generated looks).
+- **Decision:** The light background imitates real thermal paper; ink is a near-black like thermal print. Exact
+  values are chosen in the colour study and must pass D009.
+
+## D017: The dark theme is dark paper with light ink
+
+- **Status:** Accepted, 2026-11-15
+- **Options considered:** dark paper with light ink (the receipt inverted); a dark table with receipts kept as light
+  paper slips on it.
+- **Decision:** Dark paper with light ink, the same layout and roles as the light theme.
+- **Consequences:** Every colour has a light and a dark value; the printed look's fade floors (D011) are checked in
+  both.
+
 ---
 
 ## Open (not decided)
