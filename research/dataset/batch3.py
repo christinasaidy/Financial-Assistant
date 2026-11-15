@@ -77,6 +77,16 @@ COMMON = {"this_month": periods.this_month, "last_month": periods.last_month, "y
           "last_5_months": last_five_months}  # fmt: skip
 
 
+# The user's own ways of saying common periods (her 60 seeds, 2026-11-15), accepted for batch 3 only: adding them to
+# periods.py would change the saved batch 1-2 prompts.
+EXTRA_WORDS = {
+    "this_month": ("he el shaher", "heda el shaher", "heda l shaher", "hayda el shaher", "he l shaher"),
+    "last_month": ("el shaher el mara2", "el shaher el madi", "el shaher li ata3", "ekher shaher"),
+    "this_week": ("he el jemaa", "he el jem3a", "heda el osbou3"),
+    "last_week": ("haydik el jemaa", "haydik el jem3a", "jem3a el madye", "el jem3a el madye", "el jemaa el madye"),
+}
+
+
 def period_named(data: UserData, kind: str, rng: random.Random) -> Period:
     if kind == "since_weekday":
         return periods.since_weekday(data.today, rng.randrange(7))
@@ -84,7 +94,9 @@ def period_named(data: UserData, kind: str, rng: random.Random) -> Period:
         return periods.since_month(data.today, periods._a_past_month(rng, data.today))
     if kind == "none":
         return periods.no_period()
-    return COMMON[kind](data.today)
+    p = COMMON[kind](data.today)
+    extra = tuple(w for w in EXTRA_WORDS.get(kind, ()) if w not in p.words)
+    return Period(p.kind, p.sql, p.start, p.end, p.description, p.words + extra) if extra else p
 
 
 # --- helpers ---
