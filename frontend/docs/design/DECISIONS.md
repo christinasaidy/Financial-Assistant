@@ -337,11 +337,50 @@ considered, so the reasoning can be explained later.
 - **Consequences:** It is the deepest red that passes, so it cannot get darker without failing AA; its margin is
   small (4.6 vs 4.5), so the dark paper must not get lighter without rechecking it.
 
+## D024: The first six icons
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** D008 left open which 5-6 icons come first.
+- **Options considered:** the five proposed tabs plus Notifications, Settings, or Back/Close.
+- **Decision:** Home, Receipts, Scan, Budgets, Assistant, Back. Back comes before Notifications because every screen
+  opened from a list needs it, while notifications only matter once budget alerts exist. Next in line:
+  Notifications, Close, Settings, Add, Camera flash, Gallery.
+- **Consequences:** Icons 1-5 assume the proposed tab bar (Home · Receipts · Scan · Budgets · Assistant), which is
+  still marked proposed.
+
+## D025: Icons are Phosphor-like line icons with the medium printed look
+
+- **Status:** Accepted, 2026-11-15. Changes D008 on who draws the first set: Christina asked for these to be drawn
+  for her in Figma; no icon library is used or copied.
+- **Context:** Christina asked for the six icons "similar to Phosphor icons" and roughed up like option D of the
+  font specimen ("D · B, printed": the medium thermal-print look).
+- **Decision:**
+  - **Drawing:** Phosphor's grammar (Regular weight), drawn as our own shapes: 24 px frame on a 256-unit grid,
+    16-unit stroke (1.5 px at 24 px, the same as DejaVu Sans Mono Book's stem at 15 px), round caps and joins.
+    Metaphors: house with door; receipt slip with a torn bottom edge and an item-left / price-right line; four
+    viewfinder corners with a scan line; a gauge with its needle near the limit; a speech bubble with two lines
+    (no sparkles, no robot); an arrow.
+  - **Printed look:** the specimen's medium filter rebuilt as vector geometry, so it exports as plain SVG:
+    ragged edges (edge displaced along its normal by noise, scale 1.8 px, grain frequency 0.9 per px) and patchy
+    fading (soft horizontal bands, frequency 0.012 x 0.18 per px, ink alpha = 2.4n - 0.35) as a vertical gradient
+    of ink. Each icon samples a different spot on the "paper"; spots were picked where the faintest band stays
+    between 40% and 60% ink, so no part of an icon disappears.
+  - **In Figma:** page "Icons", one component set per icon with variants Look=Clean (editable stroke) and
+    Look=Printed (roughed outline), plus a 96 px preview row.
+- **Consequences:**
+  - The medium look has no fade floor. Icons that carry meaning need 3:1 against paper (WCAG 1.4.11); ink at
+    42% on light paper is about 2.6:1, so the faintest bands fail. To decide: a fade floor for icons (as F/G do
+    for text) or accept it.
+  - Colour is plain ink #1c1d21 for now; dark mode and binding to colour variables come with the Figma
+    foundations.
+  - Alignment with text, gap, and sizes other than 24 px are still open.
+
 ---
 
 ## Open (not decided)
 
 From Christina, to discuss later:
+- **Icon fade floor** (D025): the medium printed look lets the faintest bands of an icon drop below 3:1.
 - **Icon alignment.** Her reference: in Revolut the icon's size matches the height of the first character of the
   text next to it, and the margins and padding around it are deliberate. To decide: what the icon lines up with
   (cap height, x-height, line height), icon box vs. drawn glyph, the gap to the text. Ask before the first icon is
@@ -350,7 +389,6 @@ From Christina, to discuss later:
   strengths: light = ragged edges, medium = + patchy fading, heavy = + dropouts). To decide: which strength, on
   what (wordmark only, big numbers, all Mono text), and how it is built in React Native, which has no filters
   (a roughed copy of the font renamed e.g. "Fatourati Print", Figma artwork, or a grain texture over text).
-- **Which 5-6 icons first.**
 
 - **Letter spacing of screen titles** (D015): same +8% as the labels, or none; decide on the first screen.
 - **Arabic on the iPhone:** confirm DejaVu's Arabic looks acceptable on the phone (D006).

@@ -153,6 +153,17 @@ Receipt lines exactly as printed. Sentences in normal case.
 | Sans sentences | clean |
 | Wordmark | medium printed look, artwork (D010) |
 
+## Iconography
+
+Our own icons, drawn in Figma (page "Icons"); no icon library (D008, D025). First six (D024): Home, Receipts, Scan,
+Budgets, Assistant, Back.
+
+- **Grid:** 24 px frame, 256-unit grid; 16-unit stroke (1.5 px at 24 px), round caps and joins; Phosphor-like.
+- **Look:** two variants per icon: Clean (editable stroke) and Printed (medium thermal-print look: ragged edges,
+  patchy fading), built as vector geometry so it exports as SVG.
+- **Colour:** ink.
+- **Not decided yet:** alignment with text and the gap to it, other sizes, a fade floor for icons (D025).
+
 ## Layout
 
 Not decided yet.
