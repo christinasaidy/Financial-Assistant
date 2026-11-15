@@ -84,6 +84,8 @@ typography:
 
 Figma file (icons, wordmark, design work):
 [Fatourati design system](https://www.figma.com/design/yH3BO0dprC2nmaKwBdbiDw/Fatourati-design-system).
+Its "Color" variables mirror the colour tokens below one for one, `-dark` tokens included (Figma's free plan allows
+a single mode, so there is no Light/Dark switch).
 
 This file follows the [DESIGN.md format](https://github.com/google-labs-code/design.md) (Google Labs, version
 `alpha`): exact values (tokens) go in the YAML front matter above, and the explanation of how to use them goes in the
@@ -161,7 +163,9 @@ Budgets, Assistant, Back.
 - **Grid:** 24 px frame, 256-unit grid; 16-unit stroke (1.5 px at 24 px), round caps and joins; Phosphor-like.
 - **Look:** two variants per icon: Clean (editable stroke) and Printed (a light thermal-print feel: slight edge
   wobble, soft fade never below 68% ink; D026), built as vector geometry so it exports as SVG.
-- **Colour:** ink.
+- **Colour:** ink in light mode, ink-dark in dark mode. The fade is only transparency (in Figma an alpha mask
+  named Fade; in code a gradient of opacity), so one drawing serves both themes. Faintest ink: about 5.5:1 on
+  paper, 7:1 on dark paper.
 - **Not decided yet:** alignment with text and the gap to it, other sizes.
 
 ## Layout
