@@ -284,6 +284,24 @@ considered, so the reasoning can be explained later.
   - The four roughed-up budget variations (printed bars, stamps, pen marks, character bars) are dropped.
 - **Consequences:** The roughed-up type of D011 is not affected by this entry; only the budgets' treatment is.
 
+## D021: Budget colours and the dark mode, chosen by feel
+
+- **Status:** Accepted, 2026-11-15 (direction; exact values chosen next from the colour study)
+- **Context:** Christina found the red "too bloody": for someone who is broke it would make them feel guilty. She
+  found the cool dark mode ugly and asked to decide the colours together.
+- **Options asked:** over the limit: calm and serious / a different hue (plum) / no colour / same as near-limit.
+  Near the limit: pure orange / softer ochre / yellow. Fine budgets: ink / pen blue / green. Dark mode: graphite /
+  night ink / carbon paper / true black.
+- **Decision:**
+  - **Over the limit:** calm and serious, a muted brick, no alarm. Supersedes D019's red.
+  - **Near the limit:** a softer ochre. Supersedes D019's orange.
+  - **Fine budgets:** plain ink, no colour; colour appears only when something needs attention.
+  - **Dark mode:** carbon paper: a dark blue-grey background with soft grey-white text (not bright white).
+    Supersedes the neutral-black / blue-black papers of D019 and D020.
+  - Pen blue unchanged (D018, D020).
+- **Consequences:** Candidates must stay clear of Claude's coral (dark-mode brick is kept redder and greyer, hue
+  about 6-9) and of golden amber (dark-mode ochre kept at hue 40-41 and greyer). Every candidate passes AA.
+
 ---
 
 ## Open (not decided)
