@@ -480,7 +480,7 @@ def percent_change(data: UserData, rng: random.Random) -> Spec:
 def no_such_items(data: UserData, rng: random.Random) -> Spec:
     """C5 with the user's plurals (tasli7at / tosli7at, 2026-11-15) accepted; the shared template stays as it was."""
     spec = t.c5_no_such_items(data, rng)
-    extra = {"repairs": ("tasli7at", "tosli7at", "tasli7 el sayara"),
+    extra = {"repairs": ("tasli7at", "tosli7at", "toslihat", "taslihat", "tasli7 el sayara"),
              "gifts": ("hadeya", "hadiye", "hdeya")}.get(spec.labels.get("group"), ())
     return Spec(spec.template, spec.kind, spec.description, spec.target, (spec.mentions[0] + extra,),
                 spec.reply_hint, labels=spec.labels)
