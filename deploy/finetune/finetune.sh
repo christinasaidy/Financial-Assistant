@@ -3,8 +3,11 @@
 #
 #   cd /workspace/bundle
 #   bash finetune.sh check     # 5 steps and a merge, to see it all works (a few minutes)
-#   bash finetune.sh           # the real run: 2 epochs, then the merged model in /root/ft-4b
-#   tail -f /root/train.log
+#   setsid nohup bash finetune.sh > /root/run.out 2>&1 &    # the real run, detached from the browser terminal
+#   tail -c 400 /root/train.log
+#
+# The real run saves a checkpoint every 100 steps; if it stops part way, the same command carries on from the last
+# one (2026-11-15: a dropped browser terminal once killed a run that saved nothing, at step 405).
 #
 # It uses the same environment as serve.sh (/root/venv with vLLM 0.33.0, whose transformers already knows Qwen3.5),
 # plus peft and accelerate, so the model is trained and served by the same library versions.

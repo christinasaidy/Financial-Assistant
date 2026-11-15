@@ -44,3 +44,23 @@ def test_the_dataset_files_are_read_as_prompt_and_reply(tmp_path):
                                              {"role": "user", "content": "y"}]}) + "\n")
     with pytest.raises(ValueError):
         read_pairs(path)
+
+
+# --- checkpoints (approved 2026-11-15: a dropped browser terminal cost 2 hours of a run that saved nothing) ---
+
+from research.finetune.examples import checkpoint_settings, latest_checkpoint  # noqa: E402
+
+
+def test_a_real_run_saves_every_100_steps_and_keeps_the_last_two():
+    assert checkpoint_settings(-1) == {"save_strategy": "steps", "save_steps": 100, "save_total_limit": 2}
+
+
+def test_a_short_check_run_saves_nothing():
+    assert checkpoint_settings(5) == {"save_strategy": "no"}
+
+
+def test_a_run_resumes_from_its_latest_checkpoint_by_step_number(tmp_path):
+    assert latest_checkpoint(tmp_path / "checkpoints") is None
+    for step in (900, 1000, 100):
+        (tmp_path / "checkpoints" / f"checkpoint-{step}").mkdir(parents=True)
+    assert latest_checkpoint(tmp_path / "checkpoints") == str(tmp_path / "checkpoints" / "checkpoint-1000")

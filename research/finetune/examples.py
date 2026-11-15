@@ -50,3 +50,19 @@ def pad(batch: list[dict], pad_id: int) -> dict:
         padded["labels"].append(example["labels"] + [IGNORE] * missing)
         padded["attention_mask"].append([1] * len(example["input_ids"]) + [0] * missing)
     return padded
+
+
+CHECKPOINT_EVERY = 100  # steps; about 30 minutes, the most a crash or a dropped terminal can now cost (2026-11-15)
+
+
+def checkpoint_settings(max_steps: int) -> dict:
+    """A real run saves every 100 steps and keeps the last two; a short check run (max_steps >= 0) saves nothing."""
+    if max_steps >= 0:
+        return {"save_strategy": "no"}
+    return {"save_strategy": "steps", "save_steps": CHECKPOINT_EVERY, "save_total_limit": 2}
+
+
+def latest_checkpoint(folder: Path) -> str | None:
+    """The newest checkpoint-<step> folder to resume from, by step number, or None to start from the beginning."""
+    found = [p for p in folder.glob("checkpoint-*") if p.name.split("-", 1)[1].isdigit()] if folder.is_dir() else []
+    return str(max(found, key=lambda p: int(p.name.split("-", 1)[1]))) if found else None

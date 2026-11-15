@@ -20,10 +20,10 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForImageTextToText, AutoProcessor, AutoTokenizer, Trainer, TrainingArguments
 
 try:
-    from research.finetune.examples import encode, pad, read_pairs
+    from research.finetune.examples import checkpoint_settings, encode, latest_checkpoint, pad, read_pairs
 except ImportError:  # on the pod the files sit side by side
     sys.path.insert(0, str(Path(__file__).parent))
-    from examples import encode, pad, read_pairs
+    from examples import checkpoint_settings, encode, latest_checkpoint, pad, read_pairs
 
 SEED = 20261108
 LINEAR_SKIP = ("visual", "vision", "lm_head", "embed")  # never adapt these
@@ -90,12 +90,15 @@ def main() -> int:
         gradient_accumulation_steps=args.accumulate, learning_rate=args.lr, lr_scheduler_type="cosine",
         warmup_steps=10, weight_decay=0.0, bf16=True, gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False}, logging_steps=10, eval_strategy="epoch"
-        if args.max_steps < 0 else "no", save_strategy="no", report_to="none", remove_unused_columns=False,
+        if args.max_steps < 0 else "no", report_to="none", remove_unused_columns=False, **checkpoint_settings(args.max_steps),
         seed=SEED, data_seed=SEED,
     )  # fmt: skip
     trainer = Trainer(model=model, args=training, train_dataset=Rows(splits["train"]),
                       eval_dataset=Rows(splits["validation"]), data_collator=collate)  # fmt: skip
-    trainer.train()
+    resume = latest_checkpoint(args.out / "checkpoints")  # a run cut off part way carries on from its last save
+    if resume:
+        print("resuming from", resume, flush=True)
+    trainer.train(resume_from_checkpoint=resume)
     final = trainer.evaluate() if args.max_steps < 0 else {}
     print("validation:", final, flush=True)
 
