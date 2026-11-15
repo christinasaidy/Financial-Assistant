@@ -40,6 +40,9 @@ Colors and surfaces:
 - Gradients of any kind, above all blue-to-purple, indigo or violet; gradient text; glowing borders or neon on
   black.
 - The Tailwind default palette (indigo-500, slate, zinc) or any palette not in DESIGN.md.
+- **The Claude look** (Christina hates it): warm charcoal or brown-grey backgrounds, cream or warm off-white text,
+  coral, salmon or terracotta accents (around hue 15), golden amber. Dark mode in particular must be cool and
+  neutral; oranges must be pure and saturated, never coral.
 - Glassmorphism, background blur, frosted cards.
 - The same soft drop shadow on every card.
 

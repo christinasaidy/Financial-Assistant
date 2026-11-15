@@ -242,7 +242,7 @@ considered, so the reasoning can be explained later.
 
 ## D018: The accent is pen blue
 
-- **Status:** Accepted, 2026-11-15 (exact values still proposals: light #2443a8, dark #9db0ff)
+- **Status:** Superseded by D019, 2026-11-15 (exact values were proposals: light #2443a8, dark #9db0ff)
 - **Context:** Real receipts are almost all black ink. The colour study showed three receipt-world accents in both
   themes.
 - **Options considered:** ink only with reverse print (no colour); thermal red (two-colour thermal paper); pen blue
@@ -250,6 +250,25 @@ considered, so the reasoning can be explained later.
 - **Decision:** Pen blue, for the main button and for things the user can change.
 - **Consequences:** Budget states keep their own colours (amber near the limit, red at the limit, proposed); how they
   look, including a roughed-up treatment, is being explored. Contrast on the proposed values: 7.8:1 light, 8.5:1 dark.
+
+## D019: Pen blue dropped; dark mode must not look like Claude; near-limit is orange
+
+- **Status:** Accepted, 2026-11-15. Supersedes D018.
+- **Context:** On the first colour study Christina found the light mode good, but the dark mode "all looks like
+  Claude colors": warm charcoal paper, cream-white ink, a coral/salmon red and a golden amber. She also dropped pen
+  blue after seeing it on the budget variations.
+- **Decision:**
+  - The light mode values stay as proposed (paper #f3f4f1, ink #1c1d21, grey #575a60).
+  - The dark mode has **no warm tint**: a cool neutral or blue-black paper, cool white ink, a true red (hue 0), not
+    salmon or coral.
+  - "Near the limit" is a pure, saturated **orange** (light #b84300, hue 22; dark #ff8a1f, hue 29), kept clearly
+    away from Claude's coral (hue 15, softer). "At the limit" is red (light #b0241b, dark #ff4f4f).
+  - The accent is reopened.
+- **Options for the accent** (colour study round 2): ink only with reverse print; cash-register green (the customer
+  display on a till; light #00715d, dark #3ee6c1); thermal red (shares red with the limit warning). Dark paper:
+  neutral black #111213 or blue-black #0e1116.
+- **Consequences:** The anti-AI-slop skill now bans the Claude look. All proposed values pass AA in all three
+  themes (computed).
 
 ---
 
