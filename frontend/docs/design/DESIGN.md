@@ -21,7 +21,7 @@ colors:
   near-limit: "#8a5a00"     # budget at 80% or more
   near-limit-dark: "#e0a43a"
   limit-reached: "#b0241b"  # budget at 100% or more
-  limit-reached-dark: "#d9737b"
+  limit-reached-dark: "#e0524f"
 typography:
   body:            # D006, D013: sentences
     fontFamily: DejaVu Sans
@@ -118,7 +118,7 @@ mode is dark paper (#17181b) with light ink (#e6e6e1). Grey ink is for secondary
 the user can change.
 
 **Budgets** (D021, D022). A fine budget is plain ink: colour appears only when something needs attention. Near the
-limit (80% or more) is ochre-amber; at the limit (100% or more) is a calm red, a muted rose-red in dark mode. The
+limit (80% or more) is ochre-amber; at the limit (100% or more) is a calm red, in dark mode the same red brightened only as much as dark paper needs. The
 state is always also written in words ("NEAR LIMIT · 88%", "LIMIT REACHED · 107%"), so colour is never the only
 signal (WCAG 1.4.1). Bars are plain.
 

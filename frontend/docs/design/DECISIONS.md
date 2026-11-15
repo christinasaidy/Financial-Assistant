@@ -304,7 +304,7 @@ considered, so the reasoning can be explained later.
 
 ## D022: Final colours: the first pen blue palette, with a calm rose-red for "limit reached" in dark mode
 
-- **Status:** Accepted, 2026-11-15. Supersedes the colour values of D019, D020 and D021 (their exploration is kept
+- **Status:** Accepted, 2026-11-15; dark "limit reached" superseded by D023. Supersedes the colour values of D019, D020 and D021 (their exploration is kept
   above as history).
 - **Context:** After three rounds Christina chose ("khalas") the very first pen blue screen (colour study round 1,
   option 3), changing only "limit reached" in dark mode: its salmon (#ff8a7a, hue 7) was close to Claude's coral.
@@ -325,6 +325,16 @@ considered, so the reasoning can be explained later.
   Fine budgets are ink (D021). Budget bars are plain, not roughed up (D020).
 - **Consequences:** D011's printed-look floor rechecked on these colours: large ink at 52% gives 3.4:1 light and
   4.7:1 dark (needs 3:1). Small text never fades. Amber "near limit" text in light mode cannot fade at all (D009).
+
+## D023: Dark-mode "limit reached" is the light-mode red, brightened only as needed
+
+- **Status:** Accepted, 2026-11-15. Supersedes D022's dark "limit reached" (#d9737b, which Christina hated).
+- **Options considered** (all pass AA on #17181b): deep red #e0524f (4.6:1); clear red #e85c5c (5.2:1); bright red
+  #ff7070 (6.6:1); no colour. A deeper red fails on dark paper (#c94f4f: 4.0:1).
+- **Decision:** #e0524f (hue 1): the light-mode red (#b0241b) brightened only as much as dark paper needs. Text
+  4.6:1, bar 3.7:1 against the track.
+- **Consequences:** It is the deepest red that passes, so it cannot get darker without failing AA; its margin is
+  small (4.6 vs 4.5), so the dark paper must not get lighter without rechecking it.
 
 ---
 
