@@ -240,6 +240,17 @@ considered, so the reasoning can be explained later.
 - **Consequences:** Every colour has a light and a dark value; the printed look's fade floors (D011) are checked in
   both.
 
+## D018: The accent is pen blue
+
+- **Status:** Accepted, 2026-11-15 (exact values still proposals: light #2443a8, dark #9db0ff)
+- **Context:** Real receipts are almost all black ink. The colour study showed three receipt-world accents in both
+  themes.
+- **Options considered:** ink only with reverse print (no colour); thermal red (two-colour thermal paper); pen blue
+  (ballpoint, like writing on a receipt by hand).
+- **Decision:** Pen blue, for the main button and for things the user can change.
+- **Consequences:** Budget states keep their own colours (amber near the limit, red at the limit, proposed); how they
+  look, including a roughed-up treatment, is being explored. Contrast on the proposed values: 7.8:1 light, 8.5:1 dark.
+
 ---
 
 ## Open (not decided)
