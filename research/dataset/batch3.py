@@ -37,7 +37,7 @@ MOST_WORDS = ("aktar", "most", "aktar shi")
 USUAL_WORDS = ("3adatan", "aadatan", "bel 3ade", "bl 3ade", "bel aade", "bl aade", "aade", "usually", "normally", "3ade")
 MONTHLY_WORDS = ("bl shaher", "bel shaher", "kel shaher", "a month", "per month", "monthly", "bil shaher")
 NEGATION_WORDS = ("bala ma", "ma t2elle", "ma t2ele", "ma t2olle", "ma t2oul", "msh", "mesh", "mish", "not")
-SARLE_WORDS = ("sarle", "sarli", "sar le", "sar li", "so far", "up to now", "until now", "till now")  # English too
+SARLE_WORDS = ("sarle", "sarli", "sar le", "sar li", "la halla2", "la hala2", "la halae", "so far", "up to now", "until now", "till now")  # English too
 FIRST_WORDS = ("adde sarle", "adesh sarle", "since when", "emta", "men emta", "addesh sarle", "aday sarle")
 CHANGE_WORDS = ("zed", "zad", "ghele", "ghili", "na2as", "ne2sit", "no2is", "pricier", "aghla", "arkhas", "went up", "go up", "went down",
                 "go down", "changed", "cheaper", "more expensive", "zeyde", "nazal", "tele3")
