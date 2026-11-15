@@ -489,7 +489,7 @@ def no_such_items(data: UserData, rng: random.Random) -> Spec:
 def lately(data: UserData, rng: random.Random) -> Spec:
     what = rng.choice(["how much they spent", "which shop they went to most", "how much they paid for an item"])
     return Spec("C4", "clarify", f"The user asks {what} 'lately' (hal fatra), with no period.", None,
-                (("hal fatra", "lately", "recently", "hal iyem", "hal ayyem"),),
+                (("hal fatra", "lately", "recently", "hal iyem", "hal ayyem", "hal 2iyem"),),
                 "Ask exactly which period they mean.", labels={"period": "hal fatra"})  # fmt: skip
 
 
