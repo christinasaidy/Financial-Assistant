@@ -113,3 +113,15 @@ def test_batch3_jobs_refuse_the_test_user_and_batch2_ids():
         batch3_build.validate_jobs([job(32, "b2-32-0", "train", TODAYS[32])])
     with pytest.raises(ValueError):
         batch3_build.validate_jobs([job(40, "b3-40-0", "train", TODAYS[40])])  # 40 is a validation user
+
+
+def test_lately_gets_the_users_own_reply_line():  # approved 2026-11-15: "azdak mn emta la emta?"
+    import random
+
+    from research.dataset.batch3 import lately
+    from research.dataset.checks import Version
+    from research.dataset.replies import users_reply
+
+    spec = lately(None, random.Random(0))
+    reply = users_reply(Version("arabizi", "aday sarafet hal fatra?", "CLARIFY: x"), spec, load_catalogue(), random.Random(0))
+    assert reply.reply == "CLARIFY: azdak mn emta la emta?"

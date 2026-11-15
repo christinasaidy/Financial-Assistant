@@ -18,6 +18,7 @@ PERIODS = {
     "kanoun": "azdak kanoun el awal aw kanoun el tene?",
     "awal el sene": "azdak awal 3 oshhor mn el sene?",
     "semester": "azdak ayya ashhor bel zabt?",  # the assistant's wording, following the user's "azdak" lines
+    "hal fatra": "azdak mn emta la emta?",  # the user's line, 2026-11-15 (batch 3)
 }
 
 
