@@ -39,7 +39,7 @@ MONTHLY_WORDS = ("bl shaher", "bel shaher", "kel shaher", "a month", "per month"
 NEGATION_WORDS = ("bala ma", "ma t2elle", "ma t2ele", "ma t2olle", "ma t2oul", "msh", "mesh", "mish", "not")
 SARLE_WORDS = ("sarle", "sarli", "sar le", "sar li", "so far", "up to now", "until now", "till now")  # English too
 FIRST_WORDS = ("adde sarle", "adesh sarle", "since when", "emta", "men emta", "addesh sarle", "aday sarle")
-CHANGE_WORDS = ("zed", "zad", "ghele", "ghili", "na2as", "ne2sit", "no2is", "went up", "go up", "went down",
+CHANGE_WORDS = ("zed", "zad", "ghele", "ghili", "na2as", "ne2sit", "no2is", "pricier", "aghla", "arkhas", "went up", "go up", "went down",
                 "go down", "changed", "cheaper", "more expensive", "zeyde", "nazal", "tele3")
 CHEAPEST_WORDS = ("arkhas", "aghla", "cheapest", "cheaper", "most expensive", "a2al", "arkhas shi", "aghla shi")
 SAME_BRAND_WORDS = ("nafs brand", "nafes brand", "nafs el brand", "same brand", "nafs el marka", "la nafs brand")
@@ -362,9 +362,18 @@ def receipts(data: UserData, rng: random.Random, kind: str, at_shop: bool = Fals
                    t.shop_words(data.shop(shop)) if shop else (), shop=shop)  # fmt: skip
 
 
+# Paid once a month, so never asked about as visits, times or units (the user's review, 2026-11-15: "no one in Lebanon
+# pays more than once a month la ishtirak el hay").
+MONTHLY_KINDS = frozenset({"utility", "subscription", "gym"})
+MONTHLY_BILLS = frozenset({"electricity bill", "generator subscription", "internet", "streaming subscription",
+                           "music subscription", "gym membership"})
+
+
 def visits(data: UserData, rng: random.Random, kind: str, negation: bool = False) -> Spec | None:
     p = period_named(data, kind, rng)
-    shop = _shop_in(data, rng, p) or (rng.choice(data.shops) if data.shops else None)
+    visited = [s for s in sorted({r.shop for r in data.receipts_in(p)}) if data.shop(s).kind not in MONTHLY_KINDS]
+    others = [s for s in data.shops if data.shop(s).kind not in MONTHLY_KINDS]
+    shop = rng.choice(visited or others) if visited or others else None
     if shop is None:
         return None
     target = f"SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts{t._where(f'vendor = {t.quoted(shop)}', p.sql)}"
@@ -398,7 +407,7 @@ def item_spend(data: UserData, rng: random.Random, kind: str, negation: bool = F
 
 def times_bought(data: UserData, rng: random.Random, kind: str, negation: bool = False) -> Spec | None:
     p = period_named(data, kind, rng)
-    item = _item_in(data, rng, p)
+    item = _item_in(data, rng, p, lambda i: i.name not in MONTHLY_BILLS)
     if item is None:
         return None
     target = f"SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases{t._where(t.item_is(item), p.sql)}"
@@ -410,7 +419,7 @@ def times_bought(data: UserData, rng: random.Random, kind: str, negation: bool =
 
 def quantity(data: UserData, rng: random.Random, kind: str, negation: bool = False) -> Spec | None:
     p = period_named(data, kind, rng)
-    item = _item_in(data, rng, p, lambda i: not i.weight_g and not i.litres)
+    item = _item_in(data, rng, p, lambda i: not i.weight_g and not i.litres and i.name not in MONTHLY_BILLS)
     if item is None:
         return None
     target = f"SELECT SUM(quantity) AS quantity_bought FROM purchases{t._where(t.item_is(item), p.sql)}"

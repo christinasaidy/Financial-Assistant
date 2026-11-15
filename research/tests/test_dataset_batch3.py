@@ -125,3 +125,15 @@ def test_lately_gets_the_users_own_reply_line():  # approved 2026-11-15: "azdak 
     spec = lately(None, random.Random(0))
     reply = users_reply(Version("arabizi", "aday sarafet hal fatra?", "CLARIFY: x"), spec, load_catalogue(), random.Random(0))
     assert reply.reply == "CLARIFY: azdak mn emta la emta?"
+
+
+def test_monthly_bills_are_never_asked_about_as_visits_times_or_units(train_plan):  # the user's review, 2026-11-15
+    from research.dataset.batch3 import MONTHLY_BILLS, MONTHLY_KINDS, load_batch3_catalogue
+
+    catalogue = load_batch3_catalogue()
+    kinds = {shop.name: shop.kind for shop in catalogue.shops}
+    for spec in (s for found in train_plan.values() for s in found):
+        if spec.template == "T8":
+            assert kinds[spec.labels["shop"]] not in MONTHLY_KINDS
+        if spec.template in ("T14", "T15"):
+            assert spec.labels["item"] not in MONTHLY_BILLS
