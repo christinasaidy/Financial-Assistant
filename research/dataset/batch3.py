@@ -190,9 +190,14 @@ def _price_basis(data: UserData, item: str) -> tuple[str, str, str]:
     return t.UNIT_PRICE, "", ""
 
 
+# Bills and recharges have no price that changes or a usual monthly amount worth asking about.
+NOT_PRICED = frozenset({"electricity bill", "generator subscription", "internet", "streaming subscription",
+                                           "music subscription", "gym membership", "phone recharge"})
+
+
 def b4_price_change(data: UserData, rng: random.Random) -> Spec | None:
     candidates = []
-    for item in data.items:
+    for item in (i for i in data.items if i not in NOT_PRICED):
         price, condition, _ = _price_basis(data, item)
         unit = condition.split("'")[1] if condition else None
         if sum(1 for _, line in data.lines if line.item == item and (unit is None or line.size_unit == unit)) >= 2:
@@ -219,7 +224,7 @@ def b4_price_change(data: UserData, rng: random.Random) -> Spec | None:
 def b5_average_this_month_vs_last(data: UserData, rng: random.Random) -> Spec | None:
     two = Period("this_and_last_month", "", periods.last_month(data.today).start, periods.this_month(data.today).end,
                  "", ())  # fmt: skip
-    candidates = _bought_items(data, two, least=2)
+    candidates = [i for i in _bought_items(data, two, least=2) if i not in NOT_PRICED]
     if not candidates:
         return None
     item = rng.choice(candidates)
@@ -233,7 +238,8 @@ def b5_average_this_month_vs_last(data: UserData, rng: random.Random) -> Spec | 
 
 
 def b6_since_when(data: UserData, rng: random.Random) -> Spec | None:
-    item = rng.choice(data.items) if data.items else None
+    items = [i for i in data.items if i not in NOT_PRICED]
+    item = rng.choice(items) if items else None
     if item is None:
         return None
     shops = sorted({r.shop for r, line in data.lines if line.item == item})
@@ -251,8 +257,8 @@ def b7_usual_per_month(data: UserData, rng: random.Random, money: bool) -> Spec 
                     "AND receipt_date < date_trunc('month', CURRENT_DATE)",
                     periods._months_before(periods.this_month(data.today).start, 3), periods.this_month(data.today).start,
                     "", ())  # fmt: skip
-    pool = [n for n in _bought_items(data, months) if money or not (data.catalogue.item(n).weight_g
-                                                                    or data.catalogue.item(n).litres)]
+    pool = [n for n in _bought_items(data, months) if n not in NOT_PRICED and (money or not (data.catalogue.item(n).weight_g
+                                                                    or data.catalogue.item(n).litres))]
     if not pool:
         return None
     item = rng.choice(pool)

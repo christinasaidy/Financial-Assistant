@@ -137,3 +137,10 @@ def test_monthly_bills_are_never_asked_about_as_visits_times_or_units(train_plan
             assert kinds[spec.labels["shop"]] not in MONTHLY_KINDS
         if spec.template in ("T14", "T15"):
             assert spec.labels["item"] not in MONTHLY_BILLS
+
+
+def test_bills_and_recharges_are_never_priced_or_counted_as_usual(train_plan):  # the user's review, 2026-11-15
+    from research.dataset.batch3 import NOT_PRICED
+
+    for spec in (s for found in train_plan.values() for s in found if s.template in ("B4", "B5", "B6", "B7")):
+        assert spec.labels["item"] not in NOT_PRICED
