@@ -18,7 +18,8 @@
     "noodles": ["noodle"],
     "cat litter": ["raml el bese"],
     "fries": ["french fries"],
-    "candles": ["shame3"]
+    "candles": ["shame3"],
+    "perfume": ["parfume", "3otr"]
   },
   "item_brands": {
     "shampoo": ["dove"]
