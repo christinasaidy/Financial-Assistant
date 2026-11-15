@@ -58,12 +58,15 @@ Rules:
 - A kind of product that is not one of the user's categories (clothes, electronics, medicine, cleaning products,
   snacks): filter item_name IN the user's items of that kind, e.g. item_name IN ('t-shirt', 'socks'). Use
   category = '<name>' only for one of the user's own categories.
+- A kind of shop: restaurants are the vendors of Dining spending, supermarkets of Groceries spending; use
+  category_spending, e.g. COUNT(DISTINCT receipt_id) ... WHERE category = 'Dining'.
 - Filter on brand = '<brand>' only when the user names a brand.
 - For dates relative to today use CURRENT_DATE, for example this month:
   receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
   "Last week" is the previous Monday to Sunday:
   receipt_date >= date_trunc('week', CURRENT_DATE) - INTERVAL '1 week' AND receipt_date < date_trunc('week', CURRENT_DATE)
   "Today": receipt_date = CURRENT_DATE. "Yesterday": receipt_date = CURRENT_DATE - 1.
+  "The day before yesterday": receipt_date = CURRENT_DATE - 2.
   "This week" is this Monday to Sunday:
   receipt_date >= date_trunc('week', CURRENT_DATE) AND receipt_date < date_trunc('week', CURRENT_DATE) + INTERVAL '1 week'
   "The last N days" is today and the N-1 days before it; "the last N weeks" is the last N*7 days, e.g. the last 7 days:
@@ -76,14 +79,20 @@ Rules:
   The same for a weekday ("on Monday": the most recent Monday up to today), the weekend (Saturday and Sunday: this one
   if today is Saturday or Sunday, otherwise the last one) and summer (June to August). A range includes its first and
   last day: "1 to 15 October" is receipt_date >= '2026-10-01' AND receipt_date < '2026-10-16'.
+  "Since <a weekday>" (and "<weekday> el madi") is the most recent such day before today, never today (asked
+  on a Tuesday, "since Tuesday" starts last week's Tuesday), up to today: receipt_date >= '<that date>'.
+  "Since yesterday": receipt_date >= CURRENT_DATE - 1.
   Never use now() or CURRENT_TIMESTAMP.
 - In Arabizi, "jem3a" alone is a week ("hal jem3a" this week, "el jem3a li mar2it" last week); "nhar el jem3a" is
   Friday. "Kanoun el awal" is December and "kanoun el tene" January. Reply CLARIFY for "kanoun" alone, a semester, or
   "the start of the year" (bi awal el sene) without "since".
+  Reply CLARIFY for "lately" (hal fatra) with no period.
 - To compare periods, return each period as the first day of its month: date_trunc('month', receipt_date) AS month,
   and GROUP BY it.
 - Counting: "how many times", "how often" and "how many visits" count receipts: COUNT(DISTINCT receipt_id).
   "How many <items> did I buy" adds up the quantity: SUM(quantity). "How many receipts" counts receipts.
+- "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I spent
+  most at" adds up money.
 - For amounts, GROUP BY currency and return both the amount and its USD value, e.g.
   SELECT currency, SUM(amount) AS total_spent, SUM(amount_usd) AS total_spent_usd ... GROUP BY currency.
   If the user asks for dollars ("bel dollar"), return only the USD value.
@@ -95,6 +104,17 @@ Rules:
 - "How many kilos / litres" is SUM(quantity * size_amount) FILTER (WHERE size_unit = 'g') / 1000 (or 'ml'); pieces
   are SUM(quantity * size_amount) FILTER (WHERE size_unit = 'pcs'), and a dozen is 12 pieces. Lines with no size
   are left out; also return COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size.
+- "List what I bought / spent": the purchases, with receipt_date, vendor, item_name, currency and line_total, by
+  date.
+- The cheapest or priciest shop for an item, with no shops named: compare every shop it was bought at (the same
+  per-size rules), cheapest first.
+- "For the same brand" at two shops: group by brand and vendor, keeping only brands bought at both.
+- A price change ("did the price go up, by how much, in percent"): the latest purchase against the one before
+  it, per kilo or litre when it has a size in g or ml, otherwise by unit price; return both prices, their dates
+  and the percent change. "The average price went down" compares this month's average with last month's.
+- "Since when have I been buying X": the first purchase's date, and how many times since.
+- "How much / how many do I usually buy a month": the last 3 complete months added up and divided by 3 (months
+  with none count as 0).
 - Compute every difference, percentage or average in the query itself.
 - Use earlier questions in the chat to fill in what a follow-up leaves out ("and last month?"), but never reuse
   numbers from earlier answers."""

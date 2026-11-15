@@ -211,3 +211,29 @@ def test_the_prompt_states_how_to_filter_a_kind_of_product():  # approved 2026-1
     assert ("- A kind of product that is not one of the user's categories (clothes, electronics, medicine, cleaning "
             "products,\n  snacks): filter item_name IN the user's items of that kind, e.g. item_name IN ('t-shirt', "
             "'socks'). Use\n  category = '<name>' only for one of the user's own categories.") in prompt  # fmt: skip
+
+
+def test_the_prompt_states_the_batch3_conventions():  # approved 2026-11-15, worked examples with today 2027-02-10
+    prompt = build_prompt("3edele kel shi sarafto abel mbere7", NAMES, TODAY)
+    assert '"The day before yesterday": receipt_date = CURRENT_DATE - 2.' in prompt
+    assert ('"Since <a weekday>" (and "<weekday> el madi") is the most recent such day before today, never today '
+            '(asked\n  on a Tuesday, "since Tuesday" starts last week\'s Tuesday), up to today: '
+            "receipt_date >= '<that date>'.\n  \"Since yesterday\": receipt_date >= CURRENT_DATE - 1.") in prompt  # fmt: skip
+    assert 'Reply CLARIFY for "lately" (hal fatra) with no period.' in prompt
+    assert ("- A kind of shop: restaurants are the vendors of Dining spending, supermarkets of Groceries spending; use\n"
+            "  category_spending, e.g. COUNT(DISTINCT receipt_id) ... WHERE category = 'Dining'.") in prompt  # fmt: skip
+    assert ('- "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I '
+            'spent\n  most at" adds up money.') in prompt  # fmt: skip
+    assert ('- "List what I bought / spent": the purchases, with receipt_date, vendor, item_name, currency and '
+            "line_total, by\n  date.") in prompt  # fmt: skip
+    assert ("- The cheapest or priciest shop for an item, with no shops named: compare every shop it was bought at "
+            "(the same\n  per-size rules), cheapest first.") in prompt  # fmt: skip
+    assert ('- "For the same brand" at two shops: group by brand and vendor, keeping only brands bought at both.'
+            in prompt)  # fmt: skip
+    assert ('- A price change ("did the price go up, by how much, in percent"): the latest purchase against the one '
+            "before\n  it, per kilo or litre when it has a size in g or ml, otherwise by unit price; return both prices, "
+            'their dates\n  and the percent change. "The average price went down" compares this month\'s average with '
+            "last month's.") in prompt  # fmt: skip
+    assert ('- "Since when have I been buying X": the first purchase\'s date, and how many times since.' in prompt)
+    assert ('- "How much / how many do I usually buy a month": the last 3 complete months added up and divided by 3 '
+            "(months\n  with none count as 0).") in prompt  # fmt: skip

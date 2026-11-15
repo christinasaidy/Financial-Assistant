@@ -446,15 +446,15 @@ UNIT_PRICE = "COALESCE(unit_price, line_total / quantity)"
 
 def post_receipt(client, headers, day, vendor, total, lines=(), category="Groceries", currency="USD"):
     """A confirmed receipt (USD Groceries unless given); `lines` are (name, size, unit, quantity, unit_price,
-    line_total)."""
+    line_total[, brand])."""
     category_id = next(c["id"] for c in client.get("/categories", headers=headers).json() if c["name"] == category)
     body = {
         "vendor_name": vendor, "receipt_date": day, "currency": currency, "total": total,
         "primary_category_id": category_id, "lbp_per_usd": "89500",
         "lines": [
             {"description": name.upper(), "normalized_name": name, "size_amount": size, "size_unit": unit,
-             "quantity": quantity, "unit_price": price, "line_total": line_total}
-            for name, size, unit, quantity, price, line_total in lines
+             "quantity": quantity, "unit_price": price, "line_total": line_total, "brand": brand[0] if brand else None}
+            for name, size, unit, quantity, price, line_total, *brand in lines
         ],
     }  # fmt: skip
     response = client.post("/receipts/manual", json=body, headers=headers)
