@@ -302,6 +302,30 @@ considered, so the reasoning can be explained later.
 - **Consequences:** Candidates must stay clear of Claude's coral (dark-mode brick is kept redder and greyer, hue
   about 6-9) and of golden amber (dark-mode ochre kept at hue 40-41 and greyer). Every candidate passes AA.
 
+## D022: Final colours: the first pen blue palette, with a calm rose-red for "limit reached" in dark mode
+
+- **Status:** Accepted, 2026-11-15. Supersedes the colour values of D019, D020 and D021 (their exploration is kept
+  above as history).
+- **Context:** After three rounds Christina chose ("khalas") the very first pen blue screen (colour study round 1,
+  option 3), changing only "limit reached" in dark mode: its salmon (#ff8a7a, hue 7) was close to Claude's coral.
+- **Decision:** (contrast against the paper of the same theme; bars against their track)
+
+  | Token | Light | Dark | Contrast light / dark |
+  |---|---|---|---|
+  | paper | #f3f4f1 | #17181b | |
+  | ink | #1c1d21 | #e6e6e1 | 15.3 / 14.2 |
+  | ink-2 (grey text) | #575a60 | #a2a4a8 | 6.3 / 7.1 |
+  | rule | #c3c6c2 | #3a3c40 | |
+  | track (bar background) | #dfe1dd | #2a2c30 | |
+  | pen blue (accent) | #2443a8 | #9db0ff | 7.8 / 8.5; button text 7.8 / 8.5 |
+  | near limit | #8a5a00 | #e0a43a | 5.4 / 8.1; bar 4.5 / 6.4 |
+  | limit reached | #b0241b | #d9737b | 6.1 / 5.7; bar 5.1 / 4.5 |
+
+  Dark "limit reached" #d9737b is a muted rose-red (hue 355), on the other side of red from coral (hue 15).
+  Fine budgets are ink (D021). Budget bars are plain, not roughed up (D020).
+- **Consequences:** D011's printed-look floor rechecked on these colours: large ink at 52% gives 3.4:1 light and
+  4.7:1 dark (needs 3:1). Small text never fades. Amber "near limit" text in light mode cannot fade at all (D009).
+
 ---
 
 ## Open (not decided)

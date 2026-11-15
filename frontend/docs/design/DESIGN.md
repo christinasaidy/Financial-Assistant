@@ -4,6 +4,24 @@ name: Fatourati
 description: A receipt-first expense tracker for Lebanon. Scan receipts, track spending in USD and LBP, ask questions in English or Arabizi.
 # Tokens (colors, typography, rounded, spacing, components) are added here as each one is decided.
 # Every token needs a matching entry in DECISIONS.md.
+# Colours (D022). The format has no themes, so each dark value is its own token with a -dark suffix.
+colors:
+  primary: "#2443a8"        # pen blue: main button, links, things the user can change
+  primary-dark: "#9db0ff"
+  paper: "#f3f4f1"          # thermal paper (background)
+  paper-dark: "#17181b"
+  ink: "#1c1d21"            # text and fine budgets
+  ink-dark: "#e6e6e1"
+  ink-2: "#575a60"          # grey text: dates, labels, captions
+  ink-2-dark: "#a2a4a8"
+  rule: "#c3c6c2"           # dividers
+  rule-dark: "#3a3c40"
+  track: "#dfe1dd"          # empty part of a budget bar
+  track-dark: "#2a2c30"
+  near-limit: "#8a5a00"     # budget at 80% or more
+  near-limit-dark: "#e0a43a"
+  limit-reached: "#b0241b"  # budget at 100% or more
+  limit-reached-dark: "#d9737b"
 typography:
   body:            # D006, D013: sentences
     fontFamily: DejaVu Sans
@@ -93,7 +111,22 @@ fading has a floor, no dropouts. See D009.
 
 ## Colors
 
-Not decided yet.
+**Paper and ink** (D016, D017, D022). Light mode is thermal paper (#f3f4f1) with near-black ink (#1c1d21); dark
+mode is dark paper (#17181b) with light ink (#e6e6e1). Grey ink is for secondary text only.
+
+**Pen blue** (D018, D020) is the only accent: the main button (paper-coloured text on blue) and links, and things
+the user can change.
+
+**Budgets** (D021, D022). A fine budget is plain ink: colour appears only when something needs attention. Near the
+limit (80% or more) is ochre-amber; at the limit (100% or more) is a calm red, a muted rose-red in dark mode. The
+state is always also written in words ("NEAR LIMIT · 88%", "LIMIT REACHED · 107%"), so colour is never the only
+signal (WCAG 1.4.1). Bars are plain.
+
+**Never** (D019, anti-AI-slop skill): gradients, the Claude look (warm charcoal, cream text, coral or terracotta),
+blood-bright reds.
+
+Every text colour passes WCAG 2.2 AA on its paper in both themes; bars pass 3:1 against their track. Values and
+contrast ratios: front matter and D022.
 
 ## Typography
 
