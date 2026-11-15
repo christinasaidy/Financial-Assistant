@@ -19,7 +19,9 @@
     "cat litter": ["raml el bese"],
     "fries": ["french fries"],
     "candles": ["shame3"],
-    "perfume": ["parfume", "3otr"]
+    "perfume": ["parfume", "3otr"],
+    "cake": ["gateux"],
+    "bananas": ["mawz"]
   },
   "item_brands": {
     "shampoo": ["dove"]
