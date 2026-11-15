@@ -1,0 +1,217 @@
+# Design decisions
+
+One entry per design decision, numbered in the order made. Entries are not rewritten: if a decision changes, a new
+entry replaces it and the old one is marked **Superseded by Dxxx**. The current values live in
+[DESIGN.md](DESIGN.md).
+
+Each entry follows Michael Nygard's decision record (status, context, decision, consequences), plus the options
+considered, so the reasoning can be explained later.
+
+---
+
+## D001: The app is called Fatourati
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** The app needs a name for the interface, the icon and the report.
+- **Decision:** Fatourati (فاتورتي, "my receipt").
+- **Consequences:** The name points the visual direction at receipts (D002).
+
+## D002: The design feels like a receipt
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** Scope v2 suggested a modern banking-app look (inspired by Revolut). The name is about receipts, and
+  receipts are the app's core object.
+- **Options considered:** banking-app look (scope v2); receipt look.
+- **Decision:** The overall feel is a printed receipt. How far each element follows it is decided one element at a
+  time (fonts first).
+- **Consequences:** Replaces the banking-app direction of scope v2 as the main theme. Whether some of its layout
+  patterns stay (one large number per screen, slide-up sheets, bottom tabs) is still open.
+
+## D003: Light and dark themes
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** Phones switch between light and dark.
+- **Decision:** Both themes are designed. Every color is defined for both.
+- **Consequences:** Each color decision needs a light and a dark value, checked for contrast on both. The DESIGN.md
+  format has no built-in themes, so how dark values are written there is decided with the colors.
+
+## D004: Designed and tested on an iPhone with Expo Go
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** Scope v2 said Android first. The phone available for testing is an iPhone, and development is on
+  Windows (no Mac).
+- **Decision:** React Native with Expo, run on the iPhone through Expo Go.
+- **Consequences:** Only libraries that work in Expo Go, unless agreed otherwise. Push notifications on iOS need a
+  custom build and a paid Apple developer account, so they are optional. In-app notifications are not affected.
+  The iPhone's system font (San Francisco) is the default unless a custom font is chosen.
+
+## D005: How the design system is recorded
+
+- **Status:** Proposed, 2026-11-15
+- **Context:** Design decisions must be recorded in the codebase, in `frontend/docs/design/`, in a recognised
+  structure.
+- **Options considered:**
+  1. One `DESIGN.md` in Google's format (YAML tokens + Markdown sections in a fixed order). Readable by people and
+     coding tools, can be linted and exported to design-token JSON. Format is `alpha` and has no themes.
+  2. Design tokens as JSON in the W3C Design Tokens format (stable since 2025.10, themes through its Resolver
+     Module), with separate docs. A real standard, but JSON is hard to read and needs a build tool to reach React
+     Native.
+  3. A folder per topic (foundations, components, patterns), as large design systems do. Scales well, but many
+     files for a one-person project.
+- **Decision:** Option 1 for the current values, plus this file for the reasons. Option 2 stays reachable: the
+  DESIGN.md tool can export to that format.
+- **Consequences:** Two files to keep in step: a new token in DESIGN.md needs an entry here. The app's theme code
+  must match DESIGN.md (how that is checked is decided when the code exists).
+
+## D006: The font family is DejaVu
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** The app should feel like a receipt (D002). Christina suggested DejaVu because it resembles receipt
+  print.
+- **Facts checked** (official release 2.37, July 2016, the latest; its `unicover.txt`, `langcover.txt` and
+  `LICENSE`):
+  - Members: DejaVu Sans (ExtraLight, Book, Bold, each with Oblique; plus Condensed), DejaVu Sans Mono (Book and
+    Bold only, with Oblique), DejaVu Serif.
+  - Arabic (receipt lines like Zaatar w Zeit's): Sans and Sans Mono have all 36 basic Arabic letters (Arabic block:
+    Sans 165/255, Sans Mono 99/255); **Serif has no Arabic at all**.
+  - License: Bitstream Vera license, DejaVu changes public domain. Free to bundle in an app; the license text must
+    ship with the font; a modified font must be renamed (no "Bitstream" or "Vera" in the name); the font may not be
+    sold on its own. A logo drawn from the letters is artwork, not a modified font.
+  - Size: about 340 KB per file. Not on Google Fonts; the TTF files are bundled in the app and loaded with
+    `expo-font`, which works in Expo Go.
+- **Options considered:** DejaVu (Christina); real thermal-printer display fonts (Merchant Copy, Receiptional
+  Receipt: very close to a printer, but display-only and poor for long text); the iPhone system font (proposed
+  earlier, before the receipt direction).
+- **Options for using it** (shown in the font specimen): A Sans Mono everywhere; B Sans Mono for the receipt
+  parts, Sans for sentences; C Sans everywhere, Mono only for numbers.
+- **Decision:** Option B.
+  - **DejaVu Sans Mono** (Book, Bold): amounts, labels, receipt lines, shop names, totals, the "Looked at" line.
+  - **DejaVu Sans** (Book, Bold): running text, such as assistant answers, explanations, questions typed by the user.
+  - Not used: DejaVu Serif (no Arabic), ExtraLight, Condensed.
+  - **Arabic** text uses DejaVu's own Arabic letters (Sans Mono in receipt lines, Sans in sentences), not the
+    iPhone's Arabic font. Sans Mono forces every Arabic letter to the same width; Christina accepted that. To be
+    confirmed on the iPhone, because the browser specimen draws Arabic differently.
+- **Consequences:** Sans Mono has only two weights, so hierarchy comes from size, capitals (D012) and spacing. The
+  TTF files and the DejaVu LICENSE ship inside the app.
+
+## D007: No AI-default gradients
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** Most AI-built apps default to blue-to-purple gradients; Christina does not want the app to look like
+  them.
+- **Decision:** No gradients unless one is explicitly decided later. Enforced by the project skill
+  `.claude/skills/anti-ai-slop`.
+- **Consequences:** Depth and emphasis come from type, rules, color blocks and spacing instead.
+
+## D008: Our own icons, drawn in Figma; no icon library
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** Library icons (Lucide in particular) are a common sign of a generated app.
+- **Decision:** Christina draws the icons in Figma; 5-6 to start. They reach the code through the Figma MCP. No
+  Lucide or other icon library, not even as placeholders.
+- **Consequences:** Each screen waits for its icons or uses a marked placeholder box. Which 5-6 icons come first,
+  their grid size, stroke and export format (SVG through `react-native-svg`, which works in Expo Go) are to be
+  decided.
+
+## D009: All text meets WCAG 2.2 AA, including the printed look
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** In the first roughed-up variants the medium fade made the grey date "12/11/2026" hard to read.
+  Christina wants the receipt feel without excluding people with weaker sight.
+- **Decision:** Every piece of text passes WCAG 2.2 AA contrast (1.4.3): 4.5:1 for normal text, 3:1 for large
+  text (24 px, or about 18.5 px bold). For roughed-up text the test is the faintest ink inside a letter (anti-aliased
+  edges ignored, as WCAG says). Consequences for the printed look:
+  - grey (secondary) text is never faded: at 6.6:1 it fails once it fades below 85% opacity;
+  - fading, if used, has a floor: 75% opacity for small text, 62% for large (worst case 7.4:1 / 4.8:1 in light and
+    8.2:1 / 6.1:1 in dark on the placeholder colours);
+  - no dropouts (specks that cut letters);
+  - edge roughness stays under about 1 px at small sizes so 1/7, 3/8, 0/6 stay distinct (judged by eye; WCAG has
+    no number for letter shape).
+- **Options considered:** printed strengths light / medium / heavy (medium and heavy fail); E "solid ink" (rough,
+  bled edges, no fading: same contrast as clean text); F "fade with a floor"; G "rougher" (asked for after F:
+  streaks and specks that fade only down to the floor, floors 64% small / 52% large, worst case 5.1:1 / 3.5:1 light
+  and 6.4:1 / 4.7:1 dark; the 52% floor is allowed only for large text).
+- **Consequences:** Every color decision is checked for contrast in both themes, including faded ink at its floor.
+  The floors are recomputed when real colours are chosen. Which of E or F is used is still open.
+
+## D010: The wordmark and the launch screen use the medium printed look
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** The medium printed look (ragged edges + patchy fading with no floor) fails D009 for ordinary text,
+  but it carries the receipt feel best. WCAG 2.2 (Understanding 1.4.3) exempts logotypes: "Text that is part of a
+  logo or brand name has no contrast requirement."
+- **Options considered:** medium on the wordmark only; medium also on in-app waiting states (receipt being read,
+  assistant thinking). In-app waiting states show status text that must pass AA, so they were left out.
+- **Decision:** The "Fatourati" wordmark uses the medium printed look, and it is what the iOS launch screen shows.
+  Conditions:
+  1. the exception covers the wordmark only: any other text near it follows D009;
+  2. it is fixed artwork made once in Figma (the same fade every time), shipped as an image (SVG or PNG); the launch
+     screen is a static image in Expo anyway;
+  3. the image carries the accessible label "Fatourati" so VoiceOver reads the name;
+  4. two versions: medium for large placements (launch screen, onboarding) and a lighter one for small placements
+     (about 18-20 px, e.g. a header), so the name stays recognisable.
+- **Consequences:** Christina draws the wordmark in Figma (with the icons). The launch screen's background colour
+  is decided with the colours. Which typeface the wordmark is drawn from (DejaVu Sans Mono Bold in the specimen) is
+  part of that artwork.
+
+## D011: The printed look by text size
+
+- **Status:** Accepted, 2026-11-15 (grey text: "for now")
+- **Context:** D009 allows roughed-up text only within AA. The specimen offered E (solid ink), F (fade with a
+  floor) and G (rougher).
+- **Decision:**
+  - **Large Mono text** (24 px and up, or 18.5 px and up in bold; e.g. the month's total): **G**, ragged edges
+    (~3 px), slight bleed, patchy fading, print-head streaks and specks, never below 52% opacity.
+  - **Small Mono text** (receipt lines, shop names, amounts in lists): **E**, ragged edges under ~1 px and a slight
+    bleed; the ink never fades.
+  - **Grey text** (dates, labels, the "Looked at" line): E's edges only, never faded. Kept "for now"; may become clean.
+  - **Sans text** (sentences): clean, no printed look.
+  - The wordmark is separate (D010).
+- **Options considered:** strengths light / medium / heavy (fail AA), E, F, G, and a mix by size.
+- **Consequences:** G runs close to the AA line (3.5:1 light, 4.7:1 dark on the placeholder colours), so it is only
+  allowed on text styles big enough to count as large, and its floor is recomputed when the colours are chosen. How
+  the look is built in React Native (no filters there) is still open: a roughed copy of the font renamed e.g.
+  "Fatourati Print", Figma artwork for fixed text, or a texture over the text. Live numbers like the total change, so
+  they cannot be artwork.
+
+## D012: Receipt-style capitals
+
+- **Status:** Accepted, 2026-11-15
+- **Decision:** Labels (e.g. THIS MONTH), shop names and the TOTAL line are shown in capitals, as receipts print
+  them. Receipt lines keep the text exactly as printed on the receipt. Sentences keep normal case.
+- **Consequences:** Capitals are applied with `textTransform: 'uppercase'`, never by storing or typing capitalised
+  text, so VoiceOver reads normal words instead of spelling out letters.
+
+## D013: Base text size 15 px, following the iPhone's text-size setting
+
+- **Status:** Accepted, 2026-11-15
+- **Options considered:** 15 px (39 Mono characters per line on an iPhone) or 14 px (42, closer to an 80 mm
+  receipt). iOS's own body text is 17.
+- **Decision:** Base size 15 px. Text grows and shrinks with the iPhone's text-size setting (Dynamic Type).
+- **Consequences:** With larger text settings a line holds fewer Mono characters, so receipt rows must wrap: the item
+  name wraps, the price stays on the right. The full type scale (sizes for each text role) is the next decision.
+
+---
+
+## Open (not decided)
+
+From Christina, to discuss later:
+- **Icon alignment.** Her reference: in Revolut the icon's size matches the height of the first character of the
+  text next to it, and the margins and padding around it are deliberate. To decide: what the icon lines up with
+  (cap height, x-height, line height), icon box vs. drawn glyph, the gap to the text. Ask before the first icon is
+  placed.
+- **Printed look for the rest of the app** (the wordmark is settled by D010). Christina asked to see the type itself roughed up like receipt print (specimen option D and three
+  strengths: light = ragged edges, medium = + patchy fading, heavy = + dropouts). To decide: which strength, on
+  what (wordmark only, big numbers, all Mono text), and how it is built in React Native, which has no filters
+  (a roughed copy of the font renamed e.g. "Fatourati Print", Figma artwork, or a grain texture over text).
+- **Which 5-6 icons first.**
+
+- **Type scale:** the size, weight, line height and letter spacing for each text role (next).
+- **Arabic on the iPhone:** confirm DejaVu's Arabic looks acceptable on the phone (D006).
+
+Proposed earlier, still to discuss:
+- Interface language: English screens, Arabizi in the assistant only (proposed).
+- Accent color: deep teal, ink blue or terracotta were proposed before the receipt direction; to revisit.
+- Tab bar: Home · Receipts · (Scan) · Budgets · Assistant (proposed).
+- Money on screen: `$6.60`, `450,000 LBP`, a combined total always labelled (proposed).
+- Theme switch: follow the phone, with an override in settings (proposed).
