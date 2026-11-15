@@ -12,7 +12,12 @@
     "cigarettes": ["dekhan", "dekhkhan"],
     "hangers": ["3ela2at"],
     "car wash": ["ghasil el sayara"],
-    "dishwashing liquid": ["sabon el jale", "dawa el jale", "savon el jale"]
+    "dishwashing liquid": ["sabon el jale", "dawa el jale", "savon el jale"],
+    "walnuts": ["jawz", "joz"],
+    "iced tea": ["iced tea"],
+    "noodles": ["noodle"],
+    "cat litter": ["raml el bese"],
+    "fries": ["batata", "french fries"]
   },
   "item_brands": {
     "shampoo": ["dove"]
