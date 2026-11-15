@@ -13,10 +13,59 @@ typography:
     fontFamily: DejaVu Sans Mono
     fontSize: 15px
     fontWeight: 400
-# The remaining levels (sizes, line heights, letter spacing) come with the type scale.
+# Type scale "Balanced" (D014). Sizes in px; all follow the iPhone's text-size setting.
+  total-hero:      # month total; printed look G
+    fontFamily: DejaVu Sans Mono
+    fontSize: 36px
+    fontWeight: 700
+    lineHeight: 38px
+  screen-title:    # font and case still open
+    fontFamily: DejaVu Sans Mono
+    fontSize: 22px
+    fontWeight: 700
+    lineHeight: 26px
+  shop-name:       # capitals; printed look E
+    fontFamily: DejaVu Sans Mono
+    fontSize: 16px
+    fontWeight: 700
+    lineHeight: 21px
+  total-line:      # capitals; printed look E
+    fontFamily: DejaVu Sans Mono
+    fontSize: 16px
+    fontWeight: 700
+    lineHeight: 21px
+  receipt-line:    # printed look E
+    fontFamily: DejaVu Sans Mono
+    fontSize: 15px
+    fontWeight: 400
+    lineHeight: 20px
+  sentence:
+    fontFamily: DejaVu Sans
+    fontSize: 15px
+    fontWeight: 400
+    lineHeight: 22px
+  meta:            # dates; grey
+    fontFamily: DejaVu Sans Mono
+    fontSize: 13px
+    fontWeight: 400
+    lineHeight: 18px
+  section-label:   # capitals; grey
+    fontFamily: DejaVu Sans Mono
+    fontSize: 12px
+    fontWeight: 400
+    lineHeight: 16px
+    letterSpacing: 0.08em
+  caption:         # "Looked at"; grey
+    fontFamily: DejaVu Sans Mono
+    fontSize: 12px
+    fontWeight: 400
+    lineHeight: 16px
 ---
 
 # Fatourati design system
+
+Figma file (icons, wordmark, design work):
+[Fatourati design system](https://www.figma.com/design/yH3BO0dprC2nmaKwBdbiDw/Fatourati-design-system).
 
 This file follows the [DESIGN.md format](https://github.com/google-labs-code/design.md) (Google Labs, version
 `alpha`): exact values (tokens) go in the YAML front matter above, and the explanation of how to use them goes in the
@@ -54,8 +103,10 @@ Not decided yet.
 - **DejaVu Sans**, Book and Bold: sentences, such as assistant answers, explanations and the user's own questions.
 - Arabic text uses DejaVu's own Arabic letters, in whichever of the two the text sits in.
 
-**Size** (D013). Base 15 px. All text follows the iPhone's text-size setting; layouts wrap instead of cutting text
-(a receipt row wraps the item name and keeps the price on the right). The full scale is not decided yet.
+**Size** (D013, D014). Base 15 px, scale "Balanced" (steps of x1.2): month total 36, screen title 22, shop name
+and TOTAL line 16, receipt lines and sentences 15, dates 13, section labels and captions 12 (the smallest size).
+Exact values in the front matter. All text follows the iPhone's text-size setting; layouts wrap instead of cutting
+text (a receipt row wraps the item name and keeps the price on the right).
 
 **Case** (D012). Labels, shop names and the TOTAL line in capitals, applied as a style, never typed in capitals.
 Receipt lines exactly as printed. Sentences in normal case.

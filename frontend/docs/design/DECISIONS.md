@@ -191,6 +191,28 @@ considered, so the reasoning can be explained later.
 - **Consequences:** With larger text settings a line holds fewer Mono characters, so receipt rows must wrap: the item
   name wraps, the price stays on the right. The full type scale (sizes for each text role) is the next decision.
 
+## D014: Type scale "Balanced" (steps of x1.2 from 15 px)
+
+- **Status:** Accepted, 2026-11-15
+- **Options considered** (font specimen): Compact x1.125 (total 30, title 19); Balanced x1.2 (total 36, title
+  22); Strong x1.333 (total 48, title 27). Small text has a 12 px floor in all three (iOS's smallest is 11).
+- **Decision:** Balanced, in px (size / line height):
+
+  | Role | Font | Size |
+  |---|---|---|
+  | Month total | Mono Bold, printed look G | 36 / 38 |
+  | Screen title | Mono Bold (font and case still open) | 22 / 26 |
+  | Shop name | Mono Bold, caps, E | 16 / 21 |
+  | TOTAL line | Mono Bold, caps, E | 16 / 21 |
+  | Receipt line | Mono, E | 15 / 20 |
+  | Sentence | Sans | 15 / 22 |
+  | Date, meta | Mono, grey | 13 / 18 |
+  | Section label | Mono, caps, grey, letter spacing +8% | 12 / 16 |
+  | Caption ("Looked at") | Mono, grey | 12 / 16 |
+
+- **Consequences:** All sizes grow with the iPhone's text-size setting (D013). The 36 px total is large text, so
+  G's 52% floor applies (D011). Roles not listed (buttons, inputs, tab bar, badges) are sized with their components.
+
 ---
 
 ## Open (not decided)
@@ -206,7 +228,8 @@ From Christina, to discuss later:
   (a roughed copy of the font renamed e.g. "Fatourati Print", Figma artwork, or a grain texture over text).
 - **Which 5-6 icons first.**
 
-- **Type scale:** the size, weight, line height and letter spacing for each text role (next).
+- **Screen titles:** Mono or Sans, capitals or not (D014 shows Mono Bold, normal case).
+- **Section labels at 12 px:** readable enough on the phone, or 13?
 - **Arabic on the iPhone:** confirm DejaVu's Arabic looks acceptable on the phone (D006).
 
 Proposed earlier, still to discuss:
