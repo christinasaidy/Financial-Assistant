@@ -115,17 +115,20 @@ def make_users(catalogue: Catalogue, count: int = USER_COUNT) -> list[SyntheticU
     return [make_user(catalogue, number) for number in range(1, count + 1)]
 
 
-def make_user(catalogue: Catalogue, number: int) -> SyntheticUser:
-    return _Planner(catalogue, number).user()
+def make_user(catalogue: Catalogue, number: int, today: date | None = None) -> SyntheticUser:
+    """`today` is set only for the batch-3 users (2026-11-15); the random draw for it still happens, so every other
+    choice stays the same."""
+    return _Planner(catalogue, number, today).user()
 
 
 class _Planner:
-    def __init__(self, catalogue: Catalogue, number: int) -> None:
+    def __init__(self, catalogue: Catalogue, number: int, today: date | None = None) -> None:
         self.catalogue = catalogue
         self.number = number
         self.rng = random.Random(f"fyp-dataset/user/{number}")
         rng = self.rng
-        self.today = FIRST_TODAY + timedelta(days=round((number - 1) * 1000 / (USER_COUNT - 1)) + rng.randint(0, 25))
+        planned = FIRST_TODAY + timedelta(days=round((number - 1) * 1000 / (USER_COUNT - 1)) + rng.randint(0, 25))
+        self.today = today or planned
         self.has_car = rng.random() < 0.7
         self.has_pet = rng.random() < 0.3
         self.smokes = rng.random() < 0.3
