@@ -213,6 +213,16 @@ considered, so the reasoning can be explained later.
 - **Consequences:** All sizes grow with the iPhone's text-size setting (D013). The 36 px total is large text, so
   G's 52% floor applies (D011). Roles not listed (buttons, inputs, tab bar, badges) are sized with their components.
 
+## D015: Screen titles in Mono capitals; section labels stay at 12 px
+
+- **Status:** Accepted, 2026-11-15
+- **Context:** Left open by D014.
+- **Options considered:** screen titles in Mono or Sans, capitals or normal case; section labels at 12 or 13 px.
+- **Decision:** Screen titles ("HOME", "RECEIPTS") are DejaVu Sans Mono Bold in capitals, 22 / 26 px, letter
+  spacing as the labels' (to be confirmed with the first screen). Section labels stay at 12 px.
+- **Consequences:** Adds screen titles to the capitals of D012 (applied as a style). Every receipt-like heading is
+  now Mono capitals; only sentences are Sans.
+
 ---
 
 ## Open (not decided)
@@ -228,8 +238,7 @@ From Christina, to discuss later:
   (a roughed copy of the font renamed e.g. "Fatourati Print", Figma artwork, or a grain texture over text).
 - **Which 5-6 icons first.**
 
-- **Screen titles:** Mono or Sans, capitals or not (D014 shows Mono Bold, normal case).
-- **Section labels at 12 px:** readable enough on the phone, or 13?
+- **Letter spacing of screen titles** (D015): same +8% as the labels, or none; decide on the first screen.
 - **Arabic on the iPhone:** confirm DejaVu's Arabic looks acceptable on the phone (D006).
 
 Proposed earlier, still to discuss:

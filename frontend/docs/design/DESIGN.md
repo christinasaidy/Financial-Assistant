@@ -19,7 +19,7 @@ typography:
     fontSize: 36px
     fontWeight: 700
     lineHeight: 38px
-  screen-title:    # font and case still open
+  screen-title:    # capitals (D015)
     fontFamily: DejaVu Sans Mono
     fontSize: 22px
     fontWeight: 700
@@ -108,7 +108,7 @@ and TOTAL line 16, receipt lines and sentences 15, dates 13, section labels and 
 Exact values in the front matter. All text follows the iPhone's text-size setting; layouts wrap instead of cutting
 text (a receipt row wraps the item name and keeps the price on the right).
 
-**Case** (D012). Labels, shop names and the TOTAL line in capitals, applied as a style, never typed in capitals.
+**Case** (D012, D015). Screen titles, labels, shop names and the TOTAL line in capitals, applied as a style, never typed in capitals.
 Receipt lines exactly as printed. Sentences in normal case.
 
 **Printed look** (D011, within D009):
