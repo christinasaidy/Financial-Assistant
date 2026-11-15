@@ -472,8 +472,17 @@ def implicit_comparison(data: UserData, rng: random.Random) -> Spec | None:
 
 def percent_change(data: UserData, rng: random.Random) -> Spec:
     spec = t.t20_percent_change(data, rng)
+    words = spec.mentions[0] + ("nesbit", "nesbet")  # the user's "aday zed nesbit masroufe ..." (2026-11-15)
     return Spec(spec.template, spec.kind, spec.description + " They say it with 'bel miyye' or 'adde zed / na2as'.",
-                spec.target, spec.mentions, labels=spec.labels)
+                spec.target, (words,), labels=spec.labels)
+
+
+def no_such_items(data: UserData, rng: random.Random) -> Spec:
+    """C5 with the user's plurals (tasli7at / tosli7at, 2026-11-15) accepted; the shared template stays as it was."""
+    spec = t.c5_no_such_items(data, rng)
+    extra = ("tasli7at", "tosli7at", "tasli7 el sayara") if spec.labels.get("group") == "repairs" else ()
+    return Spec(spec.template, spec.kind, spec.description, spec.target, (spec.mentions[0] + extra,),
+                spec.reply_hint, labels=spec.labels)
 
 
 def lately(data: UserData, rng: random.Random) -> Spec:
@@ -528,7 +537,7 @@ SQL_WANTS = (
 )
 OTHER_WANTS = (
     Want(vague_reference, 26), Want(lately, 8), Want(t.c1_unknown_item, 10), Want(t.c2_unknown_shop, 8),
-    Want(t.c5_no_such_items, 5), Want(t.c6_say_again, 5), Want(t.unsupported, 30),
+    Want(no_such_items, 5), Want(t.c6_say_again, 5), Want(t.unsupported, 30),
 )
 
 
