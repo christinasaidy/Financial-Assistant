@@ -5,9 +5,11 @@ import random
 from datetime import date
 
 import pytest
+from app.infrastructure.sql.sql_guard import SqlGlotGuard
 
 from research.dataset import batch4 as b4
-from research.dataset import periods
+from research.dataset import batch4_build, periods
+from research.dataset.build import Job, UserNames
 from research.dataset.catalogue import (
     BATCH3_EXTENSION,
     BATCH4_EXTENSION,
@@ -172,3 +174,29 @@ def test_the_plan_has_the_approved_clarify_and_reply_questions(train_specs):
     assert sum(s.kind == "clarify" for s in train_specs) == 11
     assert sum(s.labels.get("period") == "bi awal el shaher" for s in train_specs) == 2
     assert sum(s.template == "C7" for s in train_specs) == 2  # a lost receipt: ask, don't refuse
+
+
+def test_every_planned_query_passes_the_apps_guard(train_specs):
+    guard = SqlGlotGuard()
+    validation = [s for specs in b4.plan(b4.VALIDATION, one_each=True).values() for s in specs]
+    for spec in (s for s in train_specs + validation if s.kind == "sql"):
+        guard.check(spec.target)
+
+
+def _job(number, spec_id, split, today, spec):
+    return Job(spec, spec_id, number, split, today, UserNames([], [], []), 0, f"prompt {spec_id}")
+
+
+def test_batch4_jobs_refuse_the_test_user_and_other_batches_ids(train_specs):
+    spec = train_specs[0]
+    batch4_build.validate_batch4_jobs([_job(42, "b4-42-0", "train", b4.TODAYS[42], spec)])
+    with pytest.raises(ValueError, match="Only the batch-4 users 42..51"):
+        batch4_build.validate_batch4_jobs([_job(31, "b4-31-0", "validation", b4.TODAYS[50], spec)])
+    with pytest.raises(ValueError, match="Only the batch-4 users"):
+        batch4_build.validate_batch4_jobs([_job(32, "b4-32-0", "train", b4.TODAYS[42], spec)])  # a batch-3 user
+    with pytest.raises(ValueError, match="Invalid batch-4 identity"):
+        batch4_build.validate_batch4_jobs([_job(42, "b3-42-0", "train", b4.TODAYS[42], spec)])
+    with pytest.raises(ValueError, match="Invalid batch-4 identity"):
+        batch4_build.validate_batch4_jobs([_job(50, "b4-50-0", "train", b4.TODAYS[50], spec)])  # a validation user
+    with pytest.raises(ValueError, match="set today"):
+        batch4_build.validate_batch4_jobs([_job(42, "b4-42-0", "train", b4.TODAYS[43], spec)])
