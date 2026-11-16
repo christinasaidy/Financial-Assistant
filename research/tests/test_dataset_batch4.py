@@ -86,7 +86,7 @@ def test_the_plan_is_deterministic_and_about_150_training_specs(train_specs):
     again = [spec for specs in b4.plan(b4.TRAIN).values() for spec in specs]
     assert [(s.template, s.target, s.description) for s in again] == [(s.template, s.target, s.description)
                                                                      for s in train_specs]  # fmt: skip
-    assert 140 <= len(train_specs) <= 170  # 161 since the brand jobs (approved 2026-11-16)
+    assert 140 <= len(train_specs) <= 180  # 161 with the brand jobs, 173 with the 12 boundary jobs (2026-11-16)
     assert sum(len(specs) for specs in b4.plan(b4.VALIDATION, one_each=True).values()) <= 30
 
 
@@ -174,7 +174,7 @@ def test_monthly_bills_and_weighed_items_are_not_counted_in_units():
 
 def test_the_plan_has_the_approved_clarify_and_reply_questions(train_specs):
     assert sum(s.kind == "reply" for s in train_specs) == 7
-    assert sum(s.kind == "clarify" for s in train_specs) == 14  # 11 + 3 "which brand is better" (2026-11-16)
+    assert sum(s.kind == "clarify" for s in train_specs) == 18  # 11 + 3 "better" + 4 asked as counts (2026-11-16)
     assert sum(s.labels.get("period") == "bi awal el shaher" for s in train_specs) == 2
     assert sum(s.template == "C7" for s in train_specs) == 2  # a lost receipt: ask, don't refuse
 
@@ -298,3 +298,18 @@ def test_a_better_brand_question_asks_back_with_the_users_line(train_specs):
     assert len(better) == 3 and all(s.kind == "clarify" and b4.BETTER_WORDS in s.mentions for s in better)
     assert _reply(better[0], "aya brand rez ahsan?") == (
         "CLARIFY: ma fie elak aya wahad ahsan, bas fie shuf aya wahad arkhas?")
+
+
+# --- more CLARIFY / UNSUPPORTED for the mix's 15% (approved 2026-11-16) ---
+
+
+def test_advice_behind_a_lead_in_is_unsupported(train_specs):
+    advice = [s for s in train_specs if s.template == "U6"]
+    assert len(advice) == 8 and all(s.kind == "unsupported" and s.target == "UNSUPPORTED" for s in advice)
+    assert len({s.labels["about"] for s in advice}) == 8  # eight different kinds, none repeated
+
+
+def test_never_bought_or_never_visited_asked_as_a_count_asks_back(train_specs):
+    counts = [s for s in train_specs if s.labels.get("asked_as") == "count"]
+    assert sorted(s.template for s in counts) == ["C1", "C1", "C2", "C2"]
+    assert all(s.kind == "clarify" and "count" in s.description for s in counts)

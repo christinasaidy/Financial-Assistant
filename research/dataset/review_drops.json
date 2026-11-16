@@ -2842,5 +2842,35 @@
   "question": "khalas, teslam 3al es2ada",
   "first": null,
   "why": "garbled or not Lebanese"
+ },
+ {
+  "first": null,
+  "why": "dropped in Christina's review; the same line after the 2026-11-16 kam/aday rewrite stays dropped",
+  "spec": "9-8",
+  "question": "aday dafa3et bi macdonalds el shahr el hadi"
+ },
+ {
+  "first": null,
+  "why": "dropped in Christina's review; the same line after the 2026-11-16 kam/aday rewrite stays dropped",
+  "spec": "10-9",
+  "question": "adde ken 7a2 el shi el 2ali"
+ },
+ {
+  "first": null,
+  "why": "dropped in Christina's review; the same line after the 2026-11-16 kam/aday rewrite stays dropped",
+  "spec": "11-21",
+  "question": "aday dafa3et el kaml mn awal el sene"
+ },
+ {
+  "first": null,
+  "why": "dropped in Christina's review; the same line after the 2026-11-16 kam/aday rewrite stays dropped",
+  "spec": "25-17",
+  "question": "aday dafa3et bi Abou Jihad el 7a2a"
+ },
+ {
+  "first": null,
+  "why": "dropped in Christina's review; the same line after the 2026-11-16 kam/aday rewrite stays dropped",
+  "spec": "26-6",
+  "question": "adesh ken el masroof el li kallefet 3aleh el 7efte el 2adi"
  }
 ]
