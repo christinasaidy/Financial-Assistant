@@ -79,9 +79,10 @@ LEAD_INS = {
                ("a lead-in saying they have BECOME obsessed with, addicted to or a regular of it (sert mahwous / "
                 "mahwouse bi, 3ende 2edmen aa, m2admin / m2ademne 3al, soret zboun / zbounet). Here sert / soret means "
                 "'I have become', NOT 'so far'")),
-    "feel": (("7eses", "hase", "hasis", "hases", "7asis", "7ases", "hasse", "7asse", "feel", "feels"),
-             ("a lead-in with a feeling (7eses hale / hase hali (f), hasis / hases hali (m) ...), e.g. 'I feel like "
-              "I live at the gas station'")),
+    "feel": (("7eses", "heses", "7esa", "hesa", "hase", "hasis", "hases", "7asis", "7ases", "hasse", "7asse", "feel",
+              "feels"),
+             ("a lead-in with a feeling: 7eses / heses hale (m), 7esa / hase / hesa (f) ..., e.g. 'I feel like I live at "
+              "the gas station' (7eses hale aayesh / 7esa hale aayshe bi X); 'hase el masari aam tekhtefe' has no hali")),
     "mom": (("emme", "mama", "mom", "mum", "mother"), "a lead-in quoting their mom (emme aletle ...)"),
     "trying": (("7awil", "hawil", "jareb", "khafif", "khafef", "2e2ta3", "o2taa", "o2ta3", "wa2ef", "trying",
                 "cut down", "quit", "stop"),
