@@ -65,22 +65,93 @@ def test_per_100_comparisons_that_all_say_100_fail():  # batch 2: 75 of 75 said 
 
 def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
     data = tmp_path / "data"
-    for folder in (data, data / "batch2", data / "batch3"):
+    for folder in (data, data / "batch2", data / "batch3", data / "batch4"):  # batch 4 since 2026-11-16
         folder.mkdir(parents=True, exist_ok=True)
-    rows = balanced()
+    rows = balanced() + batch4_balanced()
     boundary = [r for r in rows if r["labels"]["kind"] in ("clarify", "unsupported")]  # batch 3 holds these
     rest = [r for r in rows if r not in boundary]
     sources = {data / "train.jsonl": rest[:100], data / "batch2" / "train.jsonl": rest[100:200],
-               data / "batch2" / "extras_train.jsonl": rest[200:], data / "batch3" / "train.jsonl": boundary}
+               data / "batch2" / "extras_train.jsonl": rest[200:300], data / "batch3" / "train.jsonl": boundary,
+               data / "batch4" / "train.jsonl": rest[300:]}
     for path, part in sources.items():
         path.write_text("".join(json.dumps(r) + "\n" for r in part), encoding="utf-8")
     for path in (data / "validation.jsonl", data / "batch2" / "validation.jsonl", data / "batch2" / "extras_validation.jsonl",
-                 data / "batch3" / "validation.jsonl"):
+                 data / "batch3" / "validation.jsonl", data / "batch4" / "validation.jsonl"):
         path.write_text(json.dumps(rows[0]) + "\n", encoding="utf-8")
     counts = mix.build_mix(data, data / "mix")
-    assert counts["train"] == len(rows) and counts["validation"] == 4
+    assert counts["train"] == len(rows) and counts["validation"] == 5
     assert sorted((data / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()) == sorted(
         json.dumps(r) for r in rows)
     (data / "batch3" / "train.jsonl").write_text("", encoding="utf-8")  # lose batch 3's clarify questions
     with pytest.raises(mix.CoverageError):
+        mix.build_mix(data, data / "mix")
+
+
+# --- batch 4's minimums (approved 2026-11-16): the user's spellings and the new kinds ---
+
+
+def batch4_balanced():
+    rows = []
+    for words, n in (("jebet", 40), ("shtrit", 40), ("aal", 60), ("aa", 40), ("shefle", 30)):
+        rows += [example(f"kam mara {words} x {i}") for i in range(n)]
+    rows += [example(f"aday jebet x {i}", template="T15", answer="SELECT SUM(quantity)") for i in range(30)]
+    rows += [example(f"bi aday jebet el x {i}", template="T12") for i in range(15)]
+    rows += [example(f"aymta ekher mara {i}", template="B11", answer="SELECT MAX(receipt_date)") for i in range(30)]
+    return rows
+
+
+def test_batch4_minimums_pass_when_met():
+    assert mix.batch4_failures(mix.coverage(batch4_balanced())) == []
+
+
+@pytest.mark.parametrize(("dropped", "message"), [
+    ("jebet", "jebet"), ("shtrit", "shtrit"), ("aal", "aal"), ("shefle", "shefle")])  # fmt: skip
+def test_a_missing_spelling_fails(dropped, message):
+    rows = [r for r in batch4_balanced() if f" {dropped} " not in mix._question(r)]
+    assert any(message in f for f in mix.batch4_failures(mix.coverage(rows)))
+
+
+def test_aday_as_a_count_needs_a_count_answer():  # "aday jebet X" answered with money does not count
+    rows = [r for r in batch4_balanced() if r["labels"]["template"] != "T15"]
+    rows += [example(f"aday jebet x {i}", template="T9", answer="SELECT SUM(line_total)") for i in range(30)]
+    assert any("aday as a count" in f for f in mix.batch4_failures(mix.coverage(rows)))
+
+
+def test_english_does_not_count_for_batch4_minimums():
+    rows = [dict(r, labels={**r["labels"], "language": "english"}) for r in batch4_balanced()]
+    assert len(mix.batch4_failures(mix.coverage(rows))) == 8
+
+
+def test_each_batch4_minimum_is_exactly_its_approved_number():
+    for name, (_, least, _, _) in mix.BATCH4_MINIMUMS.items():
+        report = mix.coverage(batch4_balanced())
+        report["batch4"][name] = least
+        assert name not in " ".join(mix.batch4_failures(report)), name
+        report["batch4"][name] = least - 1
+        assert any(f.startswith(f"{name}:") for f in mix.batch4_failures(report)), name
+    assert {n: m[1] for n, m in mix.BATCH4_MINIMUMS.items()} == {
+        "jebet": 40, "shtrit": 40, "aal": 60, "aa": 40, "shefle": 30, "aday as a count": 30,
+        "bi aday (the price)": 15, "the last time": 30}  # fmt: skip
+
+
+def test_a_count_needs_both_the_count_template_and_a_count_answer():
+    rows = [r for r in batch4_balanced() if r["labels"]["template"] not in ("T15", "B11")]
+    wrong_answer = [example(f"aday jebet x {i}", template="T15", answer="SELECT SUM(line_total)") for i in range(30)]
+    wrong_template = [example(f"aymta ekher mara {i}", template="T8", answer="SELECT MAX(receipt_date)")
+                      for i in range(30)]  # fmt: skip
+    found = mix.batch4_failures(mix.coverage(rows + wrong_answer + wrong_template))
+    assert any("aday as a count" in f for f in found) and any("the last time" in f for f in found)
+
+
+def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
+    data = tmp_path / "data"
+    for folder in (data, data / "batch2", data / "batch3", data / "batch4"):
+        folder.mkdir(parents=True, exist_ok=True)
+    rows = balanced()
+    for name in ("train.jsonl", "batch2/train.jsonl", "batch2/extras_train.jsonl", "batch4/train.jsonl",
+                 "validation.jsonl", "batch2/validation.jsonl", "batch2/extras_validation.jsonl",
+                 "batch3/validation.jsonl", "batch4/validation.jsonl"):
+        (data / name).write_text(json.dumps(rows[0]) + "\n", encoding="utf-8")
+    (data / "batch3" / "train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    with pytest.raises(mix.CoverageError, match="jebet"):  # batch 3's thresholds pass, batch 4's do not
         mix.build_mix(data, data / "mix")

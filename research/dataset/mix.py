@@ -21,8 +21,9 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).parent / "data"
 SPLITS = ("train", "validation")
-SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl", "batch3/{split}.jsonl")
-SEED = "fyp-dataset/mix-batch3"
+SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl", "batch3/{split}.jsonl",
+           "batch4/{split}.jsonl")
+SEED = "fyp-dataset/mix-batch4"
 
 BOUNDARY_SHARE = 0.15
 EXPRESSION_LEAST = 20
@@ -44,6 +45,20 @@ COMMON = {"T1": "total", "T6": "shop total", "T7": "top shop", "T16": "receipt c
 COMMON_PERIODS = ("this_month", "last_month", "yesterday")
 PER_100 = "IN ('g', 'ml')"
 
+# Batch 4's minimums (approved 2026-11-16): the user's spellings, and the new kinds of question. Each is
+# (pattern in the question, least, an optional template the row must have, an optional text its answer must contain).
+AS_COUNT = r"\b(aday|adday|adde|adaysh|addesh|adesh|2adesh)\b"
+BATCH4_MINIMUMS = {
+    "jebet": (r"\bjebet\b", 40, None, None),
+    "shtrit": (r"\bshtrit\b", 40, None, None),
+    "aal": (r"\baal\b", 60, None, None),
+    "aa": (r"\baa\b", 40, None, None),
+    "shefle": (r"\bshefle\b", 30, None, None),
+    "aday as a count": (AS_COUNT, 30, "T15", "SUM(quantity)"),
+    "bi aday (the price)": (r"\bb(i)? ?(aday|adde|adesh|adaysh)\b", 15, None, None),
+    "the last time": (r".", 30, "B11", "MAX(receipt_date)"),
+}
+
 
 class CoverageError(ValueError):
     pass
@@ -63,8 +78,13 @@ def coverage(rows: list[dict]) -> dict:
               for t in COMMON for p in COMMON_PERIODS}  # fmt: skip
     per_100 = [r for r in arabizi if r["labels"]["kind"] == "sql" and PER_100 in r["messages"][1]["content"]
                and "vendor" in r["messages"][1]["content"]]  # fmt: skip
+    batch4 = {name: sum(1 for r in arabizi if re.search(pattern, _question(r))
+                        and (template is None or r["labels"]["template"] == template)
+                        and (answer is None or answer in r["messages"][1]["content"]))
+              for name, (pattern, _, template, answer) in BATCH4_MINIMUMS.items()}  # fmt: skip
     return {"arabizi": len(arabizi), "kinds": dict(kinds), "expressions": expressions, "common": common,
-            "per_100": len(per_100), "per_100_implicit": sum(1 for r in per_100 if "100" not in _question(r))}
+            "per_100": len(per_100), "per_100_implicit": sum(1 for r in per_100 if "100" not in _question(r)),
+            "batch4": batch4}
 
 
 def failures(report: dict) -> list[str]:
@@ -81,6 +101,11 @@ def failures(report: dict) -> list[str]:
     return found
 
 
+def batch4_failures(report: dict) -> list[str]:
+    return [f"{name}: {n} < {BATCH4_MINIMUMS[name][1]}" for name, n in report["batch4"].items()
+            if n < BATCH4_MINIMUMS[name][1]]  # fmt: skip
+
+
 def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[str, int]:
     """Every batch, whole, shuffled with a fixed seed. Refuses (CoverageError) before writing anything if the
     training split misses a threshold."""
@@ -93,7 +118,8 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
             lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         random.Random(f"{SEED}/{split}").shuffle(lines)
         splits[split] = lines
-    missing = failures(coverage([json.loads(line) for line in splits["train"]]))
+    report = coverage([json.loads(line) for line in splits["train"]])
+    missing = failures(report) + batch4_failures(report)
     if missing:
         raise CoverageError("; ".join(missing))
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -116,6 +142,7 @@ def main() -> int:
         print(f"  {n:5d}  {name}")
     print(f"  per-100 comparisons not saying 100: {report['per_100_implicit']}/{report['per_100']}")
     print("  common questions x periods:", {f"{t}/{p}": n for (t, p), n in report["common"].items()})
+    print("  batch 4:", report["batch4"])
     return 0
 
 
