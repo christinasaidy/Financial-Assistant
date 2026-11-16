@@ -71,6 +71,9 @@ SUMMARY = ("tolkhis", "telkhis", "mlakhas", "molakhas", "lakhesle", "lakhisle", 
 BROKE = ("aflaset", "2aflaset", "aflasna", "2aflasna", "tayaret", "tiro", "yekhtefe", "khtafa", "broke", "flew",
          "flying", "disappearing")
 PHARMACY = ("pharmacie", "pharmacy", "pharmacies")
+BRAND_WORDS = ("brand", "brands", "marka", "naw3", "nou3", "kind", "type")
+CHEAPER_WORDS = ("arkhas", "arkhasle", "awfar", "awfarle", "arkhas shi", "cheaper", "cheapest", "better value")
+BETTER_WORDS = ("ahsan", "a7san", "afdal", "afdalle", "better", "best")
 
 # Lead-ins from the user's seeds (A, 2026-11-16): the group a version must contain, and how to write it.
 LEAD_INS = {
@@ -417,6 +420,46 @@ def unknown_shop(data: UserData, rng: random.Random) -> Spec | None:
     return _with(t.c2_unknown_shop(data, rng), " Often a visit count (adde rehet aa X); ask back, NOT refuse.")
 
 
+# --- G. brands (approved 2026-11-16) ---
+
+
+def _brands(data: UserData, item: str) -> dict[str | None, set[str]]:
+    found: dict[str | None, set[str]] = {}
+    for _, line in data.lines:
+        if line.item == item and line.brand:
+            found.setdefault(line.size_unit, set()).add(line.brand)
+    return found
+
+
+def cheapest_brand(data: UserData, rng: random.Random) -> Spec | None:
+    """'aya brand / aya naw3 X arkhasle?': every brand the item was bought in, by the same per-size rules as the
+    cheapest shop, cheapest first; lines with no brand left out."""
+    options = [(item, unit) for item in data.items if item not in NOT_PRICED
+               for unit, brands in _brands(data, item).items() if len(brands) >= 2]  # fmt: skip
+    if not options:
+        return None
+    item, unit = rng.choice(sorted(options, key=str))
+    price, column, condition, wording = b3._basis(unit)
+    target = (f"SELECT brand, currency, COUNT(*) AS purchase_count, ROUND(AVG({price}), 2) AS {column} FROM purchases"
+              f"{t._where(t.item_is(item), condition, 'brand IS NOT NULL')} GROUP BY brand, currency "
+              f"ORDER BY {column}, brand")  # fmt: skip
+    return Spec("B15", "sql", f"Which brand (or kind) of {item} is cheaper for the user, comparing every brand they "
+                f"bought ({wording}); asked as aya brand / aya naw3 {item} arkhasle / awfarle. No brand is named."
+                + SPELLINGS, target, (t.item_words(data.catalogue.item(item)), BRAND_WORDS, CHEAPER_WORDS),
+                labels={"period": "none", "item": item, "compared": wording})  # fmt: skip
+
+
+def better_brand(data: UserData, rng: random.Random) -> Spec | None:
+    items = sorted(i for i in data.items if any(_brands(data, i).values()))
+    if not items:
+        return None
+    item = rng.choice(items)
+    return Spec("C8", "clarify", f"Which brand or kind of {item} is BETTER (aya brand {item} ahsan / afdal): receipts "
+                "show prices, not quality.", None, (t.item_words(data.catalogue.item(item)), BRAND_WORDS,
+                                                   BETTER_WORDS),
+                "Say you cannot tell which is better, but can check which is cheaper.", labels={"item": item})  # fmt: skip
+
+
 # --- the plan ---
 
 
@@ -464,6 +507,8 @@ WANTS = (
     Want(beginning_of_month, 2),
     # Added last (2026-11-16), so no other spec moves: "aflaset 3al akid hal jemaa" (broke, this week).
     Want(summary, 1, ("this_week", True)),
+    # Added last (2026-11-16): which brand is cheaper, and which is better (CLARIFY).
+    Want(cheapest_brand, 6), Want(better_brand, 3),
 )
 
 

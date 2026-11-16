@@ -86,7 +86,7 @@ def test_the_plan_is_deterministic_and_about_150_training_specs(train_specs):
     again = [spec for specs in b4.plan(b4.TRAIN).values() for spec in specs]
     assert [(s.template, s.target, s.description) for s in again] == [(s.template, s.target, s.description)
                                                                      for s in train_specs]  # fmt: skip
-    assert 140 <= len(train_specs) <= 160
+    assert 140 <= len(train_specs) <= 170  # 161 since the brand jobs (approved 2026-11-16)
     assert sum(len(specs) for specs in b4.plan(b4.VALIDATION, one_each=True).values()) <= 30
 
 
@@ -174,7 +174,7 @@ def test_monthly_bills_and_weighed_items_are_not_counted_in_units():
 
 def test_the_plan_has_the_approved_clarify_and_reply_questions(train_specs):
     assert sum(s.kind == "reply" for s in train_specs) == 7
-    assert sum(s.kind == "clarify" for s in train_specs) == 11
+    assert sum(s.kind == "clarify" for s in train_specs) == 14  # 11 + 3 "which brand is better" (2026-11-16)
     assert sum(s.labels.get("period") == "bi awal el shaher" for s in train_specs) == 2
     assert sum(s.template == "C7" for s in train_specs) == 2  # a lost receipt: ask, don't refuse
 
@@ -278,3 +278,23 @@ def test_a_vague_shop_gets_the_users_shop_lines_and_a_vague_item_keeps_its_line(
 def test_being_broke_this_week_is_planned_once(train_specs):  # "aflaset 3al akid hal jemaa" (2026-11-16)
     broke = [s for s in train_specs if s.template == "B14" and b4.BROKE in s.mentions]
     assert sorted(s.labels["period"] for s in broke) == ["last_few_weeks", "this_week"]
+
+
+# --- brands (approved 2026-11-16) ---
+
+
+def test_the_cheapest_brand_compares_brands_cheapest_first(train_specs):
+    cheapest = [s for s in train_specs if s.template == "B15"]
+    assert len(cheapest) == 6
+    for spec in cheapest:
+        assert spec.target.startswith("SELECT brand, currency, COUNT(*) AS purchase_count, ROUND(AVG(")
+        assert f"item_name = '{spec.labels['item']}'" in spec.target and "brand IS NOT NULL" in spec.target
+        assert "GROUP BY brand, currency ORDER BY " in spec.target and spec.target.endswith(", brand")
+        assert b4.BRAND_WORDS in spec.mentions and b4.CHEAPER_WORDS in spec.mentions
+
+
+def test_a_better_brand_question_asks_back_with_the_users_line(train_specs):
+    better = [s for s in train_specs if s.template == "C8"]
+    assert len(better) == 3 and all(s.kind == "clarify" and b4.BETTER_WORDS in s.mentions for s in better)
+    assert _reply(better[0], "aya brand rez ahsan?") == (
+        "CLARIFY: ma fie elak aya wahad ahsan, bas fie shuf aya wahad arkhas?")

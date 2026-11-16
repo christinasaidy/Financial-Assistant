@@ -52,6 +52,8 @@ def _line(question: str, spec: Spec, catalogue: Catalogue, rng: random.Random) -
         return f"ma edert le2e fatoura 3an {_word_used(question, spec)}"
     if spec.template == "C7":  # a lost receipt (the user's line, 2026-11-16)
         return "aymta w mn aya mahal jebto? aw shu fi yekun maktoub 3al fatoura?"
+    if spec.template == "C8":  # which brand is better (the user's line, 2026-11-16)
+        return "ma fie elak aya wahad ahsan, bas fie shuf aya wahad arkhas?"
     if spec.template == "C6":
         return "shu baddak ta3ref bel zabt?"
     if spec.template == "R1":
