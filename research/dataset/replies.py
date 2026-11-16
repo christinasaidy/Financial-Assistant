@@ -19,7 +19,9 @@ PERIODS = {
     "awal el sene": "azdak awal 3 oshhor mn el sene?",
     "semester": "azdak ayya ashhor bel zabt?",  # the assistant's wording, following the user's "azdak" lines
     "hal fatra": "azdak mn emta la emta?",  # the user's line, 2026-11-15 (batch 3)
+    "bi awal el shaher": "azdak mn emta la emta?",  # the same line for the beginning of the month (2026-11-16)
 }
+SIGN_OFFS = ("Ya Hala", "Walaw")  # the user's, 2026-11-16, sometimes followed by "Bye!"
 
 
 def users_reply(version: Version, spec: Spec, catalogue: Catalogue, rng: random.Random) -> Version:
@@ -45,14 +47,20 @@ def _line(question: str, spec: Spec, catalogue: Catalogue, rng: random.Random) -
         return PERIODS[labels["period"]]
     if spec.template == "C5":
         return f"ma edert le2e fatoura 3an {_word_used(question, spec)}"
+    if spec.template == "C7":  # a lost receipt (the user's line, 2026-11-16)
+        return "aymta w mn aya mahal jebto? aw shu fi yekun maktoub 3al fatoura?"
     if spec.template == "C6":
         return "shu baddak ta3ref bel zabt?"
     if spec.template == "R1":
+        if contains(question, "hon"):  # "enta hon?" (2026-11-16)
+            return "eh hon, fiye se3dak?"
         return "sabah el nour" if contains(question, "sabah") else rng.choice(GREETINGS)
     if spec.template == "R2":
         return rng.choice(THANKS)
     if spec.template == "R3":
         return "fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+    if spec.template == "R5":  # a sign-off
+        return rng.choice(SIGN_OFFS) + (", Bye!" if rng.random() < 0.5 else "")
     if spec.template == "R4":
         return "hahaha, fie se3dak b shi tene?"
     raise ValueError(f"No reply written for {spec.template}")

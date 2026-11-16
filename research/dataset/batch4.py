@@ -86,7 +86,7 @@ LEAD_INS = {
     "trying": (("7awil", "hawil", "jareb", "khafif", "khafef", "2e2ta3", "o2taa", "o2ta3", "wa2ef", "trying",
                 "cut down", "quit", "stop"),
                "a lead-in saying they are trying to cut down or quit (aam 7awil khafif, 3am jareb 2e2ta3, badi wa2ef)"),
-    "save": (("wafir", "waffer", "save", "saving"),
+    "save": (("wafir", "wafer", "waffer", "save", "saving"),
              ("a lead-in saying they want to save money (badi wafir heda el shaher). The question itself is answered "
               "from the receipts, so it is NOT advice and NOT UNSUPPORTED")),
     "know": (("a3ref", "2a3ref", "aarf", "aaref", "2a3rf", "know"),
@@ -188,12 +188,26 @@ def aday_set(data: UserData, rng: random.Random, kind: str) -> list[Spec]:
     ]  # fmt: skip
     dining = sorted({r.shop for r in data.receipts_in(p) if data.shop(r.shop).kind in DINING_KINDS})
     if dining:
-        shop = rng.choice(dining)
-        target = f"SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts{t._where(f'vendor = {t.quoted(shop)}', p.sql)}"
-        specs.append(t._spec("T8", f"How many times the user ate or drank at {shop}, {p.description}. Asked with aday + "
-                             "akalet / shrebet bi <shop> (aday akalet bi X): bi here means AT, not a price.", target, p,
-                             t.shop_words(data.shop(shop)), AS_COUNT, EAT_DRINK, shop=shop, aday="times"))  # fmt: skip
+        specs.append(_times_there(data, rng, p, rng.choice(dining)))
     return specs
+
+
+def _times_there(data: UserData, rng: random.Random, p: Period, shop: str) -> Spec:
+    """'aday akalet bi <restaurant>' counts visits; at a cafe the user names the drink ('aday shrebet ahwe bi X',
+    2026-11-16), which counts the receipts with that drink there."""
+    vendor = f"vendor = {t.quoted(shop)}"
+    drinks = sorted({line.item for r, line in data.lines if r.shop == shop and t._within(r.day, p)})
+    if data.shop(shop).kind == "cafe" and drinks:
+        drink = rng.choice(drinks)
+        target = f"SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases{t._where(t.item_is(drink), vendor, p.sql)}"
+        return t._spec("T14", f"How many times the user had {drink} at {shop}, {p.description}. Asked with aday + "
+                       "shrebet / akalet + the drink + bi <shop> (aday shrebet ahwe bi X): bi here means AT, not a "
+                       "price.", target, p, t.item_words(data.catalogue.item(drink)), t.shop_words(data.shop(shop)),
+                       AS_COUNT, EAT_DRINK, shop=shop, drink=drink, aday="times")  # fmt: skip
+    target = f"SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts{t._where(vendor, p.sql)}"
+    return t._spec("T8", f"How many times the user ate at {shop}, {p.description}. Asked with aday + akalet bi <shop> "
+                   "(aday akalet bi X): bi here means AT, not a price.", target, p, t.shop_words(data.shop(shop)),
+                   AS_COUNT, EAT_DRINK, shop=shop, aday="times")  # fmt: skip
 
 
 # --- C. other verbs, counting words and units ---
@@ -341,7 +355,7 @@ REPLY_KINDS = (
     ("R1", "a short greeting alone (hi kifak, marhaba, salut, sabah el kheir, shu el wade3)",
      "Greet them back and say what you can help with."),
     ("R2", "thanks (ok merci ktir, ya3tik el 3afye)", "Say you're welcome."),
-    ("R2", "a sign-off: that's all, they need nothing else, bye, talk later (khalas ma ba2 baddi shi, yalla bye)",
+    ("R5", "a sign-off: that's all, they need nothing else, bye, talk later (khalas ma ba2 baddi shi, yalla bye)",
      "Say goodbye kindly."),
     ("R3", "what the assistant can do (shu fik tse3edne fi? shu bta3ref ta3mel?)",
      "Say it answers questions about their own receipts: totals, categories, shops, items, prices and comparisons."),

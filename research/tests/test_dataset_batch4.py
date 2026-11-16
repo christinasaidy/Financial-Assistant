@@ -15,6 +15,8 @@ from research.dataset.catalogue import (
     BATCH4_EXTENSION,
     load_catalogue,
 )
+from research.dataset.checks import Version
+from research.dataset.replies import users_reply
 
 TODAY = date(2028, 1, 12)  # a Wednesday, the approved worked examples' today
 
@@ -104,7 +106,8 @@ def test_an_aday_set_asks_count_price_and_money_on_the_same_item_and_period(trai
 
 
 def test_eating_at_a_restaurant_with_aday_counts_visits(train_specs):  # aday akalet bi Sushi Star
-    times = [s for s in train_specs if s.labels.get("aday") == "times"]
+    times = [s for s in train_specs if s.labels.get("aday") == "times" and not s.labels.get("drink")]  # a cafe names
+    # the drink instead (the user's review, 2026-11-16): see test_at_a_cafe_the_aday_question_names_the_drink
     assert times and all(s.target.startswith("SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor")
                          and b4.EAT_DRINK in s.mentions for s in times)  # fmt: skip
 
@@ -200,3 +203,50 @@ def test_batch4_jobs_refuse_the_test_user_and_other_batches_ids(train_specs):
         batch4_build.validate_batch4_jobs([_job(50, "b4-50-0", "train", b4.TODAYS[50], spec)])  # a validation user
     with pytest.raises(ValueError, match="set today"):
         batch4_build.validate_batch4_jobs([_job(42, "b4-42-0", "train", b4.TODAYS[43], spec)])
+
+
+# --- the user's reply lines and her chunk-0 review (2026-11-16) ---
+
+
+
+def _reply(spec, question, language="arabizi", seed=0):
+    return users_reply(Version(language, question, "x"), spec, b4.load_batch4_catalogue(), random.Random(seed)).reply
+
+
+def test_a_lost_receipt_gets_the_users_line():
+    spec = b4.lost_receipt(b4.batch4_user(42), random.Random(0))
+    assert _reply(spec, "shtrit X bas ma aam le2e el fatoura") == (
+        "CLARIFY: aymta w mn aya mahal jebto? aw shu fi yekun maktoub 3al fatoura?")
+
+
+def test_are_you_there_gets_eh_hon():
+    spec = b4.greeting(b4.batch4_user(42), random.Random(0), 0)
+    assert _reply(spec, "Marhaba, kifak? enta hon?") == "REPLY: eh hon, fiye se3dak?"
+
+
+def test_a_sign_off_gets_ya_hala_or_walaw_sometimes_with_bye():
+    spec = b4.greeting(b4.batch4_user(42), random.Random(0), 3)
+    assert spec.template == "R5"
+    replies = {_reply(spec, "khalas ma ba2 baddi shi, yalla bye", seed=seed) for seed in range(40)}
+    assert replies <= {"REPLY: Ya Hala", "REPLY: Walaw", "REPLY: Ya Hala, Bye!", "REPLY: Walaw, Bye!"}
+    assert any("Bye!" in r for r in replies) and any("Bye!" not in r for r in replies)
+
+
+def test_the_beginning_of_the_month_asks_which_period():
+    spec = b4.beginning_of_month(b4.batch4_user(42), random.Random(0))
+    assert _reply(spec, "aday sarafet bi awal el shaher") == "CLARIFY: azdak mn emta la emta?"
+
+
+def test_iqos_is_the_device_and_sponge_has_the_users_words():
+    catalogue = b4.load_batch4_catalogue()
+    assert "iqos" in catalogue.item("heated tobacco device").spellings
+    assert {"sfenje", "sfenjet jale", "sponge jale"} <= set(catalogue.item("sponge").spellings)
+
+
+def test_at_a_cafe_the_aday_question_names_the_drink(train_specs):  # "aday shrebet ahwe bi X"
+    at_cafes = [s for s in train_specs if s.labels.get("aday") == "times" and s.labels.get("drink")]
+    assert at_cafes
+    for spec in at_cafes:
+        assert spec.target.startswith("SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = "
+                                      f"'{spec.labels['drink']}' AND vendor = '{spec.labels['shop']}'")
+        assert b4.EAT_DRINK in spec.mentions
