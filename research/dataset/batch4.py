@@ -394,10 +394,11 @@ def lost_receipt(data: UserData, rng: random.Random) -> Spec | None:
 
 
 def vague_place(data: UserData, rng: random.Random) -> Spec:
-    what = rng.choice(["'that shop next to my work' (el mahal yali had / 7ad el sheghel)",
-                       "'the thing I bought last week' (el shaghle yali shtarayta ekher jemaa) with nothing named"])
+    about, what = rng.choice([("shop", "'that shop next to my work' (el mahal yali had / 7ad el sheghel)"),
+                              ("item", "'the thing I bought last week' (el shaghle yali shtarayta ekher jemaa) with "
+                               "nothing named")])  # fmt: skip
     return Spec("C3", "clarify", f"A question about {what}, so it is not clear which shop or item they mean.", None, (),
-                "Ask which shop or item they mean.", labels={})
+                f"Ask which {about} they mean.", labels={"about": about})
 
 
 def beginning_of_month(data: UserData, rng: random.Random) -> Spec:

@@ -262,3 +262,14 @@ def test_batch4_accepts_the_users_ekher_forms_without_changing_batch3():  # chun
     assert "ekher jemaa" not in b3.period_named(b3.batch3_user(32), "last_week", random.Random(0)).words
     lead = b4.lead_in(user, random.Random(0), "trying", "times", "last_week")  # batch 3's makers get them too
     assert lead is None or "ekher jemaa" in next(g for g in lead.mentions if "last week" in g)
+
+
+def test_a_vague_shop_gets_the_users_shop_lines_and_a_vague_item_keeps_its_line():  # 2026-11-16
+    shop = next(b4.vague_place(b4.batch4_user(42), random.Random(seed)) for seed in range(50)
+                if b4.vague_place(b4.batch4_user(42), random.Random(seed)).labels.get("about") == "shop")
+    item = next(b4.vague_place(b4.batch4_user(42), random.Random(seed)) for seed in range(50)
+                if b4.vague_place(b4.batch4_user(42), random.Random(seed)).labels.get("about") == "item")
+    lines = {_reply(shop, "aday sarafet aand el mahal yali had el sheghel", seed=s) for s in range(30)}
+    assert lines == {"CLARIFY: aya mahal? fik taati tafasil aktar", "CLARIFY: aya mahal azdak?",
+                     "CLARIFY: aan aya ma7al aam tehki?"}
+    assert _reply(item, "shu se3r el shaghle li jebta") == "CLARIFY: 7a2 shu? fik taati tafasil aktar"

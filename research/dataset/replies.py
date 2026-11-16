@@ -21,6 +21,7 @@ PERIODS = {
     "hal fatra": "azdak mn emta la emta?",  # the user's line, 2026-11-15 (batch 3)
     "bi awal el shaher": "azdak mn emta la emta?",  # the same line for the beginning of the month (2026-11-16)
 }
+SHOP_QUESTIONS = ("aya mahal? fik taati tafasil aktar", "aya mahal azdak?", "aan aya ma7al aam tehki?")
 SIGN_OFFS = ("Ya Hala", "Walaw")  # the user's, 2026-11-16, sometimes followed by "Bye!"
 
 
@@ -42,6 +43,8 @@ def _line(question: str, spec: Spec, catalogue: Catalogue, rng: random.Random) -
         suggestion = labels.get("suggestion")
         return f"ma la2ayt fatoura bi {labels['shop']}" + (f", 2asdak {suggestion}?" if suggestion else "")
     if spec.template == "C3":
+        if labels.get("about") == "shop":  # a vague shop (the user's lines, 2026-11-16)
+            return rng.choice(SHOP_QUESTIONS)
         return "7a2 shu? fik taati tafasil aktar"
     if spec.template == "C4":
         return PERIODS[labels["period"]]
