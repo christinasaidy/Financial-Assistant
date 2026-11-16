@@ -86,6 +86,8 @@ Figma file (icons, wordmark, design work):
 [Fatourati design system](https://www.figma.com/design/yH3BO0dprC2nmaKwBdbiDw/Fatourati-design-system).
 Its "Color" variables mirror the colour tokens below one for one, `-dark` tokens included (Figma's free plan allows
 a single mode, so there is no Light/Dark switch).
+Its text styles carry the typography token names below (the nine roles of D014; colour is set on the text, not in
+the style). DejaVu is uploaded to the Figma account so the file and Figma's tools can use it.
 
 This file follows the [DESIGN.md format](https://github.com/google-labs-code/design.md) (Google Labs, version
 `alpha`): exact values (tokens) go in the YAML front matter above, and the explanation of how to use them goes in the
