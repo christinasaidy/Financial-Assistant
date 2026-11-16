@@ -250,3 +250,15 @@ def test_at_a_cafe_the_aday_question_names_the_drink(train_specs):  # "aday shre
         assert spec.target.startswith("SELECT COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE item_name = "
                                       f"'{spec.labels['drink']}' AND vendor = '{spec.labels['shop']}'")
         assert b4.EAT_DRINK in spec.mentions
+
+
+def test_batch4_accepts_the_users_ekher_forms_without_changing_batch3():  # chunk-2 review, 2026-11-16
+    from research.dataset import batch3 as b3
+
+    user = b4.batch4_user(42)
+    assert {"ekher jemaa", "ekher jem3a", "e5er jemaa"} <= set(b4.period_named(user, "last_week", random.Random(0)).words)
+    assert "e5er shaher" in b4.period_named(user, "last_month", random.Random(0)).words
+    assert {"ekher sene", "e5er sene"} <= set(b4.period_named(user, "last_year", random.Random(0)).words)
+    assert "ekher jemaa" not in b3.period_named(b3.batch3_user(32), "last_week", random.Random(0)).words
+    lead = b4.lead_in(user, random.Random(0), "trying", "times", "last_week")  # batch 3's makers get them too
+    assert lead is None or "ekher jemaa" in next(g for g in lead.mentions if "last week" in g)

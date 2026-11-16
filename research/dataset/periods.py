@@ -155,7 +155,8 @@ def last_year(today: date) -> Period:  # batch 4 (2026-11-16): el sene el madye
     return Period("last_year", "receipt_date >= date_trunc('year', CURRENT_DATE) - INTERVAL '1 year' "
                   "AND receipt_date < date_trunc('year', CURRENT_DATE)", date(today.year - 1, 1, 1),
                   date(today.year, 1, 1), "last year (the previous calendar year)",
-                  ("el sene el madye", "l sene l madye", "sene el madye", "el sene li mar2it", "last year"))  # fmt: skip
+                  ("el sene el madye", "l sene l madye", "sene el madye", "el sene li mar2it", "ekher sene", "e5er sene",
+                   "last year"))  # fmt: skip
 
 
 def last_years(today: date, years: int) -> Period:  # batch 4: mn sentain la hala2, ekher sentain

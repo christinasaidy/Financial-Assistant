@@ -60,7 +60,7 @@ GO = ("rehet", "re7et", "ro7t", "rohet", "rehit", "daharet", "dahar", "went", "g
 FILL = ("3abayt", "3abbet", "3abet", "aabayt", "filled", "fill", "fuel up", "filled up")
 CUT = ("2asayt", "asayt", "2assayt", "cut", "haircut")
 COUNTING = ("3ed", "3edele", "3eddele", "3adad", "aadad", "count", "number")
-UNITS = ("3elbe", "3elbit", "3elab", "sandu2", "sandou2", "can", "cans", "box", "boxes", "pack", "packs", "bottle",
+UNITS = ("3elbe", "3elbit", "3elbet", "3elab", "sandu2", "sandou2", "can", "cans", "box", "boxes", "pack", "packs", "bottle",
          "bottles", "case", "cases")
 LAST_TIME = ("ekher mara", "ekher marra", "akher mara", "last time")
 WHEN = ("aymta", "aymata", "emta", "when", "which days", "what dates")
@@ -116,7 +116,21 @@ def since_start_of_year(today: date) -> Period:
     return replace(p, words=p.words + ("mn awalt el sene", "men awalt el sene"))
 
 
+# The user's "ekher / e5er" forms (chunk-2 review, 2026-11-16), added for batch 4 only: batch 3's periods stay as they were.
+EXTRA_WORDS = {"last_week": ("ekher jemaa", "ekher jem3a", "e5er jemaa", "e5er jem3a"), "last_month": ("e5er shaher",)}
+
+
+def _with_extra(kind: str) -> Callable[[date], Period]:
+    def period(today: date) -> Period:
+        p = b3.COMMON[kind](today)
+        words = p.words + tuple(w for w in b3.EXTRA_WORDS.get(kind, ()) + EXTRA_WORDS[kind] if w not in p.words)
+        return replace(p, words=words)
+
+    return period
+
+
 NEW_PERIODS: dict[str, Callable[[date], Period]] = {
+    "last_week": _with_extra("last_week"), "last_month": _with_extra("last_month"),
     "last_year": periods.last_year, "last_2_years": lambda today: periods.last_years(today, 2),
     "last_few_weeks": periods.last_few_weeks, "since_summer": periods.since_summer, "summer": periods.summer,
     "since_start_of_year": since_start_of_year,
