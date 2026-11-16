@@ -60,6 +60,7 @@ Rules:
   category = '<name>' only for one of the user's own categories.
 - A kind of shop: restaurants are the vendors of Dining spending, supermarkets of Groceries spending; use
   category_spending, e.g. COUNT(DISTINCT receipt_id) ... WHERE category = 'Dining'.
+  A pharmacy (pharmacie): vendor IN the user's shops whose name says Pharmacie.
 - Filter on brand = '<brand>' only when the user names a brand.
 - For dates relative to today use CURRENT_DATE, for example this month:
   receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
@@ -82,15 +83,22 @@ Rules:
   "Since <a weekday>" (and "<weekday> el madi") is the most recent such day before today, never today (asked
   on a Tuesday, "since Tuesday" starts last week's Tuesday), up to today: receipt_date >= '<that date>'.
   "Since yesterday": receipt_date >= CURRENT_DATE - 1.
+  "Last year" (el sene el madye, el sene li mar2it) is the previous calendar year:
+  receipt_date >= date_trunc('year', CURRENT_DATE) - INTERVAL '1 year' AND receipt_date < date_trunc('year', CURRENT_DATE)
+  "The last N years" works like the last N months ("mn sentain la hala2", "ekher sentain": the last 2 years).
+  "The last few weeks" (ekher kam jem3a) is the last 3 weeks.
+  "Since summer" (mn el sayfiye) starts on 1 June of the most recent summer: receipt_date >= '<that date>'.
   Never use now() or CURRENT_TIMESTAMP.
 - In Arabizi, "jem3a" alone is a week ("hal jem3a" this week, "el jem3a li mar2it" last week); "nhar el jem3a" is
   Friday. "Kanoun el awal" is December and "kanoun el tene" January. Reply CLARIFY for "kanoun" alone, a semester, or
   "the start of the year" (bi awal el sene) without "since".
   Reply CLARIFY for "lately" (hal fatra) with no period.
+  Reply CLARIFY for "the beginning of the month" (bi awal el shaher).
 - To compare periods, return each period as the first day of its month: date_trunc('month', receipt_date) AS month,
   and GROUP BY it.
 - Counting: "how many times", "how often" and "how many visits" count receipts: COUNT(DISTINCT receipt_id).
   "How many <items> did I buy" adds up the quantity: SUM(quantity). "How many receipts" counts receipts.
+  "How often do I go to <shop>" with no period is visits per month: the last 3 complete months' visits divided by 3.
 - "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I spent
   most at" adds up money.
 - For amounts, GROUP BY currency and return both the amount and its USD value, e.g.
@@ -115,6 +123,9 @@ Rules:
 - "Since when have I been buying X": the first purchase's date, and how many times since.
 - "How much / how many do I usually buy a month": the last 3 complete months added up and divided by 3 (months
   with none count as 0).
+- "When was the last time I bought X / went to <shop>": the latest date, MAX(receipt_date).
+- "When did I go to <shop> / buy X" in a period: list the dates (receipt_date, vendor), by date.
+- A summary of a period (tolkhis, telkhis, mlakhas, lakhesle) is spending by category for that period.
 - Compute every difference, percentage or average in the query itself.
 - Use earlier questions in the chat to fill in what a follow-up leaves out ("and last month?"), but never reuse
   numbers from earlier answers."""

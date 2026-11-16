@@ -237,3 +237,24 @@ def test_the_prompt_states_the_batch3_conventions():  # approved 2026-11-15, wor
     assert ('- "Since when have I been buying X": the first purchase\'s date, and how many times since.' in prompt)
     assert ('- "How much / how many do I usually buy a month": the last 3 complete months added up and divided by 3 '
             "(months\n  with none count as 0).") in prompt  # fmt: skip
+
+
+def test_the_prompt_states_the_batch4_conventions():  # approved 2026-11-16, worked examples with today 2028-01-12
+    prompt = build_prompt("aymata ekher mara akalet sushi", NAMES, TODAY)
+    assert ('  "Last year" (el sene el madye, el sene li mar2it) is the previous calendar year:\n'
+            "  receipt_date >= date_trunc('year', CURRENT_DATE) - INTERVAL '1 year' AND receipt_date < "
+            "date_trunc('year', CURRENT_DATE)\n") in prompt  # fmt: skip
+    assert ('  "The last N years" works like the last N months ("mn sentain la hala2", "ekher sentain": the last 2 '
+            "years).\n") in prompt  # fmt: skip
+    assert '  "The last few weeks" (ekher kam jem3a) is the last 3 weeks.\n' in prompt
+    assert ('  "Since summer" (mn el sayfiye) starts on 1 June of the most recent summer: '
+            "receipt_date >= '<that date>'.\n") in prompt  # fmt: skip
+    assert '  Reply CLARIFY for "the beginning of the month" (bi awal el shaher).\n' in prompt
+    assert ('  "How often do I go to <shop>" with no period is visits per month: the last 3 complete months\' visits '
+            "divided by 3.\n") in prompt  # fmt: skip
+    assert "  A pharmacy (pharmacie): vendor IN the user's shops whose name says Pharmacie.\n" in prompt
+    assert '- "When was the last time I bought X / went to <shop>": the latest date, MAX(receipt_date).\n' in prompt
+    assert ('- "When did I go to <shop> / buy X" in a period: list the dates (receipt_date, vendor), by date.\n'
+            in prompt)  # fmt: skip
+    assert ("- A summary of a period (tolkhis, telkhis, mlakhas, lakhesle) is spending by category for that "
+            "period.\n") in prompt  # fmt: skip
