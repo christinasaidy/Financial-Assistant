@@ -87,7 +87,10 @@ EXTRA_WORDS = {
 }
 
 
-def period_named(data: UserData, kind: str, rng: random.Random) -> Period:
+def period_named(data: UserData, kind: str | Callable[[date], Period], rng: random.Random) -> Period:
+    """A period by name; batch 4 also passes a period function (its new periods), used as it is."""
+    if callable(kind):
+        return kind(data.today)
     if kind == "since_weekday":
         return periods.since_weekday(data.today, rng.randrange(7))
     if kind == "since_month":

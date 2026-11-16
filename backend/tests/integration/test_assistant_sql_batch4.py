@@ -39,8 +39,8 @@ def one_receipt_a_day(client, sign_in):
     ("where", "days"),
     [
         # el sene el madye: the previous calendar year
-        ("receipt_date >= date_trunc('year', CURRENT_DATE) - INTERVAL '1 year' "
-         "AND receipt_date < date_trunc('year', CURRENT_DATE)", [d for d in DAYS if d.startswith("2027")]),
+        (("receipt_date >= date_trunc('year', CURRENT_DATE) - INTERVAL '1 year' "
+          "AND receipt_date < date_trunc('year', CURRENT_DATE)"), [d for d in DAYS if d.startswith("2027")]),
         # mn sentain la hala2: the last 2 years, like the last N months
         ("receipt_date > CURRENT_DATE - INTERVAL '2 years' AND receipt_date <= CURRENT_DATE",
          [d for d in DAYS if d >= "2026-01-13"]),

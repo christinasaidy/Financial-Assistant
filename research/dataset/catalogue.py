@@ -13,6 +13,7 @@ from pathlib import Path
 CATALOGUE_FILE = Path(__file__).parent / "data" / "catalogue.json"
 # Batch 3's items, shops and spellings (2026-11-15), only for its own users: batch 1-2 prompts must not change.
 BATCH3_EXTENSION = Path(__file__).parent / "data" / "catalogue_batch3.json"
+BATCH4_EXTENSION = Path(__file__).parent / "data" / "catalogue_batch4.json"  # added on top of batch 3's
 
 
 @dataclass(frozen=True)
@@ -76,10 +77,11 @@ class CatalogueError(ValueError):
     pass
 
 
-def load_catalogue(path: Path = CATALOGUE_FILE, extension: Path | None = None) -> Catalogue:
+def load_catalogue(path: Path = CATALOGUE_FILE, extension: Path | tuple[Path, ...] | None = None) -> Catalogue:
+    """The catalogue, with one extension or several applied in order (batch 4 builds on batch 3's)."""
     data = json.loads(path.read_text(encoding="utf-8"))
-    if extension is not None:
-        _extend(data, json.loads(extension.read_text(encoding="utf-8")))
+    for one in (extension,) if isinstance(extension, Path) else extension or ():
+        _extend(data, json.loads(one.read_text(encoding="utf-8")))
     categories = data["categories"]
     catalogue = Catalogue(
         items=tuple(_item(entry) for entry in data["items"]),
