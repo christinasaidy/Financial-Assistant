@@ -464,18 +464,19 @@ def better_brand(data: UserData, rng: random.Random) -> Spec | None:
 
 
 ADVICE = (
-    ("save_what_to_do", "sends a lead-in saying they want to save (badi wafir) and then asks what they SHOULD do (shu lezem "
-     "a3mel / shu ra2yak). Advice, so UNSUPPORTED, unlike 'badi wafir, aya ma7al sarafet fi aktar shi' which is answered"),
-    ("save_what_to_stop", "sends a lead-in saying they want to save, then asks what they should stop buying (aya shi lezem "
-     "wa2ef eshteri / shu ra2yak lezem wa2ef)"),
-    ("should_stop_item", "sends a lead-in saying they are trying to cut down on something (coffee, cigarettes, delivery), then "
-     "asks whether they SHOULD stop (lezem wa2ef?)"),
+    ("save_what_to_do", ("sends a lead-in saying they want to save (badi wafir) and then asks what they SHOULD do (shu "
+                         "lezem a3mel / shu ra2yak). Advice, so UNSUPPORTED, unlike 'badi wafir, aya ma7al sarafet fi "
+                         "aktar shi' which is answered")),
+    ("save_what_to_stop", ("sends a lead-in saying they want to save, then asks what they should stop buying (aya shi "
+                           "lezem wa2ef eshteri / shu ra2yak lezem wa2ef)")),
+    ("should_stop_item", ("sends a lead-in saying they are trying to cut down on something (coffee, cigarettes, "
+                          "delivery), then asks whether they SHOULD stop (lezem wa2ef?)")),
     ("where_to_shop", "asks where they should shop from now on to pay less (wen lezem ru7 / shu ra2yak)"),
     ("next_month", "asks how much they WILL spend next month (aday ra7 esrof el shaher el jeye), a prediction"),
     ("bank_balance", "asks how much money is left in their bank account (ade be2e ma3e bl bank)"),
     ("someone_else", "asks how much someone else spent (my brother, my husband, my friend)"),
-    ("how_to_save", "sends a lead-in about money disappearing (wayn 3am yekhtefe ma3ashe), then asks HOW to save (kif fiye "
-     "wafir)"),
+    ("how_to_save", ("sends a lead-in about money disappearing (wayn 3am yekhtefe ma3ashe), then asks HOW to save "
+                     "(kif fiye wafir)")),
 )  # fmt: skip
 
 
