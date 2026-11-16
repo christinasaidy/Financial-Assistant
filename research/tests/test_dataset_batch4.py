@@ -273,3 +273,8 @@ def test_a_vague_shop_gets_the_users_shop_lines_and_a_vague_item_keeps_its_line(
     assert lines == {"CLARIFY: aya mahal? fik taati tafasil aktar", "CLARIFY: aya mahal azdak?",
                      "CLARIFY: aan aya ma7al aam tehki?"}
     assert _reply(item, "shu se3r el shaghle li jebta") == "CLARIFY: 7a2 shu? fik taati tafasil aktar"
+
+
+def test_being_broke_this_week_is_planned_once(train_specs):  # "aflaset 3al akid hal jemaa" (2026-11-16)
+    broke = [s for s in train_specs if s.template == "B14" and b4.BROKE in s.mentions]
+    assert sorted(s.labels["period"] for s in broke) == ["last_few_weeks", "this_week"]

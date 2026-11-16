@@ -462,6 +462,8 @@ WANTS = (
     # F. REPLY (7) and CLARIFY (11)
     Want(greeting, 7), Want(unknown_item, 3), Want(unknown_shop, 2), Want(lost_receipt, 2), Want(vague_place, 2),
     Want(beginning_of_month, 2),
+    # Added last (2026-11-16), so no other spec moves: "aflaset 3al akid hal jemaa" (broke, this week).
+    Want(summary, 1, ("this_week", True)),
 )
 
 
