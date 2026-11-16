@@ -258,3 +258,11 @@ def test_the_prompt_states_the_batch4_conventions():  # approved 2026-11-16, wor
             in prompt)  # fmt: skip
     assert ("- A summary of a period (tolkhis, telkhis, mlakhas, lakhesle) is spending by category for that "
             "period.\n") in prompt  # fmt: skip
+
+
+def test_the_prompt_states_the_brand_conventions():  # approved 2026-11-16
+    prompt = build_prompt("aya brand roz arkhasle?", NAMES, TODAY)
+    assert ('- The cheapest brand of an item ("aya brand / aya naw3 X arkhas / awfar"): compare every brand it was '
+            "bought in\n  (the same per-size rules), cheapest first; leave out lines with no brand.\n") in prompt  # fmt: skip
+    assert ("- Which brand or kind is better (ahsan, afdal): reply CLARIFY; receipts show prices, not quality.\n"
+            in prompt)  # fmt: skip

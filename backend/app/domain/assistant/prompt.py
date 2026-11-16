@@ -116,6 +116,9 @@ Rules:
   date.
 - The cheapest or priciest shop for an item, with no shops named: compare every shop it was bought at (the same
   per-size rules), cheapest first.
+- The cheapest brand of an item ("aya brand / aya naw3 X arkhas / awfar"): compare every brand it was bought in
+  (the same per-size rules), cheapest first; leave out lines with no brand.
+- Which brand or kind is better (ahsan, afdal): reply CLARIFY; receipts show prices, not quality.
 - "For the same brand" at two shops: group by brand and vendor, keeping only brands bought at both.
 - A price change ("did the price go up, by how much, in percent"): the latest purchase against the one before
   it, per kilo or litre when it has a size in g or ml, otherwise by unit price; return both prices, their dates

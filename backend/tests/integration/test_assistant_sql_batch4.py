@@ -145,3 +145,23 @@ def test_a_summary_of_the_last_two_years_is_spending_by_category(container, rece
         ("Groceries", "USD", Decimal("18.00"), Decimal("18.00")),
         ("Health", "USD", Decimal("15.00"), Decimal("15.00")),
     ]
+
+
+def test_the_cheapest_brand_compares_every_brand_per_100_g(client, sign_in, container):  # approved 2026-11-16
+    headers, user_id = sign_in()
+    for day, vendor, line in [
+        ("2027-11-03", "Spinneys", ("rice", "1000", "g", "1", "2.40", "2.40", "uncle ben's")),
+        ("2027-12-01", "Spinneys", ("rice", "1000", "g", "1", "2.60", "2.60", "uncle ben's")),
+        ("2027-12-10", "Spinneys", ("rice", "2000", "g", "1", "4.00", "4.00", "al wadi")),
+        ("2028-01-05", "Spinneys", ("rice", "1000", "g", "1", "2.10", "2.10", "sunwhite")),
+        ("2028-01-06", "Spinneys", ("rice", "1000", "g", "1", "1.50", "1.50")),  # no brand printed: left out
+    ]:  # fmt: skip
+        post_receipt(client, headers, day, vendor, line[5], [line])
+    sql = ("SELECT brand, currency, COUNT(*) AS purchase_count, "
+           "ROUND(AVG(COALESCE(unit_price, line_total / quantity) / size_amount * 100), 2) AS average_price_per_100 "
+           "FROM purchases WHERE item_name = 'rice' AND size_unit IN ('g', 'ml') AND brand IS NOT NULL "
+           "GROUP BY brand, currency ORDER BY average_price_per_100, brand")  # fmt: skip
+    names = UserNames(items=["rice"], vendors=["Spinneys"], categories=["Groceries"])
+    assert run_as_on(container, user_id, sql, today=TODAY, names=names).rows == [
+        ("al wadi", "USD", 1, Decimal("0.20")), ("sunwhite", "USD", 1, Decimal("0.21")),
+        ("uncle ben's", "USD", 2, Decimal("0.25"))]  # fmt: skip
