@@ -60,7 +60,7 @@ GO = ("rehet", "re7et", "ro7t", "rohet", "rehit", "daharet", "dahar", "went", "g
 FILL = ("3abayt", "3abbet", "3abet", "aabayt", "filled", "fill", "fuel up", "filled up")
 CUT = ("2asayt", "asayt", "2assayt", "cut", "haircut")
 COUNTING = ("3ed", "3edele", "3eddele", "3adad", "aadad", "count", "number")
-UNITS = ("3elbe", "3elbit", "3elbet", "3elab", "sandu2", "sandou2", "can", "cans", "box", "boxes", "pack", "packs", "bottle",
+UNITS = ("3elbe", "3elbit", "3elbet", "3elab", "kis", "kyes", "sandu2", "sandou2", "can", "cans", "box", "boxes", "pack", "packs", "bottle",
          "bottles", "case", "cases")
 LAST_TIME = ("ekher mara", "ekher marra", "akher mara", "last time")
 WHEN = ("aymta", "aymata", "emta", "when", "which days", "what dates")
@@ -116,7 +116,7 @@ def batch4_user(number: int, catalogue: Catalogue | None = None) -> UserData:
 
 def since_start_of_year(today: date) -> Period:
     p = periods.since_start_of_year(today)  # the user's "mn awalt el sene" too (2026-11-16)
-    return replace(p, words=p.words + ("mn awalt el sene", "men awalt el sene"))
+    return replace(p, words=p.words + ("mn awalt el sene", "men awalt el sene", "hal sene", "hay el sene", "hay l sene"))
 
 
 # The user's "ekher / e5er" forms (chunk-2 review, 2026-11-16), added for batch 4 only: batch 3's periods stay as they were.
