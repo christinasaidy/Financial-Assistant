@@ -9,6 +9,8 @@
   "item_words": {
     "headphones": ["earphones"],
     "toothbrush": ["toothbrushes", "fersheyet snan"],
+    "car wash": ["ghasalet el sayara", "ghasalet el siyara"],
+    "argile": ["argalet"],
     "heated tobacco device": ["iqos"],
     "sponge": ["sfenje", "sfenjet jale", "sponge jale"]
   },
