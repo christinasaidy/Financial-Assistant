@@ -9,6 +9,9 @@
 # The real run saves a checkpoint every 100 steps; if it stops part way, the same command carries on from the last
 # one (2026-11-15: a dropped browser terminal once killed a run that saved nothing, at step 405).
 #
+# On a big card (80 GB, e.g. an H100) use more examples at a time and fewer steps per update, the same 16 per update:
+#   BATCH=8 ACCUMULATE=2 bash finetune.sh check      (then the real run with the same two values)
+#
 # It uses the same environment as serve.sh (/root/venv with vLLM 0.33.0, whose transformers already knows Qwen3.5),
 # plus peft and accelerate, so the model is trained and served by the same library versions.
 set -euo pipefail
@@ -27,8 +30,9 @@ export PATH="/root/venv/bin:${PATH}"
 unset HF_HOME  # the pod's own disk, as in serve.sh
 pkill -f "vllm serve" || true  # the GPU is needed for training
 
+SIZE=(--batch "${BATCH:-2}" --accumulate "${ACCUMULATE:-8}")  # 2 x 8 = 16 examples per update by default
 if [ "${1:-}" = "check" ]; then
-  python train.py --data data --out /root/ft-check --max-steps 5 2>&1 | tee /root/train.log
+  python train.py --data data --out /root/ft-check --max-steps 5 "${SIZE[@]}" 2>&1 | tee /root/train.log
 else
-  python train.py --data data --out /root/ft-4b 2>&1 | tee /root/train.log
+  python train.py --data data --out /root/ft-4b "${SIZE[@]}" 2>&1 | tee /root/train.log
 fi
