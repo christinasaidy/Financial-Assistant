@@ -36,7 +36,7 @@ from research.dataset.checks import UnreadableReply, problems, read_versions
 from research.dataset.generator_prompt import build_generator_prompt, load_seeds
 from research.dataset.replies import users_reply
 from research.dataset.templates import Spec, UserData, make_specs
-from research.dataset.users import USER_COUNT, make_user, remove_user, seed_user
+from research.dataset.users import USER_COUNT, gender_of, make_user, remove_user, seed_user
 from research.dataset.wiring import QuestionWriter, QwenWriter, StandInWriter
 from research.evaluation.expected_model import ExpectedAnswersModel
 from research.evaluation.questions import QUESTIONS_FILE, TEST_QUESTIONS_FILE
@@ -216,7 +216,8 @@ def _example(spec: Spec, version, names, today, rows, number: int, split: str, s
     history = (Exchange(clean_question(version.first), spec.base.target),) if spec.base else ()
     target = spec.target if spec.kind in ("sql", "unsupported") else version.reply
     return {
-        "messages": [{"role": "user", "content": build_prompt(clean_question(version.question), names, today, history)},
+        "messages": [{"role": "user", "content": build_prompt(clean_question(version.question), names, today, history,
+                                                              gender=gender_of(number))},
                      {"role": "assistant", "content": target}],
         "labels": {"template": spec.template, "kind": "follow_up" if spec.base else spec.kind,
                    "language": version.language, "user": number, "split": split, "spec": spec_id,

@@ -43,6 +43,7 @@ from app.domain.assistant.errors import (
 from app.domain.assistant.prompt import (
     VIEW_CATEGORIES,
     Exchange,
+    Gender,
     UserNames,
     answer_repair_prompt,
     build_answer_prompt,
@@ -177,7 +178,8 @@ class AssistantService:
         """The query's result, or the model's clarifying question, refusal or reply. None if both attempts failed
         or the model could not be reached (it already waited and retried once by then)."""
         today = self._today()  # one date for the prompt and for CURRENT_DATE, so they can never disagree
-        prompt = build_prompt(question, names, today, history)
+        # Not given until sign-up asks for it (a later branch); the model then replies without gendered "you" forms.
+        prompt = build_prompt(question, names, today, history, gender=Gender.NOT_GIVEN)
         asked = "\n".join([*(exchange.question for exchange in history), question])  # a follow-up keeps its period
         current = prompt
         for _ in range(ATTEMPTS_PER_STEP):

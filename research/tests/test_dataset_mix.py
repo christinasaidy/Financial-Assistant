@@ -2,10 +2,14 @@
 batch-2 mix had dropped batch 1's Arabizi). Do not change a threshold or an expected value to make a test pass."""
 
 import json
+from datetime import date
 
 import pytest
 
+from app.domain.assistant.prompt import Gender, UserNames, build_prompt
 from research.dataset import mix
+from research.dataset.genders import UnformedReply
+from research.dataset.rerender import rerender, without_batch5_lines
 
 
 def example(question, template="T9", kind="sql", language="arabizi", period="none", answer="SELECT 1", **labels):
@@ -63,11 +67,22 @@ def test_per_100_comparisons_that_all_say_100_fail():  # batch 2: 75 of 75 said 
     assert any(f.startswith("per-100 comparisons that do not say 100") for f in mix.failures(mix.coverage(rows)))
 
 
+def stored(row, user=1):
+    """The row as batches 1-4 stored it, with a real prompt (no gender line, no batch-5 rule) and its user: what
+    build_mix rebuilds since batch 5."""
+    question = row["messages"][0]["content"].rsplit("Question: ", 1)[-1]
+    prompt = without_batch5_lines(build_prompt(question, UserNames(["x"], ["y"], ["Groceries"]), date(2026, 11, 3),
+                                               gender=Gender.MAN))  # fmt: skip
+    return {"messages": [{"role": "user", "content": prompt}, row["messages"][1]], "labels": {**row["labels"], "user": user}}
+
+
 def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
+    """Changed with batch 5 (2026-11-18): the mix holds every line rebuilt with today's prompt (it used to hold the
+    lines exactly as stored)."""
     data = tmp_path / "data"
     for folder in (data, data / "batch2", data / "batch3", data / "batch4"):  # batch 4 since 2026-11-16
         folder.mkdir(parents=True, exist_ok=True)
-    rows = balanced() + batch4_balanced()
+    rows = [stored(r) for r in balanced() + batch4_balanced()]
     boundary = [r for r in rows if r["labels"]["kind"] in ("clarify", "unsupported")]  # batch 3 holds these
     rest = [r for r in rows if r not in boundary]
     sources = {data / "train.jsonl": rest[:100], data / "batch2" / "train.jsonl": rest[100:200],
@@ -81,7 +96,7 @@ def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
     counts = mix.build_mix(data, data / "mix")
     assert counts["train"] == len(rows) and counts["validation"] == 5
     assert sorted((data / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()) == sorted(
-        json.dumps(r) for r in rows)
+        json.dumps(rerender(r), ensure_ascii=False) for r in rows)
     (data / "batch3" / "train.jsonl").write_text("", encoding="utf-8")  # lose batch 3's clarify questions
     with pytest.raises(mix.CoverageError):
         mix.build_mix(data, data / "mix")
@@ -147,7 +162,7 @@ def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
     data = tmp_path / "data"
     for folder in (data, data / "batch2", data / "batch3", data / "batch4"):
         folder.mkdir(parents=True, exist_ok=True)
-    rows = balanced()
+    rows = [stored(r) for r in balanced()]
     for name in ("train.jsonl", "batch2/train.jsonl", "batch2/extras_train.jsonl", "batch4/train.jsonl",
                  "validation.jsonl", "batch2/validation.jsonl", "batch2/extras_validation.jsonl",
                  "batch3/validation.jsonl", "batch4/validation.jsonl"):
@@ -155,3 +170,39 @@ def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
     (data / "batch3" / "train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
     with pytest.raises(mix.CoverageError, match="jebet"):  # batch 3's thresholds pass, batch 4's do not
         mix.build_mix(data, data / "mix")
+
+
+# --- batch 5 (2026-11-18): every line rebuilt with today's prompt ---
+
+
+def write_batches(data, train_rows, validation_row):
+    for folder in (data, data / "batch2", data / "batch3", data / "batch4"):
+        folder.mkdir(parents=True, exist_ok=True)
+    for source in mix.SOURCES:
+        (data / source.format(split="train")).write_text("", encoding="utf-8")
+        (data / source.format(split="validation")).write_text(json.dumps(validation_row) + "\n", encoding="utf-8")
+    (data / "batch3" / "train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in train_rows), encoding="utf-8")
+
+
+def test_the_mix_states_each_users_gender_and_gives_a_woman_her_form(tmp_path):
+    data = tmp_path / "data"
+    rows = [stored(r, user=3) for r in balanced() + batch4_balanced()]  # user 3 is a woman
+    rows.append(stored(example("aday sarafet hal fatra?", template="C4", kind="clarify",
+                               answer="CLARIFY: azdak mn emta la emta?"), user=3))  # fmt: skip
+    write_batches(data, rows, rows[0])
+    mix.build_mix(data, data / "mix")
+    built = [json.loads(line) for line in (data / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert all("\nThe user is a woman.\n" in r["messages"][0]["content"] for r in built)
+    assert all(r["labels"]["gender"] == "woman" for r in built)
+    answers = [r["messages"][1]["content"] for r in built]
+    assert "CLARIFY: azdik mn emta la emta?" in answers and "CLARIFY: azdak mn emta la emta?" not in answers
+
+
+def test_the_mix_refuses_a_masculine_reply_with_no_approved_forms_and_writes_nothing(tmp_path):
+    data = tmp_path / "data"
+    rows = [stored(r) for r in balanced() + batch4_balanced()]
+    rows.append(stored(example("shu?", template="C6", kind="clarify", answer="CLARIFY: shu baddak?")))
+    write_batches(data, rows, rows[0])
+    with pytest.raises(UnformedReply):
+        mix.build_mix(data, data / "mix")
+    assert not (data / "mix").exists()

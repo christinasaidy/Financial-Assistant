@@ -10,6 +10,10 @@ the Arabizi and mixed questions of the training split meet the approved threshol
 - each approved expression appears at least 20 times;
 - totals, shop totals, top shop and receipt counts each have at least 5 for this month, last month and yesterday;
 - at least 40% of the per-100 g/ml shop comparisons do not say "100" (batch 2: all 75 did, a wording shortcut).
+
+Since batch 5 (2026-11-18) every line is first rebuilt with today's prompt (research/dataset/rerender.py): the user's
+gender, the new chat rule, and the assistant's replies in the form for that gender. A reply with no approved forms or
+a prompt that cannot be read back refuses the whole mix.
 """
 
 import json
@@ -18,6 +22,9 @@ import re
 import sys
 from collections import Counter
 from pathlib import Path
+
+from research.dataset.genders import UnformedReply
+from research.dataset.rerender import UnreadablePrompt, rerender
 
 DATA_DIR = Path(__file__).parent / "data"
 SPLITS = ("train", "validation")
@@ -117,7 +124,7 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
             path = data_dir / source.format(split=split)
             lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         random.Random(f"{SEED}/{split}").shuffle(lines)
-        splits[split] = lines
+        splits[split] = [json.dumps(rerender(json.loads(line)), ensure_ascii=False) for line in lines]
     report = coverage([json.loads(line) for line in splits["train"]])
     missing = failures(report) + batch4_failures(report)
     if missing:
@@ -133,6 +140,9 @@ def main() -> int:
         counts = build_mix()
     except CoverageError as exc:
         print("REFUSED, the training mix misses:", *str(exc).split("; "), sep="\n  ")
+        return 1
+    except (UnformedReply, UnreadablePrompt) as exc:
+        print("REFUSED, a line cannot be rebuilt with today's prompt:", exc)
         return 1
     train = [json.loads(line) for line in (DATA_DIR / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()]
     report = coverage(train)

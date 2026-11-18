@@ -5,7 +5,10 @@ the fine-tuning dataset, so the model is always trained on exactly what it is la
 - the instructions and the three assistant views;
 - the user's own item, vendor and category names, so every filter can use an exact name;
 - today's date and weekday, so a month or day named without a year can be placed ("in October");
-- the recent chat (each earlier question with the SQL that answered it, never the numbers it showed);
+- the user's gender (woman, man or not given), so CLARIFY and REPLY text addresses them correctly in Arabizi
+  ("baddak" / "baddik"; not given: a sentence that avoids "you"). Added 2026-11-17 for batch 5;
+- the recent chat (each earlier question with the SQL that answered it, never the numbers it showed; a
+  clarifying question or short reply keeps its CLARIFY: / REPLY: prefix, changed 2026-11-17);
 - the question.
 Relative dates ("this month") are written with CURRENT_DATE, which the backend replaces with the same date before
 the query runs. Each example carries its own date, so it stays correct whenever it is used (decided with the user
@@ -18,6 +21,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
+from enum import StrEnum
 
 from app.domain.assistant.answer import read_reply
 from app.domain.assistant.conversation import AnswerKind, Message, MessageRole, Step
@@ -131,7 +135,24 @@ Rules:
 - A summary of a period (tolkhis, telkhis, mlakhas, lakhesle) is spending by category for that period.
 - Compute every difference, percentage or average in the query itself.
 - Use earlier questions in the chat to fill in what a follow-up leaves out ("and last month?"), but never reuse
-  numbers from earlier answers."""
+  numbers from earlier answers.
+- In a chat, what the new question says replaces the earlier item, shop, period or measure; what it leaves out
+  comes from the earlier question."""
+
+
+class Gender(StrEnum):
+    """The user's gender as the prompt states it. The app sends NOT_GIVEN until sign-up asks for it."""
+
+    WOMAN = "woman"
+    MAN = "man"
+    NOT_GIVEN = "not given"
+
+
+GENDER_LINES = {
+    Gender.WOMAN: "The user is a woman.",
+    Gender.MAN: "The user is a man.",
+    Gender.NOT_GIVEN: "The user's gender is not given.",
+}
 
 
 @dataclass(frozen=True)
@@ -151,11 +172,14 @@ class Exchange:
     reply: str
 
 
-def build_prompt(question: str, names: UserNames, today: date, history: Sequence[Exchange] = ()) -> str:
+def build_prompt(
+    question: str, names: UserNames, today: date, history: Sequence[Exchange] = (), *, gender: Gender
+) -> str:
     parts = [
         INSTRUCTIONS,
         "",
         f"Today: {today.isoformat()} ({WEEKDAYS[today.weekday()]})",
+        GENDER_LINES[gender],
         "The user's items: " + _quoted(names.items),
         "The user's vendors: " + _quoted(names.vendors),
         "The user's categories: " + _quoted(names.categories),
@@ -262,7 +286,11 @@ def _reply_of(answer: Message) -> str | None:
             return details.sql
     if details.kind is AnswerKind.UNSUPPORTED:
         return "UNSUPPORTED"
-    return answer.content  # a clarifying question or a short reply, as it was shown
+    # A clarifying question or a short reply, as it was shown, with the prefix the model wrote, so the model can tell
+    # its own question from an answer (changed requirement, approved 2026-11-17).
+    if details.kind is AnswerKind.CLARIFY:
+        return f"CLARIFY: {answer.content}"
+    return f"REPLY: {answer.content}"
 
 
 def _quoted(names: Sequence[str]) -> str:

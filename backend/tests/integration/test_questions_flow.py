@@ -544,7 +544,9 @@ def test_e20_another_users_data_never_appears(client, container, settings, model
 
     assert (answer["kind"], answer["content"]) == ("error", answers.FAILURE)
     assert "'manakish' is not one of the user's items" in model.sql_prompts[1]
-    lists = [line for line in model.sql_prompts[0].splitlines() if line.startswith("The user's ")]
+    # The name lists only (since 2026-11-17 the prompt also has "The user's gender is not given.").
+    name_lists = ("The user's items:", "The user's vendors:", "The user's categories:")
+    lists = [line for line in model.sql_prompts[0].splitlines() if line.startswith(name_lists)]
     assert len(lists) == 3 and '"laban"' in lists[0] and '"Spinneys"' in lists[1]
     for name in ("manakish", "Zaatar w Zeit"):
         assert all(name not in line for line in lists)

@@ -20,6 +20,9 @@ Decided by the assistant on 2026-11-08 (the user delegated these choices):
 
 Planning (`make_user`) is separate from writing to the database (`seed_user`), so the plan can be checked and tested
 without one.
+
+Each user's gender (decided with the user on 2026-11-17, batch 5): about 40% women, 40% men and 20% not given in each
+split, fixed from the user number by its own seed, so no receipt or other draw changes (`gender_of`).
 """
 
 import random
@@ -31,6 +34,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Protocol
 
 from app.application.auth.dtos import RegisterRequest
+from app.domain.assistant.prompt import Gender
 from app.application.receipts.dtos import ConfirmReceiptRequest
 from app.domain.receipts.receipt import ReceiptLine
 
@@ -41,6 +45,15 @@ RATE = Decimal(89500)  # LBP per USD
 HISTORY_DAYS = 425  # about 14 months
 FIRST_TODAY = date(2025, 3, 1)
 EMAIL_DOMAIN = "dataset.local"
+
+# Every user in the dataset by split: batches 1-2 (1-30), batch 3 (32-41) and batch 4 (42-51). A new batch's users are
+# added here, so each is given a gender before any of its examples is written.
+GENDER_USERS = {
+    "train": (*range(1, 28), *range(32, 40), *range(42, 50)),
+    "validation": (28, 29, 30, 40, 41, 50, 51),
+}
+GENDER_SHARES = ((Gender.WOMAN, 0.4), (Gender.MAN, 0.4), (Gender.NOT_GIVEN, 0.2))
+GENDER_SEED = "fyp-dataset/gender"
 
 # kind: (chance a user shops there at all, how many such shops, visits a month to all of them, lines per receipt)
 KINDS: dict[str, tuple[float, tuple[int, int], tuple[float, float], tuple[int, int]]] = {
@@ -109,6 +122,30 @@ class SyntheticUser:
     shops: tuple[str, ...]
     items: tuple[str, ...]
     receipts: tuple[PlannedReceipt, ...]
+
+
+def _genders() -> dict[int, Gender]:
+    found: dict[int, Gender] = {}
+    for split, numbers in GENDER_USERS.items():
+        order = list(numbers)
+        random.Random(f"{GENDER_SEED}/{split}").shuffle(order)
+        women, men = (round(len(order) * share) for _, share in GENDER_SHARES[:2])
+        for position, number in enumerate(order):
+            found[number] = Gender.WOMAN if position < women else Gender.MAN if position < women + men else (
+                Gender.NOT_GIVEN)  # fmt: skip
+    # Validation's draw left only user 41 (84 lines) not given, 5% of its lines; users 28-30 have about 400 each.
+    # Swapped with user 29 so not given can be measured (approved by the user on 2026-11-18): about 37% women, 37%
+    # men and 26% not given by lines. Training is unchanged.
+    found[29], found[41] = found[41], found[29]
+    return found
+
+
+GENDERS = _genders()
+
+
+def gender_of(number: int) -> Gender:
+    """The user's gender as their prompts state it. KeyError for a user not listed in GENDER_USERS."""
+    return GENDERS[number]
 
 
 def make_users(catalogue: Catalogue, count: int = USER_COUNT) -> list[SyntheticUser]:
