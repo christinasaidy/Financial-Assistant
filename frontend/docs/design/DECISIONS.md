@@ -389,26 +389,118 @@ considered, so the reasoning can be explained later.
   faintest; the "icon fade floor" question from D025 is settled. Figma's Printed variants were updated in place
   (same components).
 
+## D027: Icons line up with text by size: icon box = font size, centred on the line
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it.
+- **Context:** Her reference is Revolut, where the icon matches the height of the first character beside it.
+- **Options considered:** drawn glyph = cap height on the baseline; icon box = line height; glyph = font ascent.
+- **Decision:**
+  - The icon's 24 px box is scaled to the **font size** of the text beside it (15 px beside receipt lines, 22 px
+    beside a screen title) and **centred on the line** (`alignItems: 'center'`). Our drawings fill 75% of their
+    box, and DejaVu's capitals are 72.9% of the font size, so the drawn icon is as tall as a capital letter: the
+    Revolut rule, with no per-size maths. Measured error: under 0.5 px at every size in the type scale.
+  - **Gap:** one Mono character, 0.6 em (9 px at 15 px), so the icon sits on the receipt's character grid and grows
+    with the iPhone's text size.
+  - **Icons on their own** (tab bar, Back, Close, the bell) are 24 px, with a 44 x 44 pt touch area (Apple's
+    minimum).
+  - **Variant:** the app uses the Printed variant everywhere; Clean is the editable master in Figma.
+- **Consequences:** Icon size is never a separate token: it follows the text style it sits with.
+
+## D028: Screen titles have no extra letter spacing
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it. Settles D015's open point.
+- **Options considered:** +8% like the section labels; none.
+- **Decision:** 0. Section labels get +8% because 12 px capitals need air to stay readable; at 22 px Bold, Mono's
+  fixed character width already spaces capitals evenly, and more spacing makes HOME read as H O M E.
+
+## D029: The wordmark is FATOURATI in capitals, in two printed strengths
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it. Builds on D010.
+- **Decision:**
+  - **Capitals**, set in DejaVu Sans Mono Bold: the app's name is printed like the shop name at the top of a
+    receipt (D012). VoiceOver still reads "Fatourati" (the image's label).
+  - **Large** (48 px, launch screen and onboarding): edges displaced up to about 1 px with smooth noise, fade
+    floor 45% (logotypes are exempt from contrast, D010).
+  - **Small** (20 px, the Home header): lighter, edges 0.35 px, fade floor 75%, so it reads cleanly at header size.
+  - Files: `frontend/assets/wordmark/fatourati-large.svg` and `-small.svg`, coloured by `currentColor`.
+- **Consequences:** Each letter is its own shape with its own fade, so the fade varies across the word as well as
+  down it.
+
+## D030: The next six icons
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it. Extends D024.
+- **Decision:** Notifications (bell), Close (X), Settings (gear), Add (plus), Flash (lightning bolt, for the scan
+  screen), Gallery (picture frame, to pick a receipt photo). Same grid, stroke and printed look (D025, D026).
+  All twelve are in `frontend/assets/icons/` (`name.svg` clean, `name-printed.svg` printed).
+
+## D031: Spacing: a 4 px scale and 20 px screen margins
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it.
+- **Decision:**
+  - **Scale:** 4, 8, 12, 16, 24, 32, 48 px. Nothing in between.
+  - **Screen side margins:** 20 px. On a 393 pt iPhone that leaves 353 px, which holds 39 Mono characters at 15 px:
+    the width of a real 80 mm receipt line.
+  - **Inside a section:** 8 px between a label and its content, 16 px between rows. **Between sections:** 24 px
+    above and below a rule.
+- **Consequences:** Settles "Layout" in DESIGN.md for phones; tablets are out of scope.
+
+## D032: Shapes: square corners, dashed rules, no shadows
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it.
+- **Decision:**
+  - **Corners:** 0 everywhere. Receipt paper is cut square, and it keeps the app away from the
+    rounded-card look of generated apps.
+  - **Rules:** sections and receipt rows are separated by a **dashed** rule (1 px, 4 on / 3 off, colour `rule`), like
+    the tear lines on a receipt. The tab bar's top edge is a **solid** 1 px rule, because it is the app's edge, not
+    part of a receipt.
+  - **Elevation:** none. No shadows, no cards; everything sits flat on the paper and is grouped by rules and space.
+  - **Budget bars:** 4 px tall, square ends, on `track`.
+
+## D033: The tab bar
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it. Confirms the proposed tabs: Home · Receipts · Scan · Budgets · Assistant.
+- **Decision:**
+  - Five equal tabs, 64 px tall plus the home-indicator area, on paper with a solid top rule.
+  - Each tab: Printed icon (24 px) over its label in the section-label style (12 px Mono capitals, +8%).
+  - **Selected:** icon and label in `ink`, with a 2 px ink bar at the top of the tab; the others in `ink-2`. The bar
+    means the state is not shown by colour alone (WCAG 1.4.1).
+  - **Scan** is the main action: a 44 x 44 px pen-blue square with the icon in paper colour (D018: pen blue is the
+    main button), its label below in `ink`.
+
+## D034: Money on screen
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it. Adopts the earlier proposal.
+- **Decision:** dollars as `$6.60`, pounds as `450,000 LBP` (comma thousands, no decimals). A total that mixes
+  both is shown in dollars and always says how: "$412.60 + 3,150,000 LBP at 89,500 LBP per $".
+
+## D035: The Home screen
+
+- **Status:** Accepted, 2026-11-19. Decided by Claude at Christina's request ("u decide all of these"); open to change once she sees it.
+- **Decision:** top to bottom, inside the 20 px margins:
+  1. **Header:** the small wordmark on the left, the bell on the right.
+  2. **THIS MONTH · NOVEMBER** (section label), the month total in total-hero, the combined-currency line (caption).
+  3. Dashed rule.
+  4. **BUDGETS** with "See all" (pen blue, a link): the three budgets closest to their limit. Each row: name and
+     "$spent / $limit" (receipt-line), a 4 px bar, and the state in words when it needs attention ("NEAR LIMIT ·
+     89%", "LIMIT REACHED · 105%") in its colour.
+  5. Dashed rule.
+  6. **RECENT**: the last three receipts. Each row: shop name (shop-name style) and total, then date, time and item
+     count (meta), with dashed rules between rows.
+  7. Tab bar, Home selected.
+- **Consequences:** The first screen to build in the app; Figma copy follows when Figma calls are available again.
+
 ---
 
 ## Open (not decided)
 
 From Christina, to discuss later:
-- **Icon alignment.** Her reference: in Revolut the icon's size matches the height of the first character of the
-  text next to it, and the margins and padding around it are deliberate. To decide: what the icon lines up with
-  (cap height, x-height, line height), icon box vs. drawn glyph, the gap to the text. Ask before the first icon is
-  placed.
 - **Printed look for the rest of the app** (the wordmark is settled by D010). Christina asked to see the type itself roughed up like receipt print (specimen option D and three
   strengths: light = ragged edges, medium = + patchy fading, heavy = + dropouts). To decide: which strength, on
   what (wordmark only, big numbers, all Mono text), and how it is built in React Native, which has no filters
   (a roughed copy of the font renamed e.g. "Fatourati Print", Figma artwork, or a grain texture over text).
 
-- **Letter spacing of screen titles** (D015): same +8% as the labels, or none; decide on the first screen.
 - **Arabic on the iPhone:** confirm DejaVu's Arabic looks acceptable on the phone (D006).
 
 Proposed earlier, still to discuss:
 - Interface language: English screens, Arabizi in the assistant only (proposed).
-- Accent color: deep teal, ink blue or terracotta were proposed before the receipt direction; to revisit.
-- Tab bar: Home · Receipts · (Scan) · Budgets · Assistant (proposed).
-- Money on screen: `$6.60`, `450,000 LBP`, a combined total always labelled (proposed).
 - Theme switch: follow the phone, with an override in settings (proposed).

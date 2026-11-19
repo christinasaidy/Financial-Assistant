@@ -37,11 +37,12 @@ typography:
     fontSize: 36px
     fontWeight: 700
     lineHeight: 38px
-  screen-title:    # capitals (D015)
+  screen-title:    # capitals (D015), no extra letter spacing (D028)
     fontFamily: DejaVu Sans Mono
     fontSize: 22px
     fontWeight: 700
     lineHeight: 26px
+    letterSpacing: 0em
   shop-name:       # capitals; printed look E
     fontFamily: DejaVu Sans Mono
     fontSize: 16px
@@ -78,6 +79,19 @@ typography:
     fontSize: 12px
     fontWeight: 400
     lineHeight: 16px
+# Shapes (D032): square corners everywhere.
+rounded:
+  none: 0px
+# Spacing (D031): a 4 px scale; nothing in between.
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 12px
+  lg: 16px
+  xl: 24px
+  2xl: 32px
+  3xl: 48px
+  screen-margin: 20px
 ---
 
 # Fatourati design system
@@ -160,7 +174,8 @@ Receipt lines exactly as printed. Sentences in normal case.
 ## Iconography
 
 Our own icons, drawn in Figma (page "Icons"); no icon library (D008, D025). First six (D024): Home, Receipts, Scan,
-Budgets, Assistant, Back.
+Budgets, Assistant, Back; then (D030) Notifications, Close, Settings, Add, Flash, Gallery. SVGs in
+`frontend/assets/icons/` (`name.svg` clean, `name-printed.svg` printed; both use `currentColor`).
 
 - **Grid:** 24 px frame, 256-unit grid; 16-unit stroke (1.5 px at 24 px), round caps and joins; Phosphor-like.
 - **Look:** two variants per icon: Clean (editable stroke) and Printed (a light thermal-print feel: slight edge
@@ -168,23 +183,43 @@ Budgets, Assistant, Back.
 - **Colour:** ink in light mode, ink-dark in dark mode. The fade is only transparency (in Figma an alpha mask
   named Fade; in code a gradient of opacity), so one drawing serves both themes. Faintest ink: about 5.5:1 on
   paper, 7:1 on dark paper.
-- **Not decided yet:** alignment with text and the gap to it, other sizes.
+- **Beside text** (D027): box = font size, centred on the line, gap 0.6 em. **Alone:** 24 px, 44 pt touch area. The app uses the Printed variant.
 
 ## Layout
 
-Not decided yet.
+**Spacing** (D031). Scale 4, 8, 12, 16, 24, 32, 48 px. Screen side margins 20 px, so a 15 px receipt line holds 39
+Mono characters, the width of a real receipt. 8 px between a label and its content, 16 px between rows, 24 px
+above and below a rule between sections.
+
+**Home** (D035), top to bottom: header (small wordmark, bell); THIS MONTH label, month total, combined-currency
+line; rule; BUDGETS (three closest to their limit) with "See all"; rule; RECENT (last three receipts); tab bar.
+
+**Money** (D034). `$6.60`, `450,000 LBP`. A mixed total is shown in dollars and says how it was combined:
+"$412.60 + 3,150,000 LBP at 89,500 LBP per $".
 
 ## Elevation & Depth
 
-Not decided yet.
+None (D032): no shadows, no cards. Everything sits flat on the paper, grouped by rules and space.
 
 ## Shapes
 
-Not decided yet.
+**Corners:** 0 everywhere (D032). **Rules:** dashed 1 px (4 on, 3 off) in `rule` between sections and receipt rows,
+like a receipt's tear lines; solid 1 px only for the tab bar's top edge. **Budget bars:** 4 px, square ends, on
+`track`.
 
 ## Components
 
-Not decided yet.
+**Tab bar** (D033). Home · Receipts · Scan · Budgets · Assistant; five equal tabs, 64 px plus the home indicator,
+solid top rule. Each tab: printed icon (24 px) over a section-label caption. Selected: `ink` plus a 2 px ink bar at
+the top; others `ink-2`. Scan is a 44 x 44 px `primary` square with a paper-coloured icon.
+
+**Icon beside text** (D027). The icon box equals the font size and is centred on the line; the gap is one Mono
+character (0.6 em). Icons on their own are 24 px with a 44 x 44 pt touch area.
+
+**Wordmark** (D029). FATOURATI in capitals; large (48 px, launch screen) and small (20 px, Home header) versions in
+`frontend/assets/wordmark/`, shipped as images labelled "Fatourati".
+
+Other components (buttons, inputs, sheets) are sized when their screens are designed.
 
 ## Do's and Don'ts
 
