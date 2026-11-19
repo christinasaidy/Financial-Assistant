@@ -2,6 +2,11 @@
 
     python train.py --data /workspace/data --out /root/ft-4b              # the real run
     python train.py --data /workspace/data --out /root/ft-test --max-steps 5   # a quick check that it all works
+    python train.py --data /workspace/data --out /root/x --lengths-only        # only the token lengths, no GPU
+
+Every example is tokenized before the model is loaded; the run prints the longest in real tokens and stops if any
+is over --max-length (6,144 since batch 5, 2026-11-17), naming all of them. A check run (--max-steps) trains on the
+longest examples, so it needs as much memory as the hardest batches of the real run.
 
 Only the language part of Qwen3.5 is trained (it is served with --language-model-only); the vision part is kept as
 it is, so the merged model has exactly the base model's shape and vLLM serves it the same way. Each example is the
@@ -20,10 +25,12 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForImageTextToText, AutoProcessor, AutoTokenizer, Trainer, TrainingArguments
 
 try:
-    from research.finetune.examples import checkpoint_settings, encode, latest_checkpoint, pad, read_pairs
+    from research.finetune.examples import (MAX_LENGTH, TooLong, checkpoint_settings, encode_all, latest_checkpoint,
+                                            longest_first, pad, read_pairs)  # fmt: skip
 except ImportError:  # on the pod the files sit side by side
     sys.path.insert(0, str(Path(__file__).parent))
-    from examples import checkpoint_settings, encode, latest_checkpoint, pad, read_pairs
+    from examples import (MAX_LENGTH, TooLong, checkpoint_settings, encode_all, latest_checkpoint, longest_first, pad,
+                          read_pairs)  # fmt: skip
 
 SEED = 20261108
 LINEAR_SKIP = ("visual", "vision", "lm_head", "embed")  # never adapt these
@@ -39,8 +46,9 @@ def main() -> int:
     parser.add_argument("--rank", type=int, default=16)
     parser.add_argument("--batch", type=int, default=2)
     parser.add_argument("--accumulate", type=int, default=8, help="batches per update (16 examples per update)")
-    parser.add_argument("--max-length", type=int, default=4096)
+    parser.add_argument("--max-length", type=int, default=MAX_LENGTH)
     parser.add_argument("--max-steps", type=int, default=-1, help="stop early, for a quick check")
+    parser.add_argument("--lengths-only", action="store_true", help="print the token lengths and stop")
     args = parser.parse_args()
     random.seed(SEED)
     torch.manual_seed(SEED)
@@ -54,11 +62,24 @@ def main() -> int:
     def tokenize(text: str) -> list[int]:
         return tokenizer(text, add_special_tokens=False)["input_ids"]
 
-    splits = {name: [encode(p, prefix, tokenize, args.max_length) for p in read_pairs(args.data / f"{name}.jsonl")]
-              for name in ("train", "validation")}  # fmt: skip
-    longest = max(len(e["input_ids"]) for examples in splits.values() for e in examples)
-    print(f"train {len(splits['train'])}, validation {len(splits['validation'])}, longest {longest} tokens", flush=True)
+    splits, longest = {}, 0
+    for name in ("train", "validation"):
+        pairs = read_pairs(args.data / f"{name}.jsonl")
+        try:
+            found = encode_all(pairs, prefix, tokenize, args.max_length)
+        except TooLong as exc:
+            print(f"STOPPED before loading the model: {name}: {exc}", flush=True)
+            return 1
+        question = pairs[found.longest_index].prompt.rsplit("Question: ", 1)[-1].removesuffix("\nReply:")
+        print(f"{name}: {len(pairs)} examples, longest {found.longest} tokens (line {found.longest_index + 1}, "
+              f"{args.max_length} allowed): {question[:80]}", flush=True)  # fmt: skip
+        splits[name], longest = found.examples, max(longest, found.longest)
+    if args.lengths_only:
+        return 0
     print("first example as the model sees it:\n" + tokenizer.decode(splits["train"][0]["input_ids"])[-700:], flush=True)
+    if args.max_steps >= 0:  # a check run: its batches are the longest ones
+        splits["train"] = longest_first(splits["train"], args.max_steps * args.batch * args.accumulate)
+        print(f"check run: training on the {len(splits['train'])} longest examples", flush=True)
 
     model = AutoModelForImageTextToText.from_pretrained(args.base, dtype=torch.bfloat16, device_map="cuda")
     model.config.use_cache = False

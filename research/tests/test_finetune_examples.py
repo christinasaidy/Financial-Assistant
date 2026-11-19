@@ -64,3 +64,36 @@ def test_a_run_resumes_from_its_latest_checkpoint_by_step_number(tmp_path):
     for step in (900, 1000, 100):
         (tmp_path / "checkpoints" / f"checkpoint-{step}").mkdir(parents=True)
     assert latest_checkpoint(tmp_path / "checkpoints") == str(tmp_path / "checkpoints" / "checkpoint-1000")
+
+
+# --- the length limit and the check run (changed requirement, approved 2026-11-17: chats of up to 6 exchanges) ---
+
+from pathlib import Path  # noqa: E402
+
+from research.finetune.examples import MAX_LENGTH, TooLong, encode_all, longest_first  # noqa: E402
+
+
+def test_the_limit_is_6144_tokens_and_the_training_script_uses_it():
+    assert MAX_LENGTH == 6144
+    script = (Path(__file__).parents[1] / "finetune" / "train.py").read_text(encoding="utf-8")
+    assert 'add_argument("--max-length", type=int, default=MAX_LENGTH)' in script
+
+
+def test_every_example_over_the_limit_is_named_not_only_the_first():
+    pairs = [Pair("q" * 5, "S"), Pair("q" * 50, "S"), Pair("q", "S"), Pair("q" * 60, "S")]
+    with pytest.raises(TooLong, match=r"2 examples have more than 40 tokens: line 2 \(\d+ tokens\), line 4"):
+        encode_all(pairs, prefix, tokenize, 40)
+
+
+def test_the_longest_example_is_reported_with_its_line_and_encoded_as_encode_does():
+    pairs = [Pair("ab", "SELECT 1"), Pair("abcdefgh", "SELECT 1"), Pair("a", "SELECT 1")]
+    found = encode_all(pairs, prefix, tokenize, 100)
+    assert found.longest_index == 1
+    assert found.longest == len(tokenize(prefix("abcdefgh") + "SELECT 1" + END))
+    assert found.examples == [encode(p, prefix, tokenize, 100) for p in pairs]
+
+
+def test_a_check_run_trains_on_the_longest_examples_longest_first():
+    examples = [{"input_ids": [0] * n, "labels": []} for n in (3, 9, 1, 7, 5)]
+    assert [len(e["input_ids"]) for e in longest_first(examples, 3)] == [9, 7, 5]
+    assert len(longest_first(examples, 80)) == 5

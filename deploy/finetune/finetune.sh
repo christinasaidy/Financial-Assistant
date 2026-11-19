@@ -3,6 +3,8 @@
 #
 #   cd /workspace/bundle
 #   bash finetune.sh check     # 5 steps and a merge, to see it all works (a few minutes)
+#   (every run first prints the longest example in real tokens and stops before loading the model if any is
+#   over 6,144; the check run trains on the longest examples, so it needs the memory the real run will)
 #   setsid nohup bash finetune.sh > /root/run.out 2>&1 &    # the real run, detached from the browser terminal
 #   tail -c 400 /root/train.log
 #
