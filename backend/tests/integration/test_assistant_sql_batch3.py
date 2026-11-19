@@ -94,16 +94,21 @@ def test_the_cheapest_shop_with_no_shops_named_compares_every_shop(container, re
 
 
 def test_a_price_change_compares_the_latest_purchase_with_the_one_before(container, receipts):  # N6
-    def one(offset: str) -> str:
-        return (f"(SELECT receipt_date, {PER_LITRE} AS price FROM purchases WHERE item_name = 'fuel' "
-                f"AND size_unit = 'ml' ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1{offset})")  # fmt: skip
+    """Changed requirement, approved by the user on 2026-11-19 (batch 5): both purchases are in the latest one's
+    currency, which is returned (the old query compared 420,000 LBP with $4.20)."""
+    where = "item_name = 'fuel' AND size_unit = 'ml'"
+    latest_currency = f"(SELECT currency FROM purchases WHERE {where} ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1)"
 
-    sql = ("SELECT latest.receipt_date AS latest_date, ROUND(latest.price, 2) AS latest_price, "
+    def one(offset: str) -> str:
+        return (f"(SELECT receipt_date, currency, {PER_LITRE} AS price FROM purchases WHERE {where} AND currency = "
+                f"{latest_currency} ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1{offset})")  # fmt: skip
+
+    sql = ("SELECT latest.currency, latest.receipt_date AS latest_date, ROUND(latest.price, 2) AS latest_price, "
            "previous.receipt_date AS previous_date, ROUND(previous.price, 2) AS previous_price, "
            "ROUND((latest.price - previous.price) / NULLIF(previous.price, 0) * 100, 1) AS percent_change "
            f"FROM {one('')} AS latest, {one(' OFFSET 1')} AS previous")  # fmt: skip
     assert rows(container, receipts, sql) == [
-        (date(2027, 2, 8), Decimal("1.10"), date(2027, 1, 10), Decimal("1.00"), Decimal("10.0"))]
+        ("USD", date(2027, 2, 8), Decimal("1.10"), date(2027, 1, 10), Decimal("1.00"), Decimal("10.0"))]
 
 
 def test_the_average_price_this_month_against_last_month(container, receipts):  # N6, "m3adal"

@@ -104,7 +104,9 @@ Rules:
   "How many <items> did I buy" adds up the quantity: SUM(quantity). "How many receipts" counts receipts.
   "How often do I go to <shop>" with no period is visits per month: the last 3 complete months' visits divided by 3.
 - "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I spent
-  most at" adds up money.
+  most at" adds up money. Bills and subscriptions are not visits: leave out category = 'Utilities' and the
+  user's Netflix, Shahid, Anghami or Spotify, e.g. FROM category_spending WHERE category <> 'Utilities' AND
+  vendor NOT IN ('Anghami').
 - For amounts, GROUP BY currency and return both the amount and its USD value, e.g.
   SELECT currency, SUM(amount) AS total_spent, SUM(amount_usd) AS total_spent_usd ... GROUP BY currency.
   If the user asks for dollars ("bel dollar"), return only the USD value.
@@ -125,8 +127,9 @@ Rules:
 - Which brand or kind is better (ahsan, afdal): reply CLARIFY; receipts show prices, not quality.
 - "For the same brand" at two shops: group by brand and vendor, keeping only brands bought at both.
 - A price change ("did the price go up, by how much, in percent"): the latest purchase against the one before
-  it, per kilo or litre when it has a size in g or ml, otherwise by unit price; return both prices, their dates
-  and the percent change. "The average price went down" compares this month's average with last month's.
+  it in the same currency, per kilo or litre when it has a size in g or ml, otherwise by unit price; return the
+  currency, both prices, their dates and the percent change. "The average price went down" compares this month's
+  average with last month's.
 - "Since when have I been buying X": the first purchase's date, and how many times since.
 - "How much / how many do I usually buy a month": the last 3 complete months added up and divided by 3 (months
   with none count as 0).

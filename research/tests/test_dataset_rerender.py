@@ -194,3 +194,121 @@ def test_the_same_question_always_gets_the_same_period_question():
     for gender in Gender:
         first = for_gender("CLARIFY: azdak mn emta la emta?", gender, "aday sarafet bi awal el shaher?")
         assert first == for_gender("CLARIFY: azdak mn emta la emta?", gender, "aday sarafet bi awal el shaher?")
+
+
+# --- fixes by code to stored gold replies (2026-11-19) ---
+
+from research.dataset.fixes import fixed_reply  # noqa: E402
+
+OFTEN = ("SELECT ROUND(COUNT(DISTINCT receipt_id) / 3.0, 1) AS visits_per_month FROM receipts WHERE vendor = 'Car Spa' "
+         "AND receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '3 months' AND receipt_date < "
+         "date_trunc('month', CURRENT_DATE)")  # fmt: skip
+
+
+def test_how_often_also_returns_the_visits_of_the_3_months():
+    """Approved by Christina on 2026-11-19: '0.7 marra bel shaher' is not said; the count lets the answer say
+    'martain bel 3 eshor el ekhrin'."""
+    assert fixed_reply(OFTEN) == OFTEN.replace(
+        "SELECT ROUND(", "SELECT COUNT(DISTINCT receipt_id) AS visits, ROUND(", 1)
+    assert fixed_reply(fixed_reply(OFTEN)) == fixed_reply(OFTEN)
+
+
+@pytest.mark.parametrize("reply", ["SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'X'",
+                                   "CLARIFY: shu?", "UNSUPPORTED", "REPLY: Walaw"])  # fmt: skip
+def test_other_replies_are_left_as_they_are(reply):
+    assert fixed_reply(reply) == reply
+
+
+def test_the_fix_reaches_the_answer_and_the_earlier_turns():
+    history = (Exchange("aday 3am ru7 3a Car Spa?", OFTEN),)
+    new = rerender(old_example(MAN, "w 3a Medco?", OFTEN, history))
+    assert new["messages"][1]["content"] == fixed_reply(OFTEN)
+    assert f"Reply: {fixed_reply(OFTEN)}\n" in new["messages"][0]["content"]
+
+
+PRICE_CHANGE = ("SELECT latest.receipt_date AS latest_date, ROUND(latest.price, 2) AS latest_price, previous.receipt_date "
+                "AS previous_date, ROUND(previous.price, 2) AS previous_price, ROUND((latest.price - previous.price) / "
+                "NULLIF(previous.price, 0) * 100, 1) AS percent_change FROM (SELECT receipt_date, COALESCE(unit_price, "
+                "line_total / quantity){per} AS price FROM purchases WHERE item_name = 'falafel'{unit} ORDER BY "
+                "receipt_date DESC, receipt_id DESC LIMIT 1) AS latest, (SELECT receipt_date, COALESCE(unit_price, "
+                "line_total / quantity){per} AS price FROM purchases WHERE item_name = 'falafel'{unit} ORDER BY "
+                "receipt_date DESC, receipt_id DESC LIMIT 1 OFFSET 1) AS previous")  # fmt: skip
+
+
+@pytest.mark.parametrize(("per", "unit"), [("", ""), (" / size_amount * 1000", " AND size_unit = 'g'")])
+def test_a_price_change_compares_purchases_in_the_latest_ones_currency(per, unit):
+    """Approved by Christina on 2026-11-19: 420,000 LBP against $4.20 gave +9,999,900%."""
+    fixed = fixed_reply(PRICE_CHANGE.format(per=per, unit=unit))
+    latest = (f"(SELECT currency FROM purchases WHERE item_name = 'falafel'{unit} ORDER BY receipt_date DESC, "
+              "receipt_id DESC LIMIT 1)")  # fmt: skip
+    assert fixed.startswith("SELECT latest.currency, latest.receipt_date AS latest_date, ")
+    assert fixed.count(f"WHERE item_name = 'falafel'{unit} AND currency = {latest} ORDER BY") == 2
+    assert fixed.count("SELECT receipt_date, currency, COALESCE(unit_price, line_total / quantity)") == 2
+    assert fixed_reply(fixed) == fixed
+
+
+def test_a_price_change_in_another_shape_is_refused_not_passed_on():
+    with pytest.raises(ValueError, match="approved shape"):
+        fixed_reply(PRICE_CHANGE.format(per="", unit="").replace("LIMIT 1 OFFSET 1", "LIMIT 2"))
+
+
+def test_the_price_change_rule_now_says_the_same_currency_and_old_prompts_still_rebuild():
+    from app.domain.assistant.prompt import INSTRUCTIONS
+    from research.dataset.rerender import CHANGED_RULES
+
+    before, now = CHANGED_RULES[0]
+    assert now in INSTRUCTIONS and before not in INSTRUCTIONS and "in the same currency" in now
+    old = old_example(MAN, "zed se3r el falafel?", PRICE_CHANGE.format(per="", unit=""))
+    assert before in old["messages"][0]["content"]
+    assert now in rerender(old)["messages"][0]["content"]
+
+
+TOP_VISITED = ("SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE receipt_date >= "
+               "date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL "
+               "'1 month' GROUP BY vendor ORDER BY visits DESC LIMIT 1")  # fmt: skip
+
+
+def test_the_shop_visited_most_leaves_out_bills_and_the_users_subscriptions():
+    """Approved by Christina on 2026-11-19 (option B): one user's top shop was Anghami."""
+    period = TOP_VISITED.split(" WHERE ", 1)[1].split(" GROUP BY")[0]
+    assert fixed_reply(TOP_VISITED, ["Spinneys", "Anghami", "Netflix", "EDL"]) == (
+        "SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM category_spending WHERE category <> 'Utilities' "
+        f"AND vendor NOT IN ('Netflix', 'Anghami') AND {period} GROUP BY vendor ORDER BY visits DESC LIMIT 1")
+    assert fixed_reply(TOP_VISITED, ["Spinneys"]) == (
+        "SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM category_spending WHERE category <> 'Utilities' "
+        f"AND {period} GROUP BY vendor ORDER BY visits DESC LIMIT 1")
+    assert fixed_reply(fixed_reply(TOP_VISITED, ["Anghami"]), ["Anghami"]) == fixed_reply(TOP_VISITED, ["Anghami"])
+
+
+def test_only_the_top_one_of_all_shops_changes():
+    supermarkets = ("SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM category_spending WHERE category = "
+                    "'Groceries' AND receipt_date >= CURRENT_DATE - 7 GROUP BY vendor ORDER BY visits DESC LIMIT 1")
+    all_shops = TOP_VISITED.removesuffix(" LIMIT 1")
+    for reply in (supermarkets, all_shops):
+        assert fixed_reply(reply, ["Anghami"]) == reply
+
+
+def test_the_shop_rule_now_says_bills_and_subscriptions_are_not_visits():
+    from app.domain.assistant.prompt import INSTRUCTIONS
+    from research.dataset.rerender import CHANGED_RULES
+
+    before, now = CHANGED_RULES[1]
+    assert now in INSTRUCTIONS and "Bills and subscriptions are not visits" in now  # the old text begins the new
+    old = old_example(MAN, "aya ma7al rehet aktar hal shaher?", TOP_VISITED)
+    new = rerender(old)
+    assert now in new["messages"][0]["content"]
+    assert new["messages"][1]["content"] == fixed_reply(TOP_VISITED, NAMES.vendors)
+
+
+def test_the_previous_purchase_is_still_the_one_before_the_latest():
+    fixed = fixed_reply(PRICE_CHANGE.format(per="", unit=""))
+    assert fixed.count("ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1 OFFSET 1) AS previous") == 1
+    assert fixed.count("ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1) AS latest") == 1
+
+
+def test_a_users_own_subscriptions_are_left_out_in_the_rebuilt_example():
+    names = UserNames(items=["sushi"], vendors=["Spinneys", "Anghami"], categories=["Groceries", "Utilities"])
+    prompt = without_batch5_lines(build_prompt("aya ma7al rehet aktar hal shaher?", names, TODAY, gender=Gender.MAN))
+    old = {"messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": TOP_VISITED}],
+           "labels": {"user": MAN, "language": "arabizi", "spec": "b3-x-1"}}  # fmt: skip
+    assert "vendor NOT IN ('Anghami')" in rerender(old)["messages"][1]["content"]

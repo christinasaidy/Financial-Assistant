@@ -14,12 +14,29 @@ from datetime import date
 
 from app.domain.assistant.prompt import GENDER_LINES, INSTRUCTIONS, Exchange, UserNames, build_prompt
 
+from research.dataset.fixes import fixed_reply
 from research.dataset.genders import for_gender, question_for_gender
 from research.dataset.users import gender_of
 
 NEW_RULE = ("\n- In a chat, what the new question says replaces the earlier item, shop, period or measure; what it "
             "leaves out\n  comes from the earlier question.")  # fmt: skip
 _TODAY = "\n\nToday: "
+# Rules changed in batch 5 (approved by Christina on 2026-11-19): (as batches 1-4 wrote it, as it reads now).
+CHANGED_RULES = ((
+    '- A price change ("did the price go up, by how much, in percent"): the latest purchase against the one before\n'
+    "  it, per kilo or litre when it has a size in g or ml, otherwise by unit price; return both prices, their dates\n"
+    "  and the percent change. \"The average price went down\" compares this month's average with last month's.",
+    '- A price change ("did the price go up, by how much, in percent"): the latest purchase against the one before\n'
+    "  it in the same currency, per kilo or litre when it has a size in g or ml, otherwise by unit price; return the\n"
+    "  currency, both prices, their dates and the percent change. \"The average price went down\" compares this month's\n"
+    "  average with last month's."), (
+    '- "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I spent\n'
+    '  most at" adds up money.',
+    '- "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I spent\n'
+    "  most at\" adds up money. Bills and subscriptions are not visits: leave out category = 'Utilities' and the\n"
+    "  user's Netflix, Shahid, Anghami or Spotify, e.g. FROM category_spending WHERE category <> 'Utilities' AND\n"
+    "  vendor NOT IN ('Anghami')."),
+)  # fmt: skip
 
 
 class UnreadablePrompt(ValueError):
@@ -76,9 +93,11 @@ def _names(line: str, label: str) -> list[str]:
 
 
 def without_batch5_lines(prompt: str) -> str:
-    """The prompt as batches 1-4 wrote it: no gender line and no new rule."""
+    """The prompt as batches 1-4 wrote it: no gender line, no new rule, the changed rules as they were."""
     for line in GENDER_LINES.values():
         prompt = prompt.replace(f"\n{line}\n", "\n", 1)
+    for before, now in CHANGED_RULES:
+        prompt = prompt.replace(now, before, 1)
     return prompt.replace(NEW_RULE, "", 1)
 
 
@@ -88,7 +107,7 @@ def rerender(example: dict) -> dict:
     gender = gender_of(labels["user"])
     old_prompt, old_reply = example["messages"][0]["content"], example["messages"][1]["content"]
     parts = read_prompt(old_prompt)
-    history = tuple(Exchange(question_for_gender(e.question, gender), for_gender(e.reply, gender, e.question))
+    history = tuple(Exchange(question_for_gender(e.question, gender), for_gender(fixed_reply(e.reply, parts.names.vendors), gender, e.question))
                     for e in parts.history)  # fmt: skip
     prompt = build_prompt(question_for_gender(parts.question, gender), parts.names, parts.today, history,
                           gender=gender)  # fmt: skip
@@ -101,6 +120,6 @@ def rerender(example: dict) -> dict:
 
     rebuilt = copy.deepcopy(example)
     rebuilt["messages"][0]["content"] = prompt
-    rebuilt["messages"][1]["content"] = for_gender(old_reply, gender, parts.question)
+    rebuilt["messages"][1]["content"] = for_gender(fixed_reply(old_reply, parts.names.vendors), gender, parts.question)
     rebuilt["labels"]["gender"] = gender.value
     return rebuilt

@@ -256,18 +256,23 @@ def test_the_prompt_states_the_batch3_conventions():  # approved 2026-11-15, wor
     assert 'Reply CLARIFY for "lately" (hal fatra) with no period.' in prompt
     assert ("- A kind of shop: restaurants are the vendors of Dining spending, supermarkets of Groceries spending; use\n"
             "  category_spending, e.g. COUNT(DISTINCT receipt_id) ... WHERE category = 'Dining'.") in prompt  # fmt: skip
+    # Changed requirement, approved by the user on 2026-11-19 (batch 5): bills and subscriptions are not visits.
     assert ('- "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I '
-            'spent\n  most at" adds up money.') in prompt  # fmt: skip
+            "spent\n  most at\" adds up money. Bills and subscriptions are not visits: leave out category = 'Utilities' "
+            "and the\n  user's Netflix, Shahid, Anghami or Spotify, e.g. FROM category_spending WHERE category <> "
+            "'Utilities' AND\n  vendor NOT IN ('Anghami').") in prompt  # fmt: skip
     assert ('- "List what I bought / spent": the purchases, with receipt_date, vendor, item_name, currency and '
             "line_total, by\n  date.") in prompt  # fmt: skip
     assert ("- The cheapest or priciest shop for an item, with no shops named: compare every shop it was bought at "
             "(the same\n  per-size rules), cheapest first.") in prompt  # fmt: skip
     assert ('- "For the same brand" at two shops: group by brand and vendor, keeping only brands bought at both.'
             in prompt)  # fmt: skip
+    # Changed requirement, approved by the user on 2026-11-19 (batch 5): the two purchases are in the same currency
+    # (the rule had compared 420,000 LBP with $4.20), and the currency is returned.
     assert ('- A price change ("did the price go up, by how much, in percent"): the latest purchase against the one '
-            "before\n  it, per kilo or litre when it has a size in g or ml, otherwise by unit price; return both prices, "
-            'their dates\n  and the percent change. "The average price went down" compares this month\'s average with '
-            "last month's.") in prompt  # fmt: skip
+            "before\n  it in the same currency, per kilo or litre when it has a size in g or ml, otherwise by unit price; "
+            "return the\n  currency, both prices, their dates and the percent change. \"The average price went down\" "
+            "compares this month's\n  average with last month's.") in prompt  # fmt: skip
     assert ('- "Since when have I been buying X": the first purchase\'s date, and how many times since.' in prompt)
     assert ('- "How much / how many do I usually buy a month": the last 3 complete months added up and divided by 3 '
             "(months\n  with none count as 0).") in prompt  # fmt: skip
