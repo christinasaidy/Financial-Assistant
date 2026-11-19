@@ -2,9 +2,10 @@
 
 Batches 1-4 were written before the prompt stated the user's gender and before the rule that a new question replaces
 what it names. The model is trained on exactly what the app sends, so each stored example is read back into its
-parts (`read_prompt`) and built again with the app's own `build_prompt`, the user's gender (`gender_of`) and the
-assistant's replies in the form for that gender (`for_gender`). Nothing else may change: `rerender` refuses an
-example whose new prompt, without the two batch-5 lines, is not its old prompt.
+parts (`read_prompt`) and built again with the app's own `build_prompt`, the user's gender (`gender_of`), the
+assistant's replies in the form for that gender (`for_gender`) and the user's own "I" words in their gender's form
+(`question_for_gender`, 2026-11-19). Nothing else may change: `rerender` refuses an example whose prompt, rebuilt
+from its parts without those swaps and without the two batch-5 lines, is not its old prompt.
 """
 
 import copy
@@ -13,7 +14,7 @@ from datetime import date
 
 from app.domain.assistant.prompt import GENDER_LINES, INSTRUCTIONS, Exchange, UserNames, build_prompt
 
-from research.dataset.genders import for_gender
+from research.dataset.genders import for_gender, question_for_gender
 from research.dataset.users import gender_of
 
 NEW_RULE = ("\n- In a chat, what the new question says replaces the earlier item, shop, period or measure; what it "
@@ -87,8 +88,10 @@ def rerender(example: dict) -> dict:
     gender = gender_of(labels["user"])
     old_prompt, old_reply = example["messages"][0]["content"], example["messages"][1]["content"]
     parts = read_prompt(old_prompt)
-    history = tuple(Exchange(e.question, for_gender(e.reply, gender)) for e in parts.history)
-    prompt = build_prompt(parts.question, parts.names, parts.today, history, gender=gender)
+    history = tuple(Exchange(question_for_gender(e.question, gender), for_gender(e.reply, gender))
+                    for e in parts.history)  # fmt: skip
+    prompt = build_prompt(question_for_gender(parts.question, gender), parts.names, parts.today, history,
+                          gender=gender)  # fmt: skip
 
     unchanged = build_prompt(parts.question, parts.names, parts.today, parts.history, gender=gender)
     if without_batch5_lines(unchanged) != without_batch5_lines(old_prompt):

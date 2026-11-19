@@ -127,3 +127,41 @@ def test_a_prompt_not_in_build_prompts_form_is_refused(change):
     old["messages"][0]["content"] = change(old["messages"][0]["content"])
     with pytest.raises(UnreadablePrompt):
         rerender(old)
+
+
+# --- The user's own "I" words (Christina, 2026-11-19, table D) ---
+
+from research.dataset.genders import question_for_gender  # noqa: E402
+
+TABLE_D = [("def3a", "defe3"), ("defaa", "defe3"), ("7esa", "7eses"), ("7ase", "7eses"), ("hesa", "heses"),
+           ("hasi", "hasis"), ("meshtreye", "meshtere"), ("meshtriye", "meshteri")]  # fmt: skip
+
+
+@pytest.mark.parametrize("woman, man", TABLE_D)
+def test_a_mans_question_says_i_as_a_man(woman, man):
+    assert question_for_gender(f"aday {woman} 3al khobez?", Gender.MAN) == f"aday {man} 3al khobez?"
+    assert question_for_gender(f"aday {woman} 3al khobez?", Gender.WOMAN) == f"aday {woman} 3al khobez?"
+
+
+@pytest.mark.parametrize("man, woman", [("defe3", "def3a"), ("7eses", "7esa"), ("heses", "hesa"), ("hasis", "hasi"),
+                                        ("meshtere", "meshtreye"), ("meshteri", "meshtriye")])  # fmt: skip
+def test_a_womans_question_says_i_as_a_woman(man, woman):
+    assert question_for_gender(f"2ele aday {man} hal shaher", Gender.WOMAN) == f"2ele aday {woman} hal shaher"
+
+
+def test_words_the_same_for_both_and_users_with_no_gender_keep_what_was_written():
+    for gender in Gender:
+        assert question_for_gender("aday dafa3et w dafa3it 3al benzine?", gender) == "aday dafa3et w dafa3it 3al benzine?"
+    assert question_for_gender("aday def3a w defe3?", Gender.NOT_GIVEN) == "aday def3a w defe3?"
+
+
+def test_only_whole_words_change_and_a_capital_stays():
+    assert question_for_gender("Def3a kteer, def3aa?", Gender.MAN) == "Defe3 kteer, def3aa?"
+
+
+def test_the_users_question_and_earlier_questions_take_the_speakers_form():
+    history = (Exchange("aday def3a 3al lahme?", "SELECT 1"),)
+    new = rerender(old_example(MAN, "w 3al khobez, aday def3a?", "SELECT 2", history))
+    prompt = new["messages"][0]["content"]
+    assert "Question: aday defe3 3al lahme?\nReply: SELECT 1" in prompt
+    assert prompt.endswith("Question: w 3al khobez, aday defe3?\nReply:")

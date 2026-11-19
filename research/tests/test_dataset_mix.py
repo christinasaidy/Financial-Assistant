@@ -67,13 +67,17 @@ def test_per_100_comparisons_that_all_say_100_fail():  # batch 2: 75 of 75 said 
     assert any(f.startswith("per-100 comparisons that do not say 100") for f in mix.failures(mix.coverage(rows)))
 
 
+_specs = iter(range(10**6))
+
+
 def stored(row, user=1):
-    """The row as batches 1-4 stored it, with a real prompt (no gender line, no batch-5 rule) and its user: what
-    build_mix rebuilds since batch 5."""
+    """The row as batches 1-4 stored it, with a real prompt (no gender line, no batch-5 rule), its user and its own
+    spec: what build_mix rebuilds since batch 5."""
     question = row["messages"][0]["content"].rsplit("Question: ", 1)[-1]
     prompt = without_batch5_lines(build_prompt(question, UserNames(["x"], ["y"], ["Groceries"]), date(2026, 11, 3),
                                                gender=Gender.MAN))  # fmt: skip
-    return {"messages": [{"role": "user", "content": prompt}, row["messages"][1]], "labels": {**row["labels"], "user": user}}
+    return {"messages": [{"role": "user", "content": prompt}, row["messages"][1]],
+            "labels": {"spec": f"b4-{user}-{next(_specs)}", **row["labels"], "user": user}}
 
 
 def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
@@ -206,3 +210,20 @@ def test_the_mix_refuses_a_masculine_reply_with_no_approved_forms_and_writes_not
     with pytest.raises(UnformedReply):
         mix.build_mix(data, data / "mix")
     assert not (data / "mix").exists()
+
+
+def test_the_mix_puts_earlier_exchanges_in_front_so_that_70_percent_of_chats_ignore_them(tmp_path):
+    data = tmp_path / "data"
+    rows = [stored(r, user=46) for r in balanced() + batch4_balanced()]
+    for n, r in enumerate(rows):
+        r["labels"]["spec"] = f"b4-46-{n // 3}"  # three versions per question, as the batches write them
+    follow_ups = [stored(example(f"w ekher shaher {n}?", kind="follow_up", language="english"), user=46)
+                  for n in range(20)]  # fmt: skip
+    for n, r in enumerate(follow_ups):
+        r["labels"]["spec"] = f"b4-46-f{n}"
+    write_batches(data, rows + follow_ups, rows[0])
+    mix.build_mix(data, data / "mix")
+    built = [json.loads(line) for line in (data / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()]
+    independent = [r for r in built if r["labels"].get("history_role") == "independent"]
+    assert len(independent) == 47  # 20 follow-ups x 0.7 / 0.3
+    assert all("Earlier in this chat:" in r["messages"][0]["content"] for r in independent)

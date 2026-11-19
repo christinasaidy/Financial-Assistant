@@ -13,7 +13,8 @@ the Arabizi and mixed questions of the training split meet the approved threshol
 
 Since batch 5 (2026-11-18) every line is first rebuilt with today's prompt (research/dataset/rerender.py): the user's
 gender, the new chat rule, and the assistant's replies in the form for that gender. A reply with no approved forms or
-a prompt that cannot be read back refuses the whole mix.
+a prompt that cannot be read back refuses the whole mix. Then earlier exchanges are put in front of some questions
+(research/dataset/history.py), and the mix is refused unless 65-75% of the chats ignore their history.
 """
 
 import json
@@ -24,6 +25,7 @@ from collections import Counter
 from pathlib import Path
 
 from research.dataset.genders import UnformedReply
+from research.dataset.history import HistoryError, add_history, history_report
 from research.dataset.rerender import UnreadablePrompt, rerender
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -124,7 +126,8 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
             path = data_dir / source.format(split=split)
             lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         random.Random(f"{SEED}/{split}").shuffle(lines)
-        splits[split] = [json.dumps(rerender(json.loads(line)), ensure_ascii=False) for line in lines]
+        rebuilt, _ = add_history([rerender(json.loads(line)) for line in lines], split)
+        splits[split] = [json.dumps(row, ensure_ascii=False) for row in rebuilt]
     report = coverage([json.loads(line) for line in splits["train"]])
     missing = failures(report) + batch4_failures(report)
     if missing:
@@ -144,6 +147,9 @@ def main() -> int:
     except (UnformedReply, UnreadablePrompt) as exc:
         print("REFUSED, a line cannot be rebuilt with today's prompt:", exc)
         return 1
+    except HistoryError as exc:
+        print("REFUSED, the chats are not balanced:", exc)
+        return 1
     train = [json.loads(line) for line in (DATA_DIR / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()]
     report = coverage(train)
     print("mix:", counts, "| languages:", dict(Counter(r["labels"]["language"] for r in train)))
@@ -153,6 +159,9 @@ def main() -> int:
     print(f"  per-100 comparisons not saying 100: {report['per_100_implicit']}/{report['per_100']}")
     print("  common questions x periods:", {f"{t}/{p}": n for (t, p), n in report["common"].items()})
     print("  batch 4:", report["batch4"])
+    for split in SPLITS:
+        rows = [json.loads(line) for line in (DATA_DIR / "mix" / f"{split}.jsonl").read_text(encoding="utf-8").splitlines()]
+        print(f"  history ({split}):", history_report(rows))
     return 0
 
 

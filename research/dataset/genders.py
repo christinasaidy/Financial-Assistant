@@ -90,3 +90,35 @@ def for_gender(reply: str, gender: Gender) -> str:
     if _MASCULINE.search(reply):
         raise UnformedReply(f"no woman's or neutral form approved for: {reply}")
     return reply
+
+
+# The user's own words for "I" that change with who is speaking (Christina, 2026-11-19; table D of
+# gender_forms_reviewed.md). The questions were written before users had a gender, so a man's question could say
+# "def3a"; each word becomes its counterpart for the user's gender. "dafa3et" / "dafa3it" are the same for both.
+SPEAKER_WORDS = (  # (woman, man)
+    ("def3a", "defe3"), ("defaa", "defe3"),
+    ("7esa", "7eses"), ("7ase", "7eses"), ("hesa", "heses"), ("hasi", "hasis"),
+    ("meshtreye", "meshtere"), ("meshtriye", "meshteri"),
+)  # fmt: skip
+_TO_MAN = {woman: man for woman, man in SPEAKER_WORDS}
+_TO_WOMAN = {man: woman for woman, man in reversed(SPEAKER_WORDS)}  # defe3 -> def3a, 7eses -> 7esa (the first listed)
+
+
+def _speaker_pattern(words) -> re.Pattern:
+    return re.compile(r"(?<!\w)(" + "|".join(sorted(words, key=len, reverse=True)) + r")(?!\w)", re.IGNORECASE)
+
+
+_WOMAN_WORDS, _MAN_WORDS = _speaker_pattern(_TO_MAN), _speaker_pattern(_TO_WOMAN)
+
+
+def question_for_gender(question: str, gender: Gender) -> str:
+    """The user's question with "I" words in their own gender's form; unchanged when the gender is not given."""
+    if gender is Gender.NOT_GIVEN:
+        return question
+    pattern, table = (_WOMAN_WORDS, _TO_MAN) if gender is Gender.MAN else (_MAN_WORDS, _TO_WOMAN)
+
+    def swap(found: re.Match) -> str:
+        word = table[found.group(1).lower()]
+        return word.capitalize() if found.group(1)[0].isupper() else word
+
+    return pattern.sub(swap, question)
