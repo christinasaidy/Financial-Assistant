@@ -489,6 +489,30 @@ considered, so the reasoning can be explained later.
   7. Tab bar, Home selected.
 - **Consequences:** The first screen to build in the app; Figma copy follows when Figma calls are available again.
 
+## D036: Home greets the user by first name
+
+- **Status:** Accepted, 2026-11-19. Asked for by Christina ("add a Hello, Name"); style decided by Claude at her
+  request.
+- **Decision:** "Hello, Christina" (the account's first name) is Home's screen title: screen-title style
+  (DejaVu Sans Mono Bold, 22 / 26, capitals as a style, D015, D028), under the header with the wordmark. Home has no
+  other title. To make room, Recent shows the two newest receipts in the first view; the rest scroll. This changes
+  D035's "last three".
+
+## D037: Home before any receipts, and the main button
+
+- **Status:** Accepted, 2026-11-19. Asked for by Christina (versions "without entered data"); design decided by
+  Claude at her request.
+- **Decision:**
+  - **Empty Home:** same layout as D035. The total reads $0.00 with "No receipts yet this month". Below it, one
+    sentence on what scanning does ("Take a photo of a receipt. Fatourati reads the shop, the items and the total,
+    in dollars or pounds.") and the main button, **Scan a receipt**. Budgets: a grey sentence ("Set a monthly
+    limit for groceries, fuel or eating out, and see how close you are.") and a **Set a budget** link. Recent: "Receipts you scan show up here, newest first."
+    No illustrations.
+  - **Main button:** full width inside the margins, 48 px tall, square corners, `primary` fill, label in paper
+    colour, total-line style (Mono Bold 16, capitals), with the 16 px Scan icon one character before the text
+    (D027). Contrast 7.8 : 1 light, 8.5 : 1 dark. One main button per screen.
+  - Helper sentences are DejaVu Sans (they are sentences, D006), grey (`ink-2`) where they only explain.
+
 ---
 
 ## Open (not decided)
