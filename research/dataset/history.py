@@ -100,12 +100,20 @@ def _turn(index: int, row: dict) -> Turn:
                 labels["language"] == "english" or spec.startswith(("b3-", "b4-")), period, what)  # fmt: skip
 
 
+WRITTEN_CHATS = "b5-"  # batch 5's chats: they come with their own earlier turns (research/dataset/batch5.py)
+
+
+def is_written_chat(turn: Turn) -> bool:
+    return turn.spec.startswith(WRITTEN_CHATS)
+
+
 def can_be_earlier(turn: Turn) -> bool:
-    return turn.reviewed and turn.kind != "follow_up" and turn.template not in NEVER_EARLIER
+    return (turn.reviewed and turn.kind != "follow_up" and turn.template not in NEVER_EARLIER
+            and not is_written_chat(turn))  # fmt: skip
 
 
 def can_be_given(turn: Turn, row: dict) -> bool:
-    if not turn.reviewed or turn.kind == "follow_up" or turn.template in NEVER_GIVEN:
+    if not turn.reviewed or turn.kind == "follow_up" or turn.template in NEVER_GIVEN or is_written_chat(turn):
         return False
     return not (turn.template == "C4" and str(row["labels"].get("period")) in VAGUE_PERIODS)
 
@@ -201,11 +209,15 @@ def add_history(rows: list[dict], split: str) -> tuple[list[dict], dict]:
     pools = {user: [t for t in user_turns if can_be_earlier(t)] for user, user_turns in by_user.items()}
     out = list(rows)
 
-    # English follow-ups: older exchanges in front of about a third.
+    # English follow-ups and batch 5's written chats (all reviewed): older exchanges in front of about a third.
     follow_ups = [t for t in turns if t.kind == "follow_up"]
     english = sorted((t for t in follow_ups if t.group == "english"), key=lambda t: t.spec)
-    for turn in rng.sample(english, round(len(english) * FOLLOW_UPS_WITH_OLDER)):
+    written = sorted((t for t in turns if is_written_chat(t)), key=lambda t: (t.spec, t.index))
+    picked = rng.sample(english, round(len(english) * FOLLOW_UPS_WITH_OLDER))
+    picked += rng.sample(written, round(len(written) * FOLLOW_UPS_WITH_OLDER))
+    for turn in picked:
         row = rows[turn.index]
+        role = row["labels"].get("history_role", "dependent")
         base = read_prompt(row["messages"][0]["content"]).history
         pool = [t for t in pools[row["labels"]["user"]] if t.spec != turn.spec]
         length = _length(rng, least=2) - len(base)
@@ -218,11 +230,13 @@ def add_history(rows: list[dict], split: str) -> tuple[list[dict], dict]:
         exchanges = as_exchanges([(t.question, t.reply) for t in older] + [(e.question, e.reply) for e in base])
         kept = older[len(older) - (len(exchanges) - len(base)):] if len(exchanges) > len(base) else []
         if exchanges[-len(base):] == list(base) and kept and well_ordered(kept):
-            out[turn.index] = _with_history(row, exchanges, "dependent", [t.spec for t in kept])
+            out[turn.index] = _with_history(row, exchanges, role, [t.spec for t in kept])
 
-    # Stored questions given history they do not need: enough that about 70% of all chats ignore it.
-    dependent = len(follow_ups)
-    wanted = round(dependent * INDEPENDENT_SHARE / (1 - INDEPENDENT_SHARE))
+    # Stored questions given history they do not need: enough that about 70% of all chats ignore it, counting the
+    # written chats (their topic changes ignore it, the rest use it).
+    written_independent = sum(rows[t.index]["labels"].get("history_role") == "independent" for t in written)
+    dependent = len(follow_ups) + len(written) - written_independent
+    wanted = max(0, round(dependent * INDEPENDENT_SHARE / (1 - INDEPENDENT_SHARE)) - written_independent)
     versions = defaultdict(list)
     for turn, row in zip(turns, rows):
         versions[turn.spec].append(turn)

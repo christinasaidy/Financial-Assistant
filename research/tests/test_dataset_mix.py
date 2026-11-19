@@ -8,7 +8,7 @@ import pytest
 
 from app.domain.assistant.prompt import Gender, UserNames, build_prompt
 from research.dataset import mix
-from research.dataset.genders import UnformedReply
+from research.dataset.genders import PERIOD_QUESTIONS, UnformedReply
 from research.dataset.rerender import rerender, without_batch5_lines
 
 
@@ -84,8 +84,10 @@ def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
     """Changed with batch 5 (2026-11-18): the mix holds every line rebuilt with today's prompt (it used to hold the
     lines exactly as stored)."""
     data = tmp_path / "data"
-    for folder in (data, data / "batch2", data / "batch3", data / "batch4"):  # batch 4 since 2026-11-16
+    for folder in (data, data / "batch2", data / "batch3", data / "batch4", data / "batch5"):  # batch 5: 2026-11-19
         folder.mkdir(parents=True, exist_ok=True)
+    for split in ("train", "validation"):  # batch 5 empty here: these tests are about batches 1-4
+        (data / "batch5" / f"{split}.jsonl").write_text("", encoding="utf-8")
     rows = [stored(r) for r in balanced() + batch4_balanced()]
     boundary = [r for r in rows if r["labels"]["kind"] in ("clarify", "unsupported")]  # batch 3 holds these
     rest = [r for r in rows if r not in boundary]
@@ -164,8 +166,10 @@ def test_a_count_needs_both_the_count_template_and_a_count_answer():
 
 def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
     data = tmp_path / "data"
-    for folder in (data, data / "batch2", data / "batch3", data / "batch4"):
+    for folder in (data, data / "batch2", data / "batch3", data / "batch4", data / "batch5"):
         folder.mkdir(parents=True, exist_ok=True)
+    for split in ("train", "validation"):
+        (data / "batch5" / f"{split}.jsonl").write_text("", encoding="utf-8")
     rows = [stored(r) for r in balanced()]
     for name in ("train.jsonl", "batch2/train.jsonl", "batch2/extras_train.jsonl", "batch4/train.jsonl",
                  "validation.jsonl", "batch2/validation.jsonl", "batch2/extras_validation.jsonl",
@@ -180,8 +184,10 @@ def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
 
 
 def write_batches(data, train_rows, validation_row):
-    for folder in (data, data / "batch2", data / "batch3", data / "batch4"):
+    for folder in (data, data / "batch2", data / "batch3", data / "batch4", data / "batch5"):
         folder.mkdir(parents=True, exist_ok=True)
+    for split in ("train", "validation"):
+        (data / "batch5" / f"{split}.jsonl").write_text("", encoding="utf-8")
     for source in mix.SOURCES:
         (data / source.format(split="train")).write_text("", encoding="utf-8")
         (data / source.format(split="validation")).write_text(json.dumps(validation_row) + "\n", encoding="utf-8")
@@ -199,7 +205,9 @@ def test_the_mix_states_each_users_gender_and_gives_a_woman_her_form(tmp_path):
     assert all("\nThe user is a woman.\n" in r["messages"][0]["content"] for r in built)
     assert all(r["labels"]["gender"] == "woman" for r in built)
     answers = [r["messages"][1]["content"] for r in built]
-    assert "CLARIFY: azdik mn emta la emta?" in answers and "CLARIFY: azdak mn emta la emta?" not in answers
+    # Changed 2026-11-19: the period question rotates among her forms; a woman gets a woman's form, never a man's.
+    assert any(a in {f.woman for f in PERIOD_QUESTIONS} for a in answers)
+    assert not any(a in {f.man for f in PERIOD_QUESTIONS} for a in answers)
 
 
 def test_the_mix_refuses_a_masculine_reply_with_no_approved_forms_and_writes_nothing(tmp_path):
@@ -227,3 +235,52 @@ def test_the_mix_puts_earlier_exchanges_in_front_so_that_70_percent_of_chats_ign
     independent = [r for r in built if r["labels"].get("history_role") == "independent"]
     assert len(independent) == 47  # 20 follow-ups x 0.7 / 0.3
     assert all("Earlier in this chat:" in r["messages"][0]["content"] for r in independent)
+
+
+# --- batch 5 part 1's minimums (decision 11, approved 2026-11-17, plus follow-up-looking topic changes) ---
+
+
+def test_each_part1_minimum_is_exactly_its_approved_number():
+    assert mix.PART1_MINIMUMS == {"topic changes": 300, "after a CLARIFY, UNSUPPORTED or REPLY": 150,
+                                  "3 or more earlier exchanges": 150, "follow-ups after older turns": 150,
+                                  "answered CLARIFYs": 100, "thanks or ma fhemet with history": 60,
+                                  "follow-up-looking topic changes": 60}  # fmt: skip
+    for name, least in mix.PART1_MINIMUMS.items():
+        report = {n: 10**6 for n in mix.PART1_MINIMUMS}
+        report[name] = least
+        assert mix.part1_failures(report) == []
+        report[name] = least - 1
+        assert mix.part1_failures(report) == [f"{name}: {least - 1} < {least}"]
+
+
+def test_the_part1_counts_read_the_chats():
+    from app.domain.assistant.prompt import Exchange
+
+    def chat(history, template="P1A", role="independent", kind="sql", **labels):
+        prompt = build_prompt("q?", UserNames(["x"], ["y"], ["Groceries"]), date(2026, 11, 3), history,
+                              gender=Gender.MAN)  # fmt: skip
+        return {"messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": "SELECT 1"}],
+                "labels": {"template": template, "kind": kind, "history": len(history), "history_role": role, **labels}}
+
+    rows = [chat((Exchange("a?", "SELECT 1"),)),
+            chat((Exchange("a?", "CLARIFY: shu?"), Exchange("b?", "SELECT 1"), Exchange("c?", "SELECT 2")),
+                 template="P1B", role="dependent"),
+            chat((Exchange("a?", "SELECT 1"), Exchange("b?", "SELECT 2")), template="P1D", role="dependent",
+                 kind="reply", carried="accepted")]  # fmt: skip
+    assert mix.part1_report(rows) == {"topic changes": 1, "after a CLARIFY, UNSUPPORTED or REPLY": 1,
+                                      "3 or more earlier exchanges": 1, "follow-ups after older turns": 2,
+                                      "answered CLARIFYs": 1, "thanks or ma fhemet with history": 1,
+                                      "follow-up-looking topic changes": 1}  # fmt: skip
+
+
+def test_the_mix_refuses_a_batch5_build_missing_a_part1_minimum(tmp_path, monkeypatch):
+    data = tmp_path / "data"
+    rows = [stored(r) for r in balanced() + batch4_balanced()]
+    chat = stored(example("w kam mara?", template="P1A"))
+    chat["labels"].update({"history": 1, "history_role": "independent", "spec": "b5-1-0"})
+    write_batches(data, rows, rows[0])
+    (data / "batch5" / "train.jsonl").write_text(json.dumps(chat) + "\n", encoding="utf-8")
+    monkeypatch.setattr(mix, "add_history", lambda rows, split: (rows, {}))  # only the part-1 check is tested here
+    with pytest.raises(mix.CoverageError, match="topic changes: 1 < 300"):
+        mix.build_mix(data, data / "mix")
+    assert not (data / "mix").exists()

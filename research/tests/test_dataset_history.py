@@ -278,3 +278,67 @@ def test_long_chats_where_nothing_goes_wrong_are_there(big):
     plain = [r for r in long_normal if all(e.reply.startswith("SELECT")
                                            for e in read_prompt(r["messages"][0]["content"]).history)]  # fmt: skip
     assert len(plain) >= 0.4 * len(long_normal) > 0
+
+
+# --- batch 5's written chats (2026-11-19) ---
+
+
+def written_chat(user, n, role):
+    """English, so that only being a written chat (not the reviewed-Arabizi rule) keeps it out of other chats."""
+    base = row(user, f"b5-{user}-{n}", f"and how many times socks {n}?", SOCKS_EVER, template="P1A", language="english",
+               base=(f"aday sushi {n}?", "SELECT 1"))  # fmt: skip
+    base["labels"].update({"history": 1, "history_role": role})
+    return base
+
+
+def with_written(n_independent=40, n_dependent=40):
+    from research.dataset.rerender import rerender
+
+    chats = [rerender(written_chat(46, n, "independent")) for n in range(n_independent)]
+    chats += [rerender(written_chat(46, 100 + n, "dependent")) for n in range(n_dependent)]
+    return dataset() + chats
+
+
+def test_written_chats_are_never_earlier_turns_or_given_new_history():
+    rows = with_written()
+    out, _ = add_history(rows, "train")
+    written_questions = {read_prompt(r["messages"][0]["content"]).question for r in rows if r["labels"]["spec"].startswith("b5-")}
+    for before, after in zip(rows, out):
+        exchanges = read_prompt(after["messages"][0]["content"]).history
+        assert not any(e.question in written_questions for e in exchanges)
+        if before["labels"]["spec"].startswith("b5-"):
+            old = read_prompt(before["messages"][0]["content"]).history
+            assert exchanges[-len(old):] == old  # its own earlier turn stays last
+            assert after["labels"]["history_role"] == before["labels"]["history_role"]
+
+
+def test_written_chats_count_towards_the_70_30_balance_and_a_third_get_older_turns():
+    rows = with_written(n_independent=40, n_dependent=40)
+    out, report = add_history(rows, "train")
+    assert report["independent_share"] == pytest.approx(0.70, abs=0.05)
+    longer = [r for r in out if r["labels"]["spec"].startswith("b5-") and r["labels"]["history"] >= 2]
+    assert len(longer) == round(80 / 3)
+
+
+def test_the_history_added_is_exactly_what_70_30_needs_once_written_chats_count():
+    rows = with_written(n_independent=20, n_dependent=4)
+    _, report = add_history(rows, "train")
+    # 8 follow-ups + 4 written ones use history: round(12 * 0.7 / 0.3) = 28 ignore it, 20 of them written ones.
+    assert report["independent"] == 28 and report["with_history"] == 40
+
+
+def test_written_chats_are_never_taken_as_questions_to_give_history_to():
+    """With only follow-ups and written chats, nothing may be given history, so 70/30 cannot be met: refused, rather
+    than replacing a written chat's own earlier turn."""
+    from research.dataset.rerender import rerender
+
+    rows = [r for r in dataset() if r["labels"]["kind"] == "follow_up"]
+    for n in range(32):  # 4 versions per written job, as batch 5 has
+        chat = written_chat(46, 200 + n, "dependent")
+        chat["labels"]["spec"] = f"b5-46-{200 + n // 4}"
+        rows.append(rerender(chat))
+    # greetings can open a chat but are never given history: the only earlier turns there are
+    rows += [rerender(row(46, f"b4-46-g{n}", f"hi {n}", "REPLY: Hi!", template="R1", kind="reply", language="english",
+                          period="none")) for n in range(10)]  # fmt: skip
+    with pytest.raises(HistoryError, match=r"train: 0\.0% of chats ignore"):  # none given, not some written ones
+        add_history(rows, "train")

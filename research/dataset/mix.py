@@ -26,12 +26,12 @@ from pathlib import Path
 
 from research.dataset.genders import UnformedReply
 from research.dataset.history import HistoryError, add_history, history_report
-from research.dataset.rerender import UnreadablePrompt, rerender
+from research.dataset.rerender import UnreadablePrompt, read_prompt, rerender
 
 DATA_DIR = Path(__file__).parent / "data"
 SPLITS = ("train", "validation")
 SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl", "batch3/{split}.jsonl",
-           "batch4/{split}.jsonl")
+           "batch4/{split}.jsonl", "batch5/{split}.jsonl")  # batch 5's chats since 2026-11-19
 SEED = "fyp-dataset/mix-batch4"
 
 BOUNDARY_SHARE = 0.15
@@ -115,6 +115,41 @@ def batch4_failures(report: dict) -> list[str]:
             if n < BATCH4_MINIMUMS[name][1]]  # fmt: skip
 
 
+# Batch 5 part 1's minimums for the training chats (approved by Christina, decision 11, 2026-11-17, plus her
+# follow-up-looking topic changes).
+PART1_MINIMUMS = {
+    "topic changes": 300,  # chats whose new question ignores the history
+    "after a CLARIFY, UNSUPPORTED or REPLY": 150,
+    "3 or more earlier exchanges": 150,
+    "follow-ups after older turns": 150,
+    "answered CLARIFYs": 100,
+    "thanks or ma fhemet with history": 60,
+    "follow-up-looking topic changes": 60,
+}
+
+
+def part1_report(rows: list[dict]) -> dict[str, int]:
+    chats = [r for r in rows if r["labels"].get("history") or r["labels"]["kind"] == "follow_up"]
+    earlier = {id(r): read_prompt(r["messages"][0]["content"]).history for r in chats}
+    return {
+        "topic changes": sum(r["labels"].get("history_role") == "independent" and r["labels"]["kind"] == "sql"
+                             for r in chats),
+        "after a CLARIFY, UNSUPPORTED or REPLY": sum(
+            any(e.reply.startswith(("CLARIFY:", "UNSUPPORTED", "REPLY:")) for e in earlier[id(r)]) for r in chats),
+        "3 or more earlier exchanges": sum(r["labels"].get("history", 1) >= 3 for r in chats),
+        "follow-ups after older turns": sum(r["labels"].get("history_role") == "dependent"
+                                            and r["labels"].get("history", 1) >= 2 for r in chats),
+        "answered CLARIFYs": sum(r["labels"]["template"] == "P1B" for r in chats),
+        "thanks or ma fhemet with history": sum(r["labels"]["template"] in ("R2", "C6")
+                                                or r["labels"].get("carried") == "accepted" for r in chats),
+        "follow-up-looking topic changes": sum(r["labels"]["template"] == "P1A" for r in chats),
+    }  # fmt: skip
+
+
+def part1_failures(report: dict[str, int]) -> list[str]:
+    return [f"{name}: {report[name]} < {least}" for name, least in PART1_MINIMUMS.items() if report[name] < least]
+
+
 def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[str, int]:
     """Every batch, whole, shuffled with a fixed seed. Refuses (CoverageError) before writing anything if the
     training split misses a threshold."""
@@ -130,6 +165,8 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
         splits[split] = [json.dumps(row, ensure_ascii=False) for row in rebuilt]
     report = coverage([json.loads(line) for line in splits["train"]])
     missing = failures(report) + batch4_failures(report)
+    if any(r.get("labels", {}).get("template", "").startswith("P1") for r in map(json.loads, splits["train"])):
+        missing += part1_failures(part1_report([json.loads(line) for line in splits["train"]]))
     if missing:
         raise CoverageError("; ".join(missing))
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -159,6 +196,7 @@ def main() -> int:
     print(f"  per-100 comparisons not saying 100: {report['per_100_implicit']}/{report['per_100']}")
     print("  common questions x periods:", {f"{t}/{p}": n for (t, p), n in report["common"].items()})
     print("  batch 4:", report["batch4"])
+    print("  part 1:", part1_report(train))
     for split in SPLITS:
         rows = [json.loads(line) for line in (DATA_DIR / "mix" / f"{split}.jsonl").read_text(encoding="utf-8").splitlines()]
         print(f"  history ({split}):", history_report(rows))

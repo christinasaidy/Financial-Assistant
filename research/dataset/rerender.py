@@ -88,7 +88,7 @@ def rerender(example: dict) -> dict:
     gender = gender_of(labels["user"])
     old_prompt, old_reply = example["messages"][0]["content"], example["messages"][1]["content"]
     parts = read_prompt(old_prompt)
-    history = tuple(Exchange(question_for_gender(e.question, gender), for_gender(e.reply, gender))
+    history = tuple(Exchange(question_for_gender(e.question, gender), for_gender(e.reply, gender, e.question))
                     for e in parts.history)  # fmt: skip
     prompt = build_prompt(question_for_gender(parts.question, gender), parts.names, parts.today, history,
                           gender=gender)  # fmt: skip
@@ -101,6 +101,6 @@ def rerender(example: dict) -> dict:
 
     rebuilt = copy.deepcopy(example)
     rebuilt["messages"][0]["content"] = prompt
-    rebuilt["messages"][1]["content"] = for_gender(old_reply, gender)
+    rebuilt["messages"][1]["content"] = for_gender(old_reply, gender, parts.question)
     rebuilt["labels"]["gender"] = gender.value
     return rebuilt

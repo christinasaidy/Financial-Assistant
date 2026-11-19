@@ -7,7 +7,7 @@ from datetime import date
 import pytest
 
 from app.domain.assistant.prompt import Exchange, Gender, UserNames, build_prompt
-from research.dataset.genders import UnformedReply, for_gender
+from research.dataset.genders import PERIOD_QUESTIONS, UnformedReply, for_gender
 from research.dataset.rerender import UnreadablePrompt, read_prompt, rerender, without_batch5_lines
 
 NAMES = UserNames(items=["sushi", "yoga mat"], vendors=["O&C", "Sushi Co"], categories=["Dining", "Groceries"])
@@ -92,7 +92,8 @@ def test_a_stored_example_gets_the_users_gender_the_new_rule_and_her_reply_form(
     prompt = new["messages"][0]["content"]
     assert "Today: 2026-12-09 (Wednesday)\nThe user is a woman.\nThe user's items:" in prompt
     assert "In a chat, what the new question says replaces the earlier item" in prompt
-    assert new["messages"][1]["content"] == "CLARIFY: azdik mn emta la emta?"
+    # Changed 2026-11-19: the period question rotates among her forms; this is a woman's form of one of them.
+    assert new["messages"][1]["content"] in {f.woman for f in PERIOD_QUESTIONS}
     assert new["labels"]["gender"] == "woman"
     assert without_batch5_lines(prompt) == old["messages"][0]["content"]  # nothing else changed
     assert old["messages"][1]["content"] == "CLARIFY: azdak mn emta la emta?"  # the stored example is not touched
@@ -108,7 +109,9 @@ def test_the_neutral_form_goes_to_a_user_whose_gender_is_not_given_and_a_man_kee
 def test_earlier_replies_in_the_chat_take_the_users_form_too():
     history = (Exchange("aday sarafet hal fatra?", "CLARIFY: azdak mn emta la emta?"),)
     new = rerender(old_example(WOMAN, "mn 1 la 5 hal shaher", "SELECT 1", history))
-    assert "Question: aday sarafet hal fatra?\nReply: CLARIFY: azdik mn emta la emta?\n" in new["messages"][0]["content"]
+    expected = for_gender("CLARIFY: azdak mn emta la emta?", Gender.WOMAN, "aday sarafet hal fatra?")
+    assert expected in {f.woman for f in PERIOD_QUESTIONS}
+    assert f"Question: aday sarafet hal fatra?\nReply: {expected}\n" in new["messages"][0]["content"]
 
 
 def test_rebuilding_twice_gives_the_same_example():
@@ -133,8 +136,9 @@ def test_a_prompt_not_in_build_prompts_form_is_refused(change):
 
 from research.dataset.genders import question_for_gender  # noqa: E402
 
-TABLE_D = [("def3a", "defe3"), ("defaa", "defe3"), ("7esa", "7eses"), ("7ase", "7eses"), ("hesa", "heses"),
-           ("hasi", "hasis"), ("meshtreye", "meshtere"), ("meshtriye", "meshteri")]  # fmt: skip
+TABLE_D = [("def3a", "defe3"), ("defaa", "defe3"), ("7esa", "7eses"), ("7ase", "7ases"), ("7asi", "7ases"),
+           ("hase", "hases"), ("hesa", "heses"), ("hasi", "hasis"), ("meshtreye", "meshtere"),
+           ("meshtriye", "meshteri"), ("3ayshe", "3ayesh"), ("aayshe", "aayesh")]  # fmt: skip  # 7ase/7asi/hase/3ayshe: 2026-11-19
 
 
 @pytest.mark.parametrize("woman, man", TABLE_D)
@@ -144,6 +148,7 @@ def test_a_mans_question_says_i_as_a_man(woman, man):
 
 
 @pytest.mark.parametrize("man, woman", [("defe3", "def3a"), ("7eses", "7esa"), ("heses", "hesa"), ("hasis", "hasi"),
+                                        ("hases", "hase"), ("7ases", "7ase"), ("3ayesh", "3ayshe"), ("aayesh", "aayshe"),
                                         ("meshtere", "meshtreye"), ("meshteri", "meshtriye")])  # fmt: skip
 def test_a_womans_question_says_i_as_a_woman(man, woman):
     assert question_for_gender(f"2ele aday {man} hal shaher", Gender.WOMAN) == f"2ele aday {woman} hal shaher"
@@ -165,3 +170,27 @@ def test_the_users_question_and_earlier_questions_take_the_speakers_form():
     prompt = new["messages"][0]["content"]
     assert "Question: aday defe3 3al lahme?\nReply: SELECT 1" in prompt
     assert prompt.endswith("Question: w 3al khobez, aday defe3?\nReply:")
+
+
+# --- the period question in her forms (2026-11-19; neutral forms approved the same day) ---
+
+HER_PERIOD_FORMS = [  # (man, woman, neutral)
+    ("CLARIFY: azdak mn emta la emta?", "CLARIFY: azdik mn emta la emta?", "CLARIFY: mn emta la emta bel zabt?"),
+    ("CLARIFY: men aymata la aymata azdak?", "CLARIFY: men aymata la aymata azdik?",
+     "CLARIFY: men aymata la aymata bel zabt?"),
+    ("CLARIFY: 3an aya fatra 7abeb ta3ref?", "CLARIFY: 3an aya fatra 7abe ta3rfe?", "CLARIFY: 3an aya fatra bel zabt?"),
+    ("CLARIFY: aan aya fatra baddak ta3rif?", "CLARIFY: aan aya fatra baddik ta3irfe?", "CLARIFY: 3an aya fatra bel zabt?"),
+]  # fmt: skip
+
+
+def test_the_period_question_rotates_among_her_forms_in_the_users_gender():
+    questions = [f"aday sarafet hal fatra {n}?" for n in range(60)]
+    for gender, column in ((Gender.MAN, 0), (Gender.WOMAN, 1), (Gender.NOT_GIVEN, 2)):
+        used = {for_gender("CLARIFY: azdak mn emta la emta?", gender, q) for q in questions}
+        assert used == {forms[column] for forms in HER_PERIOD_FORMS}
+
+
+def test_the_same_question_always_gets_the_same_period_question():
+    for gender in Gender:
+        first = for_gender("CLARIFY: azdak mn emta la emta?", gender, "aday sarafet bi awal el shaher?")
+        assert first == for_gender("CLARIFY: azdak mn emta la emta?", gender, "aday sarafet bi awal el shaher?")
