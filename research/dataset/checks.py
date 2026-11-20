@@ -26,10 +26,10 @@ from research.dataset.templates import Spec
 MAX_LENGTH = 300
 # Spellings accepted by the checks but not listed in the period words, so the saved prompts (and replays) stay the same.
 # approved 2026-11-14; 3elkit (3elkit Trident), abl mbereh (the day before yesterday), la hadit hala2 and sar
-# masroufe (so far) and ekher l shaher (last month) 2026-11-20, her spellings
+# masroufe (so far), ekher l shaher (last month) and kanoun l awal (December) 2026-11-20, her spellings
 ALSO_ACCEPTED = {"mbere7": ("mberha", "mberh"), "3elke": ("3elkit",), "abel mbereh": ("abl mbereh",),
                  "abel mbere7": ("abl mbere7",), "la hala2": ("la hadit hala2",), "li mara2": ("ekher l shaher",),
-                 "sar le": ("sar masroufe",)}
+                 "sar le": ("sar masroufe",), "kanoun el awal": ("kanoun l awal",)}
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
 # Services and bills are paid for, not bought ("jebt el ghasil sayara" makes no sense); a phone recharge and a cinema

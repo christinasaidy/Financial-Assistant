@@ -2872,5 +2872,11 @@
   "why": "dropped in Christina's review; the same line after the 2026-11-16 kam/aday rewrite stays dropped",
   "spec": "26-6",
   "question": "adesh ken el masroof el li kallefet 3aleh el 7efte el 2adi"
+ },
+ {
+  "spec": "18-14",
+  "question": "mnih?",
+  "first": "shu el 7a2 el sirop li shtarayto mberha?",
+  "why": "not a follow-up (came back 2026-11-20 when the earlier-question check accepted mberha)"
  }
 ]
