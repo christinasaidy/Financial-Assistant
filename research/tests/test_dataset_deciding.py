@@ -38,11 +38,11 @@ def _question(row):
     return read_prompt(row["messages"][0]["content"]).question
 
 
-def test_every_approved_line_becomes_one_example(built):
+def test_every_approved_line_becomes_one_example(built):  # counts updated 2026-11-20: her 4 new A lines
     report, _ = built
-    assert (report["train"], report["validation"], report["near test questions, dropped"]) == (216, 39, 3)
-    assert report["groups"] == {"A": 72, "B1": 39, "C3": 15, "D": 29, "C2": 25, "B2": 10, "E": 50, "C1": 15}
-    assert report["kinds"] == {"unsupported": 126, "clarify": 54, "sql": 75}
+    assert (report["train"], report["validation"], report["near test questions, dropped"]) == (219, 40, 3)
+    assert report["groups"] == {"A": 76, "B1": 39, "C3": 15, "D": 29, "C2": 25, "B2": 10, "E": 50, "C1": 15}
+    assert report["kinds"] == {"unsupported": 130, "clarify": 54, "sql": 75}
     assert "batch5/deciding_{split}.jsonl" in mix.SOURCES
 
 
@@ -152,7 +152,7 @@ def test_kam_never_asks_for_money_in_the_new_lines():
 def test_a_line_near_a_test_question_is_dropped(tmp_path):
     report = dc.replay(out_dir=tmp_path, held_out=("jarna adeysh byesrof bel shaher?",))
     assert report["near test questions, dropped"] >= 1
-    assert sum(report["groups"].values()) == 258 - report["near test questions, dropped"]
+    assert sum(report["groups"].values()) == 262 - report["near test questions, dropped"]
 
 
 def test_a_version_missing_its_stored_questions_words_refuses(stored):
