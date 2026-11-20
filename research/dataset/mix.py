@@ -15,6 +15,10 @@ Since batch 5 (2026-11-18) every line is first rebuilt with today's prompt (rese
 gender, the new chat rule, and the assistant's replies in the form for that gender. A reply with no approved forms or
 a prompt that cannot be read back refuses the whole mix. Then earlier exchanges are put in front of some questions
 (research/dataset/history.py), and the mix is refused unless 65-75% of the chats ignore their history.
+
+Since 2026-11-20 the mix also holds batch 5's answer sentences, as written (their prompt is the answer prompt: never
+rebuilt, no history, not counted among the questions), and part 5's everyday words, which must keep at least 20
+day-before-yesterday questions (abel/abl/2abel/awalt mbereh) and 15 matra7 ones.
 """
 
 import json
@@ -31,7 +35,11 @@ from research.dataset.rerender import UnreadablePrompt, read_prompt, rerender
 DATA_DIR = Path(__file__).parent / "data"
 SPLITS = ("train", "validation")
 SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl", "batch3/{split}.jsonl",
-           "batch4/{split}.jsonl", "batch5/{split}.jsonl")  # batch 5's chats since 2026-11-19
+           "batch4/{split}.jsonl", "batch5/{split}.jsonl",  # batch 5's chats since 2026-11-19
+           "batch5/words_{split}.jsonl")  # batch 5 part 5's everyday words (2026-11-20)
+# The answer step's examples (batch 5 part 2, 2026-11-20): their prompt is the answer prompt, already as the app
+# builds it, so they are not rebuilt, get no earlier exchanges and are not counted among the questions.
+ANSWER_SOURCES = ("batch5/answers_{split}.jsonl",)
 SEED = "fyp-dataset/mix-batch4"
 
 BOUNDARY_SHARE = 0.15
@@ -56,7 +64,7 @@ PER_100 = "IN ('g', 'ml')"
 
 # Batch 4's minimums (approved 2026-11-16): the user's spellings, and the new kinds of question. Each is
 # (pattern in the question, least, an optional template the row must have, an optional text its answer must contain).
-AS_COUNT = r"\b(aday|adday|adde|adaysh|addesh|adesh|2adesh)\b"
+AS_COUNT = r"\b(aday|adday|adde|adey|adeysh|adaysh|addesh|adesh|2adesh)\b"  # adey, adeysh: 2026-11-20
 BATCH4_MINIMUMS = {
     "jebet": (r"\bjebet\b", 40, None, None),
     "shtrit": (r"\bshtrit\b", 40, None, None),
@@ -66,6 +74,13 @@ BATCH4_MINIMUMS = {
     "aday as a count": (AS_COUNT, 30, "T15", "SUM(quantity)"),
     "bi aday (the price)": (r"\bb(i)? ?(aday|adde|adesh|adaysh)\b", 15, None, None),
     "the last time": (r".", 30, "B11", "MAX(receipt_date)"),
+}
+
+
+# Batch 5 part 5's words (approved 2026-11-20), so a rebuild cannot drop them: (pattern in the question, least).
+PART5_MINIMUMS = {
+    "the day before yesterday (abel, abl, 2abel, awalt mbereh)": (r"\b(2?abel|abl|awalt) mber(e7|eh)\b", 20),
+    "place (matra7, matrah, amekin, matare7)": (r"\bmatra[7h]\b|\bamekin\b|\bmatare[7h]\b", 15),
 }
 
 
@@ -79,7 +94,7 @@ def _question(row: dict) -> str:
 
 def coverage(rows: list[dict]) -> dict:
     """What the Arabizi and mixed questions cover (English is plentiful and is not counted)."""
-    arabizi = [r for r in rows if r["labels"]["language"] in ("arabizi", "mixed")]
+    arabizi = [r for r in rows if r["labels"]["language"] in ("arabizi", "mixed") and r["labels"]["kind"] != "answer"]
     kinds = Counter(r["labels"]["kind"] for r in arabizi)
     expressions = {name: sum(1 for r in arabizi if re.search(pattern, _question(r)))
                    for name, pattern in EXPRESSIONS.items()}  # fmt: skip
@@ -91,9 +106,11 @@ def coverage(rows: list[dict]) -> dict:
                         and (template is None or r["labels"]["template"] == template)
                         and (answer is None or answer in r["messages"][1]["content"]))
               for name, (pattern, _, template, answer) in BATCH4_MINIMUMS.items()}  # fmt: skip
+    part5 = {name: sum(1 for r in arabizi if re.search(pattern, _question(r)))
+             for name, (pattern, _) in PART5_MINIMUMS.items()}  # fmt: skip
     return {"arabizi": len(arabizi), "kinds": dict(kinds), "expressions": expressions, "common": common,
             "per_100": len(per_100), "per_100_implicit": sum(1 for r in per_100 if "100" not in _question(r)),
-            "batch4": batch4}
+            "batch4": batch4, "part5": part5}
 
 
 def failures(report: dict) -> list[str]:
@@ -113,6 +130,11 @@ def failures(report: dict) -> list[str]:
 def batch4_failures(report: dict) -> list[str]:
     return [f"{name}: {n} < {BATCH4_MINIMUMS[name][1]}" for name, n in report["batch4"].items()
             if n < BATCH4_MINIMUMS[name][1]]  # fmt: skip
+
+
+def part5_failures(report: dict) -> list[str]:
+    return [f"{name}: {n} < {PART5_MINIMUMS[name][1]}" for name, n in report["part5"].items()
+            if n < PART5_MINIMUMS[name][1]]  # fmt: skip
 
 
 # Batch 5 part 1's minimums for the training chats (approved by Christina, decision 11, 2026-11-17, plus her
@@ -162,9 +184,14 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
             lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         random.Random(f"{SEED}/{split}").shuffle(lines)
         rebuilt, _ = add_history([rerender(json.loads(line)) for line in lines], split)
-        splits[split] = [json.dumps(row, ensure_ascii=False) for row in rebuilt]
+        answers = [json.loads(line) for source in ANSWER_SOURCES
+                   for line in (data_dir / source.format(split=split)).read_text(encoding="utf-8").splitlines()
+                   if line.strip()]  # fmt: skip
+        rows = rebuilt + answers
+        random.Random(f"{SEED}/{split}/answers").shuffle(rows)
+        splits[split] = [json.dumps(row, ensure_ascii=False) for row in rows]
     report = coverage([json.loads(line) for line in splits["train"]])
-    missing = failures(report) + batch4_failures(report)
+    missing = failures(report) + batch4_failures(report) + part5_failures(report)
     if any(r.get("labels", {}).get("template", "").startswith("P1") for r in map(json.loads, splits["train"])):
         missing += part1_failures(part1_report([json.loads(line) for line in splits["train"]]))
     if missing:
@@ -196,10 +223,11 @@ def main() -> int:
     print(f"  per-100 comparisons not saying 100: {report['per_100_implicit']}/{report['per_100']}")
     print("  common questions x periods:", {f"{t}/{p}": n for (t, p), n in report["common"].items()})
     print("  batch 4:", report["batch4"])
+    print("  part 5:", report["part5"], "| answers:", sum(r["labels"]["kind"] == "answer" for r in train))
     print("  part 1:", part1_report(train))
     for split in SPLITS:
         rows = [json.loads(line) for line in (DATA_DIR / "mix" / f"{split}.jsonl").read_text(encoding="utf-8").splitlines()]
-        print(f"  history ({split}):", history_report(rows))
+        print(f"  history ({split}):", history_report([r for r in rows if r["labels"]["kind"] != "answer"]))
     return 0
 
 

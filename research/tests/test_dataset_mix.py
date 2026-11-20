@@ -67,6 +67,13 @@ def test_per_100_comparisons_that_all_say_100_fail():  # batch 2: 75 of 75 said 
     assert any(f.startswith("per-100 comparisons that do not say 100") for f in mix.failures(mix.coverage(rows)))
 
 
+def empty_batch5(data):
+    """Batch 5's files, empty: its chats, part 5's words and the answers (2026-11-20)."""
+    for split in ("train", "validation"):
+        for name in (f"{split}.jsonl", f"words_{split}.jsonl", f"answers_{split}.jsonl"):
+            (data / "batch5" / name).write_text("", encoding="utf-8")
+
+
 _specs = iter(range(10**6))
 
 
@@ -86,9 +93,8 @@ def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
     data = tmp_path / "data"
     for folder in (data, data / "batch2", data / "batch3", data / "batch4", data / "batch5"):  # batch 5: 2026-11-19
         folder.mkdir(parents=True, exist_ok=True)
-    for split in ("train", "validation"):  # batch 5 empty here: these tests are about batches 1-4
-        (data / "batch5" / f"{split}.jsonl").write_text("", encoding="utf-8")
-    rows = [stored(r) for r in balanced() + batch4_balanced()]
+    empty_batch5(data)  # batch 5 empty here: these tests are about batches 1-4
+    rows = [stored(r) for r in balanced() + batch4_balanced() + part5_balanced()]
     boundary = [r for r in rows if r["labels"]["kind"] in ("clarify", "unsupported")]  # batch 3 holds these
     rest = [r for r in rows if r not in boundary]
     sources = {data / "train.jsonl": rest[:100], data / "batch2" / "train.jsonl": rest[100:200],
@@ -168,8 +174,7 @@ def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
     data = tmp_path / "data"
     for folder in (data, data / "batch2", data / "batch3", data / "batch4", data / "batch5"):
         folder.mkdir(parents=True, exist_ok=True)
-    for split in ("train", "validation"):
-        (data / "batch5" / f"{split}.jsonl").write_text("", encoding="utf-8")
+    empty_batch5(data)
     rows = [stored(r) for r in balanced()]
     for name in ("train.jsonl", "batch2/train.jsonl", "batch2/extras_train.jsonl", "batch4/train.jsonl",
                  "validation.jsonl", "batch2/validation.jsonl", "batch2/extras_validation.jsonl",
@@ -186,8 +191,7 @@ def test_the_mix_refuses_when_batch4_misses_a_minimum(tmp_path):
 def write_batches(data, train_rows, validation_row):
     for folder in (data, data / "batch2", data / "batch3", data / "batch4", data / "batch5"):
         folder.mkdir(parents=True, exist_ok=True)
-    for split in ("train", "validation"):
-        (data / "batch5" / f"{split}.jsonl").write_text("", encoding="utf-8")
+    empty_batch5(data)
     for source in mix.SOURCES:
         (data / source.format(split="train")).write_text("", encoding="utf-8")
         (data / source.format(split="validation")).write_text(json.dumps(validation_row) + "\n", encoding="utf-8")
@@ -196,7 +200,7 @@ def write_batches(data, train_rows, validation_row):
 
 def test_the_mix_states_each_users_gender_and_gives_a_woman_her_form(tmp_path):
     data = tmp_path / "data"
-    rows = [stored(r, user=3) for r in balanced() + batch4_balanced()]  # user 3 is a woman
+    rows = [stored(r, user=3) for r in balanced() + batch4_balanced() + part5_balanced()]  # user 3 is a woman
     rows.append(stored(example("aday sarafet hal fatra?", template="C4", kind="clarify",
                                answer="CLARIFY: azdak mn emta la emta?"), user=3))  # fmt: skip
     write_batches(data, rows, rows[0])
@@ -222,7 +226,7 @@ def test_the_mix_refuses_a_masculine_reply_with_no_approved_forms_and_writes_not
 
 def test_the_mix_puts_earlier_exchanges_in_front_so_that_70_percent_of_chats_ignore_them(tmp_path):
     data = tmp_path / "data"
-    rows = [stored(r, user=46) for r in balanced() + batch4_balanced()]
+    rows = [stored(r, user=46) for r in balanced() + batch4_balanced() + part5_balanced()]
     for n, r in enumerate(rows):
         r["labels"]["spec"] = f"b4-46-{n // 3}"  # three versions per question, as the batches write them
     follow_ups = [stored(example(f"w ekher shaher {n}?", kind="follow_up", language="english"), user=46)
@@ -284,3 +288,62 @@ def test_the_mix_refuses_a_batch5_build_missing_a_part1_minimum(tmp_path, monkey
     with pytest.raises(mix.CoverageError, match="topic changes: 1 < 300"):
         mix.build_mix(data, data / "mix")
     assert not (data / "mix").exists()
+
+
+# --- batch 5 part 5's words and the answers (approved 2026-11-20) ---
+
+
+def part5_balanced():
+    rows = [example(f"aday sarafet {w} mbereh x {i}") for i, w in enumerate(["abel", "abl", "2abel", "awalt"] * 5)]
+    rows += [example(f"aya {w} sarafet fi aktar shi x {i}") for i, w in enumerate(["matra7", "matrah", "amekin"] * 5)]
+    return rows
+
+
+def test_each_part5_minimum_is_exactly_its_approved_number():
+    assert {name: least for name, (_, least) in mix.PART5_MINIMUMS.items()} == {
+        "the day before yesterday (abel, abl, 2abel, awalt mbereh)": 20, "place (matra7, matrah, amekin, matare7)": 15}
+    assert mix.part5_failures(mix.coverage(part5_balanced())) == []
+    for name, (pattern, least) in mix.PART5_MINIMUMS.items():
+        report = mix.coverage(part5_balanced())
+        report["part5"][name] = least - 1
+        assert mix.part5_failures(report) == [f"{name}: {least - 1} < {least}"]
+
+
+def test_a_part5_word_in_english_or_without_its_period_does_not_count():
+    rows = [dict(r, labels={**r["labels"], "language": "english"}) for r in part5_balanced()]
+    assert len(mix.part5_failures(mix.coverage(rows))) == 2
+    assert mix.coverage([example("aday sarafet mbereh?")])["part5"] == dict.fromkeys(mix.PART5_MINIMUMS, 0)
+
+
+def test_adey_and_adeysh_count_as_aday():
+    rows = [example(f"{w} jebet x {i}", template="T15", answer="SELECT SUM(quantity)")
+            for i, w in enumerate(["adey", "adeysh"] * 15)]  # fmt: skip
+    assert mix.coverage(rows)["batch4"]["aday as a count"] == 30
+
+
+def test_the_answers_join_the_mix_as_written_and_are_not_counted_as_questions(tmp_path):
+    data = tmp_path / "data"
+    rows = [stored(r) for r in balanced() + batch4_balanced() + part5_balanced()]
+    write_batches(data, rows, rows[0])
+    answer = {"messages": [{"role": "user", "content": "You write the answer...\nQuestion: aday sarafet?"},
+                           {"role": "assistant", "content": "Sarafet $12.50 hal shaher."}],
+              "labels": {"template": "ANSWER", "kind": "answer", "language": "arabizi", "user": 1, "split": "train"}}
+    many = [answer] * 2000  # would push CLARIFY + UNSUPPORTED far under 15% if counted among the questions
+    (data / "batch5" / "answers_train.jsonl").write_text("".join(json.dumps(a) + "\n" for a in many), encoding="utf-8")
+    counts = mix.build_mix(data, data / "mix")
+    assert counts["train"] == len(rows) + 2000
+    built = [json.loads(line) for line in (data / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert sum(r == answer for r in built) == 2000  # not rebuilt, no earlier exchanges
+
+
+def test_part5_words_go_through_the_mix_like_any_question(tmp_path):
+    data = tmp_path / "data"
+    rows = [stored(r) for r in balanced() + batch4_balanced()]
+    write_batches(data, rows, rows[0])
+    with pytest.raises(mix.CoverageError, match="the day before yesterday"):
+        mix.build_mix(data, data / "mix")
+    words = [stored(r) for r in part5_balanced()]
+    (data / "batch5" / "words_train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in words), encoding="utf-8")
+    mix.build_mix(data, data / "mix")
+    built = (data / "mix" / "train.jsonl").read_text(encoding="utf-8")
+    assert all(json.dumps(rerender(r), ensure_ascii=False) in built for r in words)
