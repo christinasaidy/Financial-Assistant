@@ -248,6 +248,7 @@ class AssistantService:
             None if receipt_ids is None else len(receipt_ids),
             result.truncated,
             today,
+            gender=Gender.NOT_GIVEN,  # as in the SQL step, until sign-up asks
         )
         allowed = [
             *answers.result_numbers(result.rows),

@@ -179,8 +179,9 @@ _NUMBERED = {"since_weekday": periods.since_weekday, "weekday": periods.weekday,
              "since_month": periods.since_month, "last_days": None, "last_weeks": None, "last_months": None}
 
 
-def period_of(kind: str, today: date, sql: str) -> periods.Period | None:
-    """The period a label names, with its days, only if its SQL is exactly `sql` (otherwise None)."""
+def period_of(kind: str, today: date, sql: str | None) -> periods.Period | None:
+    """The period a label names, with its days, only if its SQL is exactly `sql` (otherwise None); with `sql` None,
+    whatever the label names (used for an answer's words, never for SQL)."""
     found = None
     if kind in _SIMPLE:
         found = _SIMPLE[kind](today) if kind != "none" else periods.no_period()
@@ -190,7 +191,7 @@ def period_of(kind: str, today: date, sql: str) -> periods.Period | None:
         maker = {"days": periods.last_days, "weeks": periods.last_weeks, "months": periods.last_months,
                  "years": periods.last_years}[m.group(2)]  # fmt: skip
         found = maker(today, int(m.group(1)))
-    return found if found is not None and found.sql == sql else None
+    return found if found is not None and (sql is None or found.sql == sql) else None
 
 
 def _bought(data: UserData, period: periods.Period | None, name: str) -> bool:

@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Message, MessageRole, Step
 from app.domain.assistant.prompt import (
+    GENDER_LINES,
     Exchange,
     Gender,
     UserNames,
@@ -168,6 +169,7 @@ def test_the_answer_prompt_shows_amounts_to_the_cent_and_the_usd_total():
         3,
         False,
         date(2026, 11, 3),
+        gender=Gender.NOT_GIVEN,
     )
     assert "Row: LBP | 1450000.00 | 16.20" in prompt  # stored amounts as they are
     assert "Column totals: total_spent_usd = 29.70" in prompt
@@ -176,9 +178,18 @@ def test_the_answer_prompt_shows_amounts_to_the_cent_and_the_usd_total():
     assert "cut off" not in prompt
 
 
+def test_the_answer_prompt_states_the_users_gender_after_the_date():
+    """Decided with the user on 2026-11-17: the gender line in both prompts (batch 5 trains the answer step)."""
+    for gender in Gender:
+        lines = build_answer_prompt("aday sarafet?", ["total"], [(Decimal("1.00"),)], {}, None, False,
+                                    date(2026, 11, 3), gender=gender).splitlines()  # fmt: skip
+        today = lines.index("Today: 2026-11-03")
+        assert lines[today + 1] == GENDER_LINES[gender] and lines[today + 2] == "Question: aday sarafet?"
+
+
 def test_small_figures_keep_enough_places_and_a_cut_off_result_is_announced():
     prompt = build_answer_prompt("price per ml?", ["per_ml"], [(Decimal("0.00375"),)] * 3, {}, None, True,
-                                 date(2026, 11, 3))  # fmt: skip
+                                 date(2026, 11, 3), gender=Gender.NOT_GIVEN)  # fmt: skip
     assert "Row: 0.0038" in prompt
     assert "only the first 3 rows are shown" in prompt
     assert "Number of receipts used" not in prompt  # unknown (e.g. a UNION): not claimed

@@ -14,7 +14,9 @@ Relative dates ("this month") are written with CURRENT_DATE, which the backend r
 the query runs. Each example carries its own date, so it stays correct whenever it is used (decided with the user
 on 2026-11-05, after the pilot showed that "October" cannot be answered without knowing the year).
 
-The answer step's prompt (`build_answer_prompt`) is used only by the app.
+The answer step's prompt (`build_answer_prompt`) is built the same way: the app sends it after the query has run, and
+since batch 5 (2026-11-19) the research dataset trains the model on it too. It states the user's gender as well, so an
+Arabizi answer says "sarafte" to a woman and "sarafet" to a man (decided 2026-11-17: the line in both prompts).
 """
 
 from collections.abc import Sequence
@@ -233,6 +235,8 @@ def build_answer_prompt(
     receipt_count: int | None,
     truncated: bool,
     today: date,
+    *,
+    gender: Gender,
 ) -> str:
     """The answer step: the model writes the answer from the query's result, in the question's language."""
     lines = [
@@ -253,6 +257,7 @@ def build_answer_prompt(
     lines += [
         "",
         f"Today: {today.isoformat()}",
+        GENDER_LINES[gender],
         f"Question: {question}",
         "Result columns: " + " | ".join(columns),
     ]
