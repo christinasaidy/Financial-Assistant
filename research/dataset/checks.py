@@ -25,7 +25,9 @@ from research.dataset.templates import Spec
 
 MAX_LENGTH = 300
 # Spellings accepted by the checks but not listed in the period words, so the saved prompts (and replays) stay the same.
-ALSO_ACCEPTED = {"mbere7": ("mberha", "mberh")}  # approved 2026-11-14
+# approved 2026-11-14; 3elkit (3elkit Trident) and abl mbereh (the day before yesterday) 2026-11-20
+ALSO_ACCEPTED = {"mbere7": ("mberha", "mberh"), "3elke": ("3elkit",), "abel mbereh": ("abl mbereh",),
+                 "abel mbere7": ("abl mbere7",)}
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
 # Services and bills are paid for, not bought ("jebt el ghasil sayara" makes no sense); a phone recharge and a cinema
@@ -85,6 +87,12 @@ def contains(text: str, word: str) -> bool:
     return re.search(pattern, normalized(text)) is not None
 
 
+def mentions(text: str, words: tuple[str, ...]) -> bool:
+    """Whether the text has one of the words, its plural, or a spelling in ALSO_ACCEPTED."""
+    accepted = words + tuple(alias for word in words for alias in ALSO_ACCEPTED.get(word, ()))
+    return any(contains(text, word) or contains(text, word + "s") for word in accepted)
+
+
 def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions: tuple[str, ...] = ()) -> list[str]:
     found = []
     question = version.question
@@ -97,8 +105,7 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
             found.append("Arabic script")
             break
     for words in spec.mentions:  # plurals allowed, as for the earlier question ("kilos", "board games"; 2026-11-14)
-        accepted = words + tuple(alias for word in words for alias in ALSO_ACCEPTED.get(word, ()))
-        if not any(contains(question, word) or contains(question, word + "s") for word in accepted):
+        if not mentions(question, words):
             found.append(f"does not mention any of: {', '.join(words[:4])}")
     if spec.template == "T9":  # its own item's brands only: some brands are ordinary words ("fine", "always")
         item = catalogue.item(spec.labels["item"])
@@ -117,7 +124,7 @@ def problems(version: Version, spec: Spec, catalogue: Catalogue, test_questions:
         found.append("a follow-up without its earlier question")
     elif spec.base is not None:  # it is paired with the SQL of what it should ask, so it must ask that (2026-11-08)
         for words in spec.base.mentions:
-            if not any(contains(version.first, word) or contains(version.first, word + "s") for word in words):
+            if not mentions(version.first, words):
                 found.append(f"the earlier question does not mention any of: {', '.join(words[:4])}")
     if version.language != "english":
         items = {spec.labels.get("item"), spec.base.labels.get("item") if spec.base else None} & SERVICES
