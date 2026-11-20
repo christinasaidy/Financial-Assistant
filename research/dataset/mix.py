@@ -19,6 +19,8 @@ a prompt that cannot be read back refuses the whole mix. Then earlier exchanges 
 Since 2026-11-20 the mix also holds batch 5's answer sentences, as written (their prompt is the answer prompt: never
 rebuilt, no history, not counted among the questions), and part 5's everyday words, which must keep at least 20
 day-before-yesterday questions (abel/abl/2abel/awalt mbereh) and 15 matra7 ones.
+Part 2's small talk (batch5/smalltalk_*.jsonl) replaces the stored small-talk examples (R1-R5): each rebuilt with a
+reply of its kind, plus the new small-talk questions.
 """
 
 import json
@@ -36,7 +38,11 @@ DATA_DIR = Path(__file__).parent / "data"
 SPLITS = ("train", "validation")
 SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl", "batch3/{split}.jsonl",
            "batch4/{split}.jsonl", "batch5/{split}.jsonl",  # batch 5's chats since 2026-11-19
-           "batch5/words_{split}.jsonl")  # batch 5 part 5's everyday words (2026-11-20)
+           "batch5/words_{split}.jsonl",  # batch 5 part 5's everyday words (2026-11-20)
+           "batch5/smalltalk_{split}.jsonl")  # batch 5 part 2's small talk (2026-11-20)
+# Part 2 rebuilds every stored small-talk example (R1-R5) with a reply of its kind, so the stored ones are left out.
+SMALLTALK_SOURCE = "batch5/smalltalk_{split}.jsonl"
+SMALLTALK_TEMPLATES = frozenset({"R1", "R2", "R3", "R4", "R5"})
 # The answer step's examples (batch 5 part 2, 2026-11-20): their prompt is the answer prompt, already as the app
 # builds it, so they are not rebuilt, get no earlier exchanges and are not counted among the questions.
 ANSWER_SOURCES = ("batch5/answers_{split}.jsonl",)
@@ -181,7 +187,8 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
         lines = []
         for source in SOURCES:
             path = data_dir / source.format(split=split)
-            lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip() and (
+                source == SMALLTALK_SOURCE or json.loads(line)["labels"]["template"] not in SMALLTALK_TEMPLATES)]
         random.Random(f"{SEED}/{split}").shuffle(lines)
         rebuilt, _ = add_history([rerender(json.loads(line)) for line in lines], split)
         answers = [json.loads(line) for source in ANSWER_SOURCES

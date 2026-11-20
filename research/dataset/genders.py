@@ -6,6 +6,7 @@ form preferred that). The forms are Christina's, approved on 2026-11-18:
 research/dataset/raw/batch5/gender_forms_reviewed.md (table A for the stored replies; table B's new replies are
 written in their right form when part 2 writes them), and table C (three more stored replies, approved the same
 day; "tehki" / "tehke" are the same for a man and a woman, so "aan aya ma7al aam tehki?" needs no forms).
+Table F (SMALLTALK) holds part 2's small-talk replies (approved 2026-11-20), used by research/dataset/smalltalk.py.
 
 A reply that still has a masculine "you" word and no forms here is refused (UnformedReply), never passed on as it is.
 """
@@ -68,6 +69,120 @@ FORMS = (
           "CLARIFY: aya mahal bel zabt?"),
 )
 
+# Table F: the small-talk replies of batch 5 part 2, by their number in raw/batch5/smalltalk_replies_review.md
+# (approved by Christina 2026-11-20, "all great", with her edits; #39-#41 "yes all good").
+SMALLTALK = {
+    1: Forms("REPLY: Marhaba! fiye se3dak b shi?",
+              "REPLY: Marhaba! fiye se3dik b shi?",
+              "REPLY: Marhaba! fi shi fiye se3ed fi?"),
+    2: Forms("REPLY: Ahla! shu baddak ta3ref 3an fawatirak?",
+              "REPLY: Ahla! shu baddik ta3rfe 3an fawatirik?",
+              "REPLY: Ahla! shu fiye shouf bel fwatir?"),
+    3: Forms("REPLY: Sabah el nour! bi shu se3dak?",
+              "REPLY: Sabah el nour! bi shu se3dik?",
+              "REPLY: Sabah el nour! bi shu fiye se3ed?"),
+    4: Forms("REPLY: Bonjour! fiye se3dak b shi?",
+              "REPLY: Bonjour! fiye se3dik b shi?",
+              "REPLY: Bonjour! shu fiye a3mel?"),
+    5: Forms("REPLY: Hi! badak tshuf shi bi fawatirak?",
+              "REPLY: Hi! badik tshoufe shi bi fawatirik?",
+              "REPLY: Hi! fi shi fiye shoufo bel fwatir?"),
+    6: Forms("REPLY: Ahlen! eh hon, fiye se3dak?",
+              "REPLY: Ahlen! eh hon, fiye se3dik?",
+              "REPLY: Ahlen! eh hon, shu fiye a3mel?"),
+    7: Forms("REPLY: Mnih merci, w enta? Fiye se3dak b shi?",
+              "REPLY: Mnih merci, w ente? Fiye se3dik b shi?",
+              "REPLY: Ana Mnih merci! Fi shi fiye se3ed fi?"),
+    8: Forms("REPLY: Mnih, merci! bi shu se3dak?",
+              "REPLY: Mnih, merci! bi shu se3dik?",
+              "REPLY: Mnih, merci! bi shu fiye se3ed?"),
+    9: Forms("REPLY: Hamdella, w enta kifak? Shu baddak ta3ref 3an masroufak?",
+              "REPLY: Hamdella, w ente kifik? Shu baddik ta3rfe 3an masroufik?",
+              "REPLY: Hamdella! Shu fiye shouf bel masruf?"),
+    10: Forms("REPLY: Meshe el 7al, w enta? Badak tshuf adesh sarafet hal shaher?",
+              "REPLY: Meshe el 7al, w ente? Badik tshoufe adesh sarafte hal shaher?",
+              "REPLY: Meshe el 7al! Fiye 2oul adesh ra7 masari hal shaher."),
+    11: Forms("REPLY: Tamem merci! Shu fiye a3melak?",
+              "REPLY: Tamem merci! Shu fiye a3melik?",
+              "REPLY: Tamem merci! Shu fiye a3mel?"),
+    12: Forms("REPLY: Walaw", "REPLY: Walaw", "REPLY: Walaw"),
+    13: Forms("REPLY: Ta3a kel yom", "REPLY: Ta3a kel yom", "REPLY: Ta3a kel yom"),
+    14: Forms("REPLY: Ya Hala", "REPLY: Ya Hala", "REPLY: Ya Hala"),
+    15: Forms("REPLY: Ahla w Sahla, w eza baddak shi ba3den ana hon",
+              "REPLY: Ahla w Sahla, w eza baddik shi ba3den ana hon",
+              "REPLY: Ahla w Sahla, w eza fi shi ba3den ana hon"),
+    16: Forms("REPLY: 3a rase!", "REPLY: 3a rase!", "REPLY: aa rase!"),
+    17: Forms("REPLY: Wala yhemmak! eza baddak shi tene ana hon",
+              "REPLY: Wala yhemmik! eza baddik shi tene ana hon",
+              "REPLY: Walaw! eza fi shi tene ana hon"),
+    18: Forms("REPLY: Tekram 3aynak!", "REPLY: Tekram 3aynik!", "REPLY: Ya Hala, ayya wa2t!"),
+    19: Forms("REPLY: Fiye 2elak adesh sarafet, 3a shu w wen, w se3er kel shi jebto, men fawatirak.",
+              "REPLY: Fiye 2ellik adesh sarafte, 3a shu w wen, w se3er kel shi jebte, men fawatirik.",
+              "REPLY: Fiye 2oul adesh ra7 masari, 3a shu w wen, w se3er kel shi, men el fwatir."),
+    20: Forms("REPLY: Bjeweb 3an masroufak men fawatirak: adesh sarafet, wen, aymta, w wen arkhas.",
+              "REPLY: Bjeweb 3an masroufik men fawatirik: adesh sarafte, wen, aymta, w wen arkhas.",
+              "REPLY: Bjeweb 3an el masruf men el fwatir: adesh, wen, aymta, w wen arkhas."),
+    21: Forms("REPLY: Es2alne 3an fawatirak: el majmou3, el categories, el ma7allet w el as3ar.",
+              "REPLY: Es2aline 3an fawatirik: el majmou3, el categories, el ma7allet w el as3ar.",
+              "REPLY: Fiye jeweb 3an el fwatir: el majmou3, el categories, el ma7allet w el as3ar."),
+    22: Forms("REPLY: Ana Fatourati, bse3dak bi masarifak mn el fwatir.",
+              "REPLY: Ana Fatourati, bse3dik bi masarifik mn el fwatir.",
+              "REPLY: Ana Fatourati, bse3ed bel masarif mn el fwatir."),
+    23: Forms("REPLY: hahaha, fie se3dak b shi tene?",
+              "REPLY: hahaha, fie se3dik b shi tene?",
+              "REPLY: hahaha, fi shi tene fie se3ed fi?"),
+    24: Forms("REPLY: Hahaha! w eza baddak shi jad, ana hon",
+              "REPLY: Hahaha! w eza baddik shi jad, ana hon",
+              "REPLY: Hahaha! w eza fi shi jad, ana hon"),
+    25: Forms("REPLY: Eh walla! Baddak shi tene?",
+              "REPLY: Eh walla! Baddik shi tene?",
+              "REPLY: Eh walla! Fi shi tene?"),
+    26: Forms("REPLY: Hek tole3 bel fawatir! Fiye se3dak b shi tene?",
+              "REPLY: Hek tole3 bel fawatir! Fiye se3dik b shi tene?",
+              "REPLY: Hek tole3 bel fawatir! Fi shi tene fiye se3ed fi?"),
+    27: Forms("REPLY: Ma3ak 7a2, kel shi sar ghale! Badak tshuf 3a shu ra7 aktar shi masari?",
+              "REPLY: Ma3ik 7a2, kel shi sar ghale! Badik tshoufe 3a shu ra7 aktar shi masari?",
+              "REPLY: Kel shi sar ghale! Fiye farje 3a shu ra7 aktar shi masari."),
+    28: Forms("REPLY: Allah y3inak! Badak tshuf wen sarafet aktar shi?",
+              "REPLY: Allah y3inik! Badik tshoufe wen sarafte aktar shi?",
+              "REPLY: Ya latif! Fiye farje wen ra7 aktar shi masari."),
+    29: Forms("REPLY: W nharak! Shu baddak ta3ref 3an fawatirak?",
+              "REPLY: W nharik! Shu baddik ta3rfe 3an fawatirik?",
+              "REPLY: Merci! fi shi fiye se3ed fi?"),
+    30: Forms("REPLY: Merci! fiye se3dak b shi tene?",
+              "REPLY: Merci! fiye se3dik b shi tene?",
+              "REPLY: Merci! fi shi tene fiye se3ed fi?"),
+    31: Forms("REPLY: Yala bye, aya wa2et aayiz shi ana hon!",
+              "REPLY: Yala bye, aya wa2et aayze shi ana hon!",
+              "REPLY: Yala bye, aya wa2et fi shi ana hon!"),
+    32: Forms("REPLY: Yala bye, aya wa2et badak shi ana hon!",
+              "REPLY: Yala bye, aya wa2et badik shi ana hon!",
+              "REPLY: Yala bye, aya wa2et fi shi ana hon!"),
+    33: Forms("REPLY: Ma3 el salame! w eza baddak shi ba3den ana hon",
+              "REPLY: Ma3 el salame! w eza baddik shi ba3den ana hon",
+              "REPLY: Ma3 el salame! w eza fi shi ba3den ana hon"),
+    34: Forms("REPLY: Nshoufak!", "REPLY: Nshoufik!", "REPLY: Yala bye!"),
+    35: Forms("REPLY: Bye, nharak sa3id!", "REPLY: Bye, nharik sa3id!", "REPLY: Bye, nhar sa3id!"),
+    36: Forms("REPLY: Ana Fatourati, bse3dak bi masarifak mn el fwatir.",
+              "REPLY: Ana Fatourati, bse3dik bi masarifik mn el fwatir.",
+              "REPLY: Ana Fatourati, bse3ed bel masarif mn el fwatir."),
+    37: Forms("REPLY: Eh, ana mosa3ed bjeweb 3an masrufak mn el fwatir.",
+              "REPLY: Eh, ana mosa3ed bjeweb 3an masrufik mn el fwatir.",
+              "REPLY: Eh, ana mosa3ed bjeweb 3an el masruf mn el fwatir."),
+    38: Forms("REPLY: Ana Fatourati! B2ellak adesh sarafet w 3a shu, men fawatirak.",
+              "REPLY: Ana Fatourati! B2ellik adesh sarafte w 3a shu, men fawatirik.",
+              "REPLY: Ana Fatourati! B2oul adesh ra7 masari w 3a shu, men el fwatir."),
+    39: Forms("REPLY: Salamtak! Inshalla ma fi shi kbir. W eza baddak shi, ana hon",
+              "REPLY: Salamtik! Inshalla ma fi shi kbir. W eza baddik shi, ana hon",
+              "REPLY: Inshalla ma fi shi kbir! W eza fi shi, ana hon"),
+    40: Forms("REPLY: Ma3lesh, inshalla kel shi bi sir a7san! Fiye se3dak b shi?",
+              "REPLY: Ma3lesh, inshalla kel shi bi sir a7san! Fiye se3dik b shi?",
+              "REPLY: Ma3lesh, inshalla kel shi bi sir a7san! Fi shi fiye se3ed fi?"),
+    41: Forms("REPLY: Alla y2awik! Eza baddak tshuf shi bi fawatirak, ana hon",
+              "REPLY: Alla y2awike! Eza badik tshoufe shi bi fawatirik, ana hon",
+              "REPLY: Alla y2awi! Eza fi shi bel fwatir, ana hon"),
+}  # fmt: skip
+
 # Words that address a man. A reply holding one must have its forms above.
 MASCULINE_WORDS = ("fik", "baddak", "azdak", "2asdak", "elak", "se3dak", "bse3dak", "jewbak", "masroufak", "masrufak",
                    "masarifak", "fawatirak", "jebto", "enta")  # fmt: skip
@@ -78,7 +193,7 @@ def _pattern(template: str) -> re.Pattern:
     return re.compile("^" + re.escape(template).replace(r"\{x\}", "(?P<x>.+?)").replace(r"\{y\}", "(?P<y>.+?)") + "$")
 
 
-_PATTERNS = tuple((_pattern(forms.man), forms) for forms in FORMS)
+_PATTERNS = tuple((_pattern(forms.man), forms) for forms in (*FORMS, *SMALLTALK.values()))
 
 
 # The assistant's question about the period, in Christina's forms (2026-11-19: "don't just have the model answer azdak
@@ -118,6 +233,7 @@ SPEAKER_WORDS = (  # (woman, man)
     ("7esa", "7eses"), ("7ase", "7ases"), ("7asi", "7ases"), ("hesa", "heses"), ("hase", "hases"), ("hasi", "hasis"),
     ("meshtreye", "meshtere"), ("meshtriye", "meshteri"),
     ("3ayshe", "3ayesh"), ("aayshe", "aayesh"),  # living ("3ayesh bi Total"), 2026-11-19
+    ("mwa2a3a", "mwa2a3"), ("metwa23a", "metwa2i3"),  # "ma kent mwa2a3a": expecting, 2026-11-20
 )  # fmt: skip
 _TO_MAN = {woman: man for woman, man in SPEAKER_WORDS}
 _TO_WOMAN = {man: woman for woman, man in reversed(SPEAKER_WORDS)}  # defe3 -> def3a, 7eses -> 7esa (the first listed)

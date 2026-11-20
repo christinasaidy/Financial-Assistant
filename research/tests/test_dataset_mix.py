@@ -68,9 +68,9 @@ def test_per_100_comparisons_that_all_say_100_fail():  # batch 2: 75 of 75 said 
 
 
 def empty_batch5(data):
-    """Batch 5's files, empty: its chats, part 5's words and the answers (2026-11-20)."""
+    """Batch 5's files, empty: its chats, part 5's words, the answers and part 2's small talk (2026-11-20)."""
     for split in ("train", "validation"):
-        for name in (f"{split}.jsonl", f"words_{split}.jsonl", f"answers_{split}.jsonl"):
+        for name in (f"{split}.jsonl", f"words_{split}.jsonl", f"answers_{split}.jsonl", f"smalltalk_{split}.jsonl"):
             (data / "batch5" / name).write_text("", encoding="utf-8")
 
 
@@ -347,3 +347,16 @@ def test_part5_words_go_through_the_mix_like_any_question(tmp_path):
     mix.build_mix(data, data / "mix")
     built = (data / "mix" / "train.jsonl").read_text(encoding="utf-8")
     assert all(json.dumps(rerender(r), ensure_ascii=False) in built for r in words)
+
+
+def test_part2_small_talk_replaces_the_stored_small_talk(tmp_path):  # approved 2026-11-20
+    data = tmp_path / "data"
+    rows = [stored(r) for r in balanced() + batch4_balanced() + part5_balanced()]
+    old = stored(example("kifak", template="R4", kind="reply", answer="REPLY: hahaha, fie se3dak b shi tene?"))
+    write_batches(data, rows + [old], rows[0])
+    new = stored(example("kifak", template="R4", kind="reply", answer="REPLY: Mnih, merci! bi shu se3dak?"))
+    (data / "batch5" / "smalltalk_train.jsonl").write_text(json.dumps(new) + "\n", encoding="utf-8")
+    counts = mix.build_mix(data, data / "mix")
+    assert counts["train"] == len(rows) + 1
+    built = (data / "mix" / "train.jsonl").read_text(encoding="utf-8")
+    assert "Mnih, merci! bi shu se3dak?" in built and "hahaha" not in built
