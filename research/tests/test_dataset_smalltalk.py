@@ -144,7 +144,8 @@ def test_a_greeting_in_front_of_a_question_keeps_its_sql(built):
 
 
 def test_a_greeting_version_missing_its_questions_words_refuses(tmp_path):
-    versions = [dict(v, question="marhaba, aday sar masroufe 3al 3adas la halla") if v["spec"] == "b3-36-8" else v
+    # No "so far" word at all. ("sar masroufe" counts as one since her review of part 3, 2026-11-20.)
+    versions = [dict(v, question="marhaba, aday dafa3et 3al 3adas?") if v["spec"] == "b3-36-8" else v
                 for v in _load("greetings.json")]  # fmt: skip
     with pytest.raises(SmalltalkError, match="sarle"):
         build_smalltalk(raw_dir=_raw(tmp_path, greetings=versions), out_dir=tmp_path / "out")

@@ -68,9 +68,10 @@ def test_per_100_comparisons_that_all_say_100_fail():  # batch 2: 75 of 75 said 
 
 
 def empty_batch5(data):
-    """Batch 5's files, empty: its chats, part 5's words, the answers and part 2's small talk (2026-11-20)."""
+    """Batch 5's files, empty: its chats, part 5's words, the answers, part 2's small talk and part 3 (2026-11-20)."""
     for split in ("train", "validation"):
-        for name in (f"{split}.jsonl", f"words_{split}.jsonl", f"answers_{split}.jsonl", f"smalltalk_{split}.jsonl"):
+        for name in (f"{split}.jsonl", f"words_{split}.jsonl", f"answers_{split}.jsonl", f"smalltalk_{split}.jsonl",
+                     f"deciding_{split}.jsonl"):
             (data / "batch5" / name).write_text("", encoding="utf-8")
 
 

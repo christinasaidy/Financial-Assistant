@@ -183,6 +183,20 @@ SMALLTALK = {
               "REPLY: Alla y2awi! Eza fi shi bel fwatir, ana hon"),
 }  # fmt: skip
 
+# Table G: part 3's questions back when the user asks about rent or transfers they never entered (raw/batch5/
+# deciding_review.md, approved by Christina 2026-11-20).
+DECIDING = {
+    "rent": (Forms("CLARIFY: Ma la2ayt ajar bi fwatirak, sajalto bi esem tene?",
+                   "CLARIFY: Ma la2ayt ajar bi fwatirik, sajalte bi esem tene?",
+                   "CLARIFY: Ma la2ayt ajar bel fwatir, msajal bi esem tene?"),
+             Forms("CLARIFY: Ma la2ayt shi 3an el ajar, 7atayto bi category tenye?",
+                   "CLARIFY: Ma la2ayt shi 3an el ajar, 7atayte bi category tenye?",
+                   "CLARIFY: Ma la2ayt shi 3an el ajar, ma7tout bi category tenye?")),
+    "transfer": (Forms("CLARIFY: Ma la2ayt ta7wilet bi fwatirak, sajalton bi esem tene?",
+                       "CLARIFY: Ma la2ayt ta7wilet bi fwatirik, sajaltiyon bi esem tene?",
+                       "CLARIFY: Ma la2ayt ta7wilet bel fwatir, msajalin bi esem tene?"),),
+}
+
 # Words that address a man. A reply holding one must have its forms above.
 MASCULINE_WORDS = ("fik", "baddak", "azdak", "2asdak", "elak", "se3dak", "bse3dak", "jewbak", "masroufak", "masrufak",
                    "masarifak", "fawatirak", "jebto", "enta")  # fmt: skip
@@ -193,7 +207,8 @@ def _pattern(template: str) -> re.Pattern:
     return re.compile("^" + re.escape(template).replace(r"\{x\}", "(?P<x>.+?)").replace(r"\{y\}", "(?P<y>.+?)") + "$")
 
 
-_PATTERNS = tuple((_pattern(forms.man), forms) for forms in (*FORMS, *SMALLTALK.values()))
+_ALL_FORMS = (*FORMS, *SMALLTALK.values(), *(forms for group in DECIDING.values() for forms in group))
+_PATTERNS = tuple((_pattern(forms.man), forms) for forms in _ALL_FORMS)
 
 
 # The assistant's question about the period, in Christina's forms (2026-11-19: "don't just have the model answer azdak

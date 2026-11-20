@@ -39,7 +39,8 @@ SPLITS = ("train", "validation")
 SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl", "batch3/{split}.jsonl",
            "batch4/{split}.jsonl", "batch5/{split}.jsonl",  # batch 5's chats since 2026-11-19
            "batch5/words_{split}.jsonl",  # batch 5 part 5's everyday words (2026-11-20)
-           "batch5/smalltalk_{split}.jsonl")  # batch 5 part 2's small talk (2026-11-20)
+           "batch5/smalltalk_{split}.jsonl",  # batch 5 part 2's small talk (2026-11-20)
+           "batch5/deciding_{split}.jsonl")  # batch 5 part 3's refusals, questions back and contrasts (2026-11-20)
 # Part 2 rebuilds every stored small-talk example (R1-R5) with a reply of its kind, so the stored ones are left out.
 SMALLTALK_SOURCE = "batch5/smalltalk_{split}.jsonl"
 SMALLTALK_TEMPLATES = frozenset({"R1", "R2", "R3", "R4", "R5"})
