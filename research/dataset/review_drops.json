@@ -211,7 +211,7 @@
  },
  {
   "spec": "3-3",
-  "question": "w el fetoura li ablo?",
+  "question": "w el fatoura li abla?",
   "first": "kam dafa3et 3al kahraba bi el fetoura el 2ayra?",
   "why": "garbled or not Lebanese (2ayra)"
  },
@@ -2185,7 +2185,7 @@
  },
  {
   "spec": "25-3",
-  "question": "w el marra li ablo?",
+  "question": "w el marra el abla?",
   "first": "kam dafa3et 3al board game el marra el ekhera?",
   "why": "not a Lebanese word (ekhera)"
  },
@@ -2311,7 +2311,7 @@
  },
  {
   "spec": "25-21",
-  "question": "adde sarfet 3al transport hal shaher",
+  "question": "adde sarafet 3al transport hal shaher",
   "first": null,
   "why": "does not ask what it should (period, asked no period)"
  },
@@ -2878,5 +2878,371 @@
   "question": "mnih?",
   "first": "shu el 7a2 el sirop li shtarayto mberha?",
   "why": "not a follow-up (came back 2026-11-20 when the earlier-question check accepted mberha)"
+ },
+ {
+  "spec": "1-4",
+  "question": "nafs el streaming subscription, bi Netflix aw Shahid dafa3et a2al 7a2 el unit el 30 yom el 7ad",
+  "first": null,
+  "why": "audit 2026-11-21: '7a2 el unit el 30 yom el 7ad' is broken, and Netflix vs Shahid are not 'the same subscription'."
+ },
+ {
+  "spec": "1-14",
+  "question": "ma fhemet el jawab, tshra7a abssat shu baddi?",
+  "first": null,
+  "why": "audit 2026-11-21: 'abssat' is MSA, and 'shu baddi?' turns it into 'what do I want?'."
+ },
+ {
+  "spec": "1-16",
+  "question": "kam marra re7et 3a Netflix hal shaher",
+  "first": null,
+  "why": "audit 2026-11-21: visits to Netflix: a subscription asked as visits."
+ },
+ {
+  "spec": "1-16",
+  "question": "kam marra re7et 3a Netflix hal shaher?",
+  "first": null,
+  "why": "audit 2026-11-21: 'kam marra re7et 3a Netflix' counts visits to a subscription: nonsense."
+ },
+ {
+  "spec": "2-7",
+  "question": "kam marra re7et 3a Spotify el ablo",
+  "first": null,
+  "why": "audit 2026-11-21: Spotify (a subscription) asked as visits; also bare 'el ablo'."
+ },
+ {
+  "spec": "2-7",
+  "question": "ma baddi adde dafa3et, bas kam marra re7et 3a Spotify el shaher li mara2",
+  "first": null,
+  "why": "audit 2026-11-21: Visits to Spotify (a subscription) make no sense; bare 'li mara2'."
+ },
+ {
+  "spec": "2-7",
+  "question": "Spotify ekher shaher, kam marra shtarayt men 3andon",
+  "first": null,
+  "why": "audit 2026-11-21: Spotify is a monthly subscription; counting purchases/visits from it in one month is like counting bill payments."
+ },
+ {
+  "spec": "2-7",
+  "question": "Spotify el ablo, kam marra re7et 3andhom",
+  "first": null,
+  "why": "audit 2026-11-21: Visits to Spotify make no sense; bare 'el ablo'."
+ },
+ {
+  "spec": "3-15",
+  "question": "baddi a3ref adde dafa3et 3a meleh bi teshreen el tani",
+  "first": null,
+  "why": "audit 2026-11-21: bi teshreen el tani = IN November, but the reply has no end date (it means since November)."
+ },
+ {
+  "spec": "3-22",
+  "question": "kam dazine shay jebt men awal el sene",
+  "first": null,
+  "why": "audit 2026-11-21: Tea counted by the dozen is not something a user asks; the reply's dozens count fits no real question."
+ },
+ {
+  "spec": "5-16",
+  "question": "kam marra re7et 3a Paul? ma ba3ref iza msajjal 3andak b esm tene",
+  "first": null,
+  "why": "audit 2026-11-21: The question counts visits to Paul, but the reply asks 'price of what?'."
+ },
+ {
+  "spec": "5-16",
+  "question": "kam marra shtarayt heda el last time",
+  "first": null,
+  "why": "audit 2026-11-21: 'kam marra shtarayt heda el last time' (how many times did I buy this the last time) is nonsense."
+ },
+ {
+  "spec": "5-20",
+  "question": "iza dallet hek, emta bekhlas ma3ashe",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "6-12",
+  "question": "7seble masroufe bi ekher fatra.",
+  "first": null,
+  "why": "audit 2026-11-21: Vague period, but the reply asks 'price of what?' instead of which period."
+ },
+ {
+  "spec": "7-12",
+  "question": "nafs el shi bas el shaher li ata3",
+  "first": "adde dafa3et 3a Kababji ekher 2 weeks?",
+  "why": "audit 2026-11-21: 'bas li ata3' has no noun; after an earlier '2 weeks' it does not say 'last month', which the reply uses."
+ },
+ {
+  "spec": "7-16",
+  "question": "kam marra re7et 3a Toters mbere7",
+  "first": null,
+  "why": "audit 2026-11-21: Toters is a delivery app: 'went to Toters' (visits) is nonsense."
+ },
+ {
+  "spec": "8-2",
+  "question": "iza dallet hek, emta bekhlas ma3ashe",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "9-7",
+  "question": "kam marra re7et 3a Shahid in the last 3 weeks?",
+  "first": null,
+  "why": "audit 2026-11-21: Shahid is a streaming app: 'how many times did I go to Shahid' (visits) is nonsense."
+ },
+ {
+  "spec": "9-12",
+  "question": "adde dafa3et 7a2 el mouzil 3ara2 bel litr ekher marra",
+  "first": null,
+  "why": "audit 2026-11-21: 'mouzil 3ara2' is MSA (users say deo), and a deodorant price per liter makes no sense for a user."
+ },
+ {
+  "spec": "9-21",
+  "question": "kam marra re7et 3a Ishtirak el Hay last friday",
+  "first": null,
+  "why": "audit 2026-11-21: Counts visits to Ishtirak el Hay, which she says is paid once a month and must never be asked as times / visits."
+ },
+ {
+  "spec": "10-9",
+  "question": "adde ken 7a2 el last receipt",
+  "first": null,
+  "why": "audit 2026-11-21: The question names the last receipt, but the CLARIFY reply asks '7a2 shu?' as if nothing was named."
+ },
+ {
+  "spec": "10-16",
+  "question": "iza dallet hek, emta bekhlas ma3ashe",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "10-18",
+  "question": "adesh dafa3et bel fasl el jay",
+  "first": null,
+  "why": "audit 2026-11-21: Past 'dafa3et' with 'el fasl el jay' (next season) is nonsense, and the reply asks for months instead of treating a future period; also 'bi el' -> bel."
+ },
+ {
+  "spec": "11-0",
+  "question": "eza dallet hek, emta bekhlas ma3ashe",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "12-3",
+  "question": "3tine total masroufe hal shaher w total el shaher li ablo jamb ba3ed",
+  "first": null,
+  "why": "audit 2026-11-21: Asks the total of this month and of last month side by side, but the reply gives only the same days of each month; q488 has the same wording with a full-month reply."
+ },
+ {
+  "spec": "13-18",
+  "question": "kam marra re7et 3a Alfa hal sene",
+  "first": null,
+  "why": "audit 2026-11-21: Alfa is the phone operator: if these receipts are monthly bills/recharges, counting visits is the bill problem she rejects."
+ },
+ {
+  "spec": "13-19",
+  "question": "iza dallet el budget el 7al, emta bekhlas ma3ashe",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "14-8",
+  "question": "iza dallet hek, emta bekhlas ma3ashe",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "14-20",
+  "question": "bel moyenne adde 3am edfa3 7a2 fatourat el kahraba fi el wikend",
+  "first": null,
+  "why": "audit 2026-11-21: An average electricity bill on the weekend makes no sense (monthly bill); 'fi el wikend' -> bel wikend."
+ },
+ {
+  "spec": "14-20",
+  "question": "shu average se3er el kahraba li dafa3to sabet w a7ad",
+  "first": null,
+  "why": "audit 2026-11-21: Average electricity price for Saturday and Sunday makes no sense (a monthly bill)."
+ },
+ {
+  "spec": "15-7",
+  "question": "kam litre zeit zaytoun shtarayt hal shaher",
+  "first": null,
+  "why": "audit 2026-11-21: Asks litres but the reply sums item quantity (bottles), not litres."
+ },
+ {
+  "spec": "15-16",
+  "question": "adde ken 7a2 el last receipt?",
+  "first": null,
+  "why": "audit 2026-11-21: The question is clear (total of the last receipt) and answerable, but the reply asks 'price of what?'."
+ },
+ {
+  "spec": "17-0",
+  "question": "kam kilo mrabba jebt el shaher li mara2",
+  "first": null,
+  "why": "audit 2026-11-21: 'li mara2' has no noun (el shaher li mara2), so the period is missing."
+ },
+ {
+  "spec": "17-16",
+  "question": "shu average se3er fatourat el kahraba li dafa3to mbere7",
+  "first": null,
+  "why": "audit 2026-11-21: An average price of electricity bills paid yesterday makes no sense: the bill is monthly."
+ },
+ {
+  "spec": "18-0",
+  "question": "w mn el shahrain li ablo?",
+  "first": "adde dafa3et bi december?",
+  "why": "audit 2026-11-21: It asks for the 2 months before December, but the SQL is the last 2 months from today; '2 shaher' is also a broken dual."
+ },
+ {
+  "spec": "18-20",
+  "question": "7seble masroufe bi ekher fatra",
+  "first": null,
+  "why": "audit 2026-11-21: the question has a vague period but the CLARIFY reply asks '7a2 shu?' (price of what): reply does not match."
+ },
+ {
+  "spec": "19-6",
+  "question": "iza dallet hek, emta bekhlas ma3ashe?",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "19-9",
+  "question": "adde bkhallas next month",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "20-11",
+  "question": "kam marra re7et 3a Ishtirak el Hay hal shaher",
+  "first": null,
+  "why": "audit 2026-11-21: Asks how many visits to the generator subscription, which is paid once a month: never ask visits for it."
+ },
+ {
+  "spec": "20-11",
+  "question": "ma baddi adde dafa3et, bas kam marra nezlet 3al ishtirak hal shaher",
+  "first": null,
+  "why": "audit 2026-11-21: Ishtirak is paid once a month, so never ask how many times; 'nezlet 3a el ishtirak' is also odd."
+ },
+ {
+  "spec": "20-11",
+  "question": "how many times did I go to Ishtirak el Hay hal shaher?",
+  "first": null,
+  "why": "audit 2026-11-21: Asks visits to Ishtirak el Hay; the generator bill is paid monthly and must never be asked as visits."
+ },
+ {
+  "spec": "20-20",
+  "question": "iza dallet hek, emta bekhlas ma3ashe lal budget?",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "21-11",
+  "question": "shu el 7a2 li sarafet bi IQOS Boutique",
+  "first": null,
+  "why": "audit 2026-11-21: 7a2 means the price of an item, not an amount spent at a shop ('the price that I spent')."
+ },
+ {
+  "spec": "21-13",
+  "question": "7seble masroufe bi ekher fatra",
+  "first": null,
+  "why": "audit 2026-11-21: the question has a vague period but the CLARIFY reply asks '7a2 shu?' (price of what): reply does not match."
+ },
+ {
+  "spec": "21-13",
+  "question": "adde ken el last receipt?",
+  "first": null,
+  "why": "audit 2026-11-21: 'how much was the last receipt' is clear and answerable, but the reply asks '7a2 shu?'."
+ },
+ {
+  "spec": "22-6",
+  "question": "iza dallet hek, emta bekhlas ma3ashe el budget",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "22-22",
+  "question": "shu average se3er el internet hal jem3a",
+  "first": null,
+  "why": "audit 2026-11-21: average price of internet (a monthly bill) within one week makes no sense."
+ },
+ {
+  "spec": "23-5",
+  "question": "w Ishtirak el Hay?",
+  "first": "kam marra re7et 3a Charcutier Aoun bi July?",
+  "why": "audit 2026-11-21: Follow-up counts visits to Ishtirak el Hay; she said never count bills."
+ },
+ {
+  "spec": "23-5",
+  "question": "bas Ishtirak el Hay?",
+  "first": "kam marra dkhelt Charcutier Aoun bi July?",
+  "why": "audit 2026-11-21: Asks visits to Ishtirak el Hay (paid once a month); 'bas X?' also reads as 'only X'."
+ },
+ {
+  "spec": "23-5",
+  "question": "w el ishtirak?",
+  "first": "kam fetoura 3ande men Charcutier Aoun bi July?",
+  "why": "audit 2026-11-21: follow-up turns into a count of Ishtirak el Hay receipts in one month (a monthly bill; the reply calls it visits): pointless."
+ },
+ {
+  "spec": "23-5",
+  "question": "same for Ishtirak el Hay?",
+  "first": "kam marra re7et 3a Charcutier Aoun bi July?",
+  "why": "audit 2026-11-21: Asks visits to Ishtirak el Hay (generator bill, once a month): she said never ask visits for it."
+ },
+ {
+  "spec": "23-10",
+  "question": "adde masrouf el se77a hal shahr w adde bel ablo?",
+  "first": null,
+  "why": "audit 2026-11-21: The SQL keeps only last month (ends before this month) while the question asks this month and last; also 'bi el ablo'."
+ },
+ {
+  "spec": "23-18",
+  "question": "iza dallet hek, emta bekhlas el budget el shopping",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "23-21",
+  "question": "iza dallet hek, emta bekhlas ma3ashe el budget",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "26-21",
+  "question": "bas 3al Anghami",
+  "first": "adde dafa3et 3al music subscription hal shaher?",
+  "why": "audit 2026-11-21: The reply SQL does not filter on Anghami at all (same music-subscription total), and '3al' before a named service should be '3a'."
+ },
+ {
+  "spec": "28-2",
+  "question": "kam marra re7et 3a EDL el shaher li mara2",
+  "first": null,
+  "why": "audit 2026-11-21: EDL is the electricity bill, paid once a month; the notes say never ask how many times / visits for bills."
+ },
+ {
+  "spec": "28-2",
+  "question": "ma baddi adde dafa3et, bas kam marra re7et 3a kahraba el dawle ekher shaher",
+  "first": null,
+  "why": "audit 2026-11-21: Asks visits to EDL (electricity bill, paid once a month): she said never ask times/visits for bills; 're7et 3a kahraba el dawle' is also odd."
+ },
+ {
+  "spec": "28-2",
+  "question": "kam marra re7et 3a EDL last month",
+  "first": null,
+  "why": "audit 2026-11-21: EDL is the electricity bill: she said never ask how many times / visits."
+ },
+ {
+  "spec": "29-5",
+  "question": "adde ken 7a2 el semester hada",
+  "first": null,
+  "why": "audit 2026-11-21: '7a2 el semester' means the semester's fee (tuition), but the reply treats semester as a period; 'el semester hada' is Syrian order (Lebanese: hayda el semester)."
+ },
+ {
+  "spec": "29-8",
+  "question": "iza dallet hek, emta bekhlas el budget el shopping?",
+  "first": null,
+  "why": "her ruling 2026-11-21: never 'emta bekhlas'"
+ },
+ {
+  "spec": "30-18",
+  "question": "el fatourat el kahraba, kam marra ken fi moshtarayete el shaher li ata3",
+  "first": null,
+  "why": "audit 2026-11-21: Counts electricity bills (paid once a month: never asked as times); 'moshtarayete' is formal and bare 'li ata3' has no noun."
  }
 ]

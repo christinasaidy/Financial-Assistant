@@ -16,18 +16,18 @@ WRITTEN, FAILING = ab.check_authored(JOBS)
 
 
 def test_every_job_has_one_approved_answer_and_every_answer_passes():
-    assert len(JOBS) == 1514 and set(WRITTEN) == set(JOBS)
+    assert len(JOBS) == 1504 and set(WRITTEN) == set(JOBS)  # 1,514 - 10 on questions the batch-1 cleanup dropped
     assert FAILING == {}
 
 
 def test_the_pilot_jobs_are_kept_as_reviewed_beside_the_new_ones():
     assert sum(job_id.startswith("pilot-") for job_id in JOBS) == 40
-    assert len(ab._read_jobs(ab.JOBS_FILE)) == 1474
+    assert len(ab._read_jobs(ab.JOBS_FILE)) == 1464  # 2026-11-21: 10 left with their questions
 
 
 def test_every_approved_answer_becomes_one_example_with_its_jobs_prompt(tmp_path):
     report = ab.replay(out_dir=tmp_path)
-    assert report == {"kept": {"train": 1319, "validation": 195}, "left_out": {}}
+    assert report == {"kept": {"train": 1311, "validation": 193}, "left_out": {}}  # 2026-11-21 cleanup
     rows = [json.loads(line) for line in (tmp_path / "answers_train.jsonl").read_text(encoding="utf-8").splitlines()]
     example = next(r for r in rows if r["labels"]["job_id"] == "a-t-0018")
     assert example["messages"] == [{"role": "user", "content": JOBS["a-t-0018"]["prompt"]},
