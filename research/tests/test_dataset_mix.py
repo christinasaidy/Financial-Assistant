@@ -73,7 +73,7 @@ def empty_batch5(data):
     for split in ("train", "validation"):
         for name in (f"{split}.jsonl", f"words_{split}.jsonl", f"answers_{split}.jsonl", f"smalltalk_{split}.jsonl",
                      f"deciding_{split}.jsonl", f"corrections_{split}.jsonl", f"kinds_{split}.jsonl",
-                     f"kinds_chats_{split}.jsonl", f"kinds_more_{split}.jsonl"):
+                     f"kinds_chats_{split}.jsonl", f"kinds_more_{split}.jsonl", f"months_{split}.jsonl"):
             (data / "batch5" / name).write_text("", encoding="utf-8")
 
 
