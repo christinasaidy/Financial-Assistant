@@ -53,6 +53,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-add",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -373,6 +377,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-assistant",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -686,6 +694,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-back",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -1010,6 +1022,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-budgets",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -1323,6 +1339,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-close",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -1629,6 +1649,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-flash",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -1957,6 +1981,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-gallery",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -2270,6 +2298,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-home",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -2583,6 +2615,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-notifications",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -2910,6 +2946,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-receipts",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -3244,6 +3284,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-scan",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [
@@ -3559,6 +3603,10 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = {
        "tag": "linearGradient",
        "props": {
         "id": "fade-settings",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0,
+        "y2": 24,
         "gradientUnits": "userSpaceOnUse"
        },
        "children": [

@@ -42,7 +42,9 @@ export function HighlightSwipe({ shape, children, style }: Props) {
       >
         <Polygon points={SHAPES[shape]} fill={colors.highlight} />
       </Svg>
-      {children}
+      {/* Its own box, so the children paint above the absolutely placed swipe on every platform (on the
+          web an absolutely placed element otherwise paints over its plain siblings). */}
+      <View>{children}</View>
     </View>
   );
 }

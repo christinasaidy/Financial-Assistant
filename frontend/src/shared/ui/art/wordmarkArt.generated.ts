@@ -19,6 +19,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-0-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -275,6 +279,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-1-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -531,6 +539,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-2-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -787,6 +799,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-3-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -1043,6 +1059,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-4-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -1299,6 +1319,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-5-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -1555,6 +1579,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-6-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -1811,6 +1839,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-7-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -2067,6 +2099,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-large-8-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 59,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -2429,6 +2465,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-0-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -2685,6 +2725,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-1-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -2941,6 +2985,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-2-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -3197,6 +3245,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-3-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -3453,6 +3505,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-4-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -3709,6 +3765,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-5-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -3965,6 +4025,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-6-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -4221,6 +4285,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-7-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [
@@ -4477,6 +4545,10 @@ export const wordmarkArt: Record<'large' | 'small', ArtNode> = {
       "tag": "linearGradient",
       "props": {
        "id": "wm-small-8-f",
+       "x1": 0,
+       "y1": 0,
+       "x2": 0,
+       "y2": 25,
        "gradientUnits": "userSpaceOnUse"
       },
       "children": [

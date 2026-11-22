@@ -24,7 +24,8 @@ function camel(name) {
 
 function parseAttrs(source) {
   const attrs = {};
-  for (const [, name, value] of source.matchAll(/([a-zA-Z:-]+)="([^"]*)"/g)) {
+  // Names may hold digits (x1, y1, x2, y2 give a gradient its direction).
+  for (const [, name, value] of source.matchAll(/([a-zA-Z][a-zA-Z0-9:-]*)="([^"]*)"/g)) {
     attrs[name] = value;
   }
   return attrs;
