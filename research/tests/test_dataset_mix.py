@@ -109,7 +109,7 @@ def test_the_mix_takes_every_batch_and_refuses_a_failing_one(tmp_path):
     for path in (data / "validation.jsonl", data / "batch2" / "validation.jsonl", data / "batch2" / "extras_validation.jsonl",
                  data / "batch3" / "validation.jsonl", data / "batch4" / "validation.jsonl"):
         path.write_text(json.dumps(rows[0]) + "\n", encoding="utf-8")
-    counts = mix.build_mix(data, data / "mix")
+    counts = mix.build_mix(data, data / "mix", swap_shops=False)  # the shop swap has its own tests (2026-11-22)
     assert counts["train"] == len(rows) and counts["validation"] == 5
     assert sorted((data / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines()) == sorted(
         json.dumps(rerender(r), ensure_ascii=False) for r in rows)
@@ -348,7 +348,7 @@ def test_part5_words_go_through_the_mix_like_any_question(tmp_path):
         mix.build_mix(data, data / "mix")
     words = [stored(r) for r in part5_balanced()]
     (data / "batch5" / "words_train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in words), encoding="utf-8")
-    mix.build_mix(data, data / "mix")
+    mix.build_mix(data, data / "mix", swap_shops=False)  # the shop swap has its own tests (2026-11-22)
     built = (data / "mix" / "train.jsonl").read_text(encoding="utf-8")
     assert all(json.dumps(rerender(r), ensure_ascii=False) in built for r in words)
 

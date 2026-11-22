@@ -31,6 +31,7 @@ from collections import Counter
 from pathlib import Path
 
 from research.dataset.fixes import fixed_question
+from research.dataset.shop_names import Swapper
 from research.dataset.genders import UnformedReply
 from research.dataset.history import HistoryError, add_history, history_report
 from research.dataset.rerender import UnreadablePrompt, read_prompt, rerender
@@ -197,9 +198,10 @@ def part1_failures(report: dict[str, int]) -> list[str]:
     return [f"{name}: {report[name]} < {least}" for name, least in PART1_MINIMUMS.items() if report[name] < least]
 
 
-def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[str, int]:
+def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None, swap_shops: bool = True) -> dict[str, int]:
     """Every batch, whole, shuffled with a fixed seed. Refuses (CoverageError) before writing anything if the
-    training split misses a threshold."""
+    training split misses a threshold. `swap_shops` (on in the real mix): made-up shop names and padded lists
+    (shop_names.py, 2026-11-22); tests of the batches themselves turn it off."""
     out_dir = out_dir or data_dir / "mix"
     splits = {}
     for split in SPLITS:
@@ -210,6 +212,9 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
                 source == SMALLTALK_SOURCE or json.loads(line)["labels"]["template"] not in SMALLTALK_TEMPLATES)]
         random.Random(f"{SEED}/{split}").shuffle(lines)
         rebuilt, _ = add_history([rerender(json.loads(line)) for line in lines], split)
+        swapper = Swapper(split)  # made-up shop names and padded lists (2026-11-22)
+        if swap_shops:
+            rebuilt = [swapper.swapped(row, index) for index, row in enumerate(rebuilt)]
         answers = [with_fixed_question(json.loads(line)) for source in ANSWER_SOURCES
                    for line in (data_dir / source.format(split=split)).read_text(encoding="utf-8").splitlines()
                    if line.strip()]  # fmt: skip
