@@ -88,9 +88,11 @@ function TabLabel({ label, selected, ink }: { label: string; selected: boolean; 
       {label}
     </AppText>
   );
+  // Only the selected label carries padding: it makes room for the yellow swipe (mockups: 0 4px). Unselected
+  // labels get the tab's full width, so "ASSISTANT" fits a fifth of the screen.
   if (!selected) return <View style={styles.label}>{text}</View>;
   return (
-    <HighlightSwipe shape="tab" style={styles.label}>
+    <HighlightSwipe shape="tab" style={[styles.label, styles.swipe]}>
       {text}
     </HighlightSwipe>
   );
@@ -136,5 +138,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  label: { paddingHorizontal: spacing.xs, maxWidth: '100%' },
+  label: { maxWidth: '100%' },
+  swipe: { paddingHorizontal: spacing.xs },
 });
