@@ -26,7 +26,7 @@ afterEach(() => {
 it('sends a signed-out user from the launch route to sign in', async () => {
   const router = await renderRouter(APP_DIR, { initialUrl: '/' });
   await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
-  expect(screen.getByText('Sign in')).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Sign in' })).toBeTruthy();
 });
 
 it('sends a signed-in user to Home, with the five tabs', async () => {
