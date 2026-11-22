@@ -162,7 +162,10 @@ Rules:
 - Use earlier questions in the chat to fill in what a follow-up leaves out ("and last month?"), but never reuse
   numbers from earlier answers.
 - In a chat, what the new question says replaces the earlier item, shop, period or measure; what it leaves out
-  comes from the earlier question."""
+  comes from the earlier question.
+- A new question about all spending (a total, spending by category, the top shop, a receipt count, a summary)
+  keeps only the earlier period, never the earlier item, shop or category. A short follow-up about another person,
+  the future, income or a budget ("w marti?", "w el shaher el jeye?") is UNSUPPORTED."""
 
 
 class Gender(StrEnum):

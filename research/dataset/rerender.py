@@ -61,6 +61,7 @@ SHORTCUT_RULES = """
 - "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price: usually spent a month, per visit,
   how often I go, or the shop I usually go to (the most visited, bills and subscriptions left out). "What I
   usually buy" (aam jib, 3am jibon) is the items on the most receipts (at <shop>, if named), top 5."""  # the shortcut words (2026-11-22)
+CHAT_RULE = '\n- A new question about all spending (a total, spending by category, the top shop, a receipt count, a summary)\n  keeps only the earlier period, never the earlier item, shop or category. A short follow-up about another person,\n  the future, income or a budget ("w marti?", "w el shaher el jeye?") is UNSUPPORTED.'  # whole spending keeps only the period; refused follow-ups (2026-11-23)
 PART4_PERIOD_RULE = """
   "The end of the month" is its 21st to its last day: this month (bi ekher heda el shaher), a named month
   (b ekher shaher teshreen) or the one just asked about (bi ekher hedek el shaher); reply CLARIFY for
@@ -126,7 +127,7 @@ def without_batch5_lines(prompt: str) -> str:
         prompt = prompt.replace(f"\n{line}\n", "\n", 1)
     for before, now in CHANGED_RULES:
         prompt = prompt.replace(now, before, 1)
-    return prompt.replace(NEW_RULE, "", 1).replace(PART4_RULES, "", 1).replace(PART4_PERIOD_RULE, "", 1).replace(SHORTCUT_RULES, "", 1)
+    return prompt.replace(NEW_RULE, "", 1).replace(PART4_RULES, "", 1).replace(PART4_PERIOD_RULE, "", 1).replace(SHORTCUT_RULES, "", 1).replace(CHAT_RULE, "", 1)
 
 
 def rerender(example: dict) -> dict:

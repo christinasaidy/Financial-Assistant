@@ -353,3 +353,11 @@ def test_the_pharmacy_rule_asks_which_when_the_user_has_two():
     assert '"saydaliyet X" / "Pharmacie X" is that one shop' in prompt
     assert '"el saydaliye" / "the pharmacy" with no\n  name: CLARIFY which, naming them, when the user has more than one' in prompt
     assert "vendor IN the user's shops whose name says Pharmacie." not in prompt
+
+
+def test_a_question_about_all_spending_keeps_only_the_earlier_period():
+    """Her ruling (2026-11-23), after fine-tune 4 kept "laban" in "3a shu sarafet hal shaher?"."""
+    prompt = build_prompt("3a shu sarafet hal shaher?", NAMES, TODAY, gender=Gender.NOT_GIVEN)
+    assert "keeps only the earlier period, never the earlier item, shop or category" in prompt
+    assert '("w marti?", "w el shaher el jeye?") is UNSUPPORTED' in prompt
+    assert prompt.index("what it leaves out") < prompt.index("keeps only the earlier period") < prompt.index("Today:")

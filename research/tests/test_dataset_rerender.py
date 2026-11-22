@@ -580,3 +580,25 @@ def test_the_mix_drops_a_wrong_gold_row_and_keeps_a_good_one():
 
 def test_the_question_fix_writes_her_spellings_too():
     assert any(fixed_question(f"shu sarafet {i}?").startswith("sho ") for i in range(30))
+
+
+# Numbers in words before a period (her spellings, 2026-11-23).
+from research.dataset.fixes import numbers_in_words  # noqa: E402
+
+
+def test_her_numbers_in_words_before_a_period_and_only_hers():
+    said = {numbers_in_words(f"aday sarafet ekher {n} {w} {i}?") for i in range(80) for n, w in
+            (("3", "shhour"), ("4", "shhour"), ("10", "iyem"), ("5", "iyem"), ("3", "jema3"))}  # fmt: skip
+    for words in ("tlet shhour", "arba3 shhour", "3ashr iyem", "khames iyem", "tlet jema3"):
+        assert any(words in s for s in said), words
+    assert all(numbers_in_words(f"ekher 7 iyem {i}") == f"ekher 7 iyem {i}" for i in range(50))  # 7: not hers
+    assert all(numbers_in_words(f"in the last 3 months {i}") == f"in the last 3 months {i}" for i in range(50))
+
+
+def test_numbers_in_words_take_about_half_mostly_khames_and_stay_put():
+    questions = [f"ekher 5 iyem {i}?" for i in range(400)]
+    fixed = [fixed_question(q) for q in questions]
+    words = [f for f in fixed if "5 iyem" not in f]
+    assert 0.4 < len(words) / len(fixed) < 0.6
+    assert sum("khames" in f for f in words) > 2 * sum("khamst" in f for f in words) > 0
+    assert all(fixed_question(f) == f for f in fixed)

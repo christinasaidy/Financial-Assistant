@@ -62,7 +62,8 @@ def examples(data_dir: Path = build.DATA_DIR) -> list[dict]:
     out = []
     for index, c in enumerate(chosen(data_dir)):
         phrase = "la hadit halla2" if index % HALLA2_EVERY == HALLA2_EVERY - 1 else "la hadit hala2"
-        question = UNTIL_NOW.sub(phrase, c["question"])
+        # the fixes again: the new phrase changes the text their hash-picked spellings read (2026-11-23)
+        question = fixed_question(UNTIL_NOW.sub(phrase, c["question"]))
         if near_duplicate(question, held_out):
             continue
         row = copy.deepcopy(c["row"])

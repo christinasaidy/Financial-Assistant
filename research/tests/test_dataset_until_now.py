@@ -22,7 +22,7 @@ def _stored(spec: str) -> dict:
 
 def test_20_lines_4_of_them_halla2_and_no_validation(tmp_path):
     report, rows = _built(tmp_path)
-    assert report == {"train": 20, "halla2": 4, "candidates": 252}
+    assert report == {"train": 20, "halla2": 4, "candidates": 254}  # 252 before sho / mish / numbers (2026-11-23)
     assert (tmp_path / "until_now_validation.jsonl").read_text(encoding="utf-8") == ""
     assert all(r["labels"]["part"] == "until_now" for r in rows)
 
@@ -30,11 +30,11 @@ def test_20_lines_4_of_them_halla2_and_no_validation(tmp_path):
 def test_only_the_phrase_changes_and_the_answer_and_user_are_the_stored_ones(tmp_path):
     _, rows = _built(tmp_path)
     for row in rows:
-        source = next(c for c in until_now.candidates() if c["row"]["labels"]["spec"] == row["labels"]["from_spec"]
-                      and until_now.UNTIL_NOW.sub("X", c["question"]) == re.sub(
-                          r"la hadit hal+a2", "X", read_prompt(row["messages"][0]["content"]).question))  # fmt: skip
         question = read_prompt(row["messages"][0]["content"]).question
-        assert re.sub(r"la hadit hal+a2", "la hala2", question) == until_now.UNTIL_NOW.sub("la hala2", source["question"])
+        # only the phrase changes, then the approved question fixes run again (their picks read the new text)
+        source = next(c for c in until_now.candidates() if c["row"]["labels"]["spec"] == row["labels"]["from_spec"]
+                      and question in {fixed_question(until_now.UNTIL_NOW.sub(p, c["question"]))
+                                       for p in ("la hadit hala2", "la hadit halla2")})  # fmt: skip
         assert row["messages"][1] == source["row"]["messages"][1]
         assert row["labels"]["user"] == source["row"]["labels"]["user"]
         old, new = source["row"]["messages"][0]["content"], row["messages"][0]["content"]
@@ -46,7 +46,7 @@ def test_her_sarli_line_is_in_with_its_stored_answer(tmp_path):
     found = {read_prompt(r["messages"][0]["content"]).question: r for r in rows}
     row = found["aday sarli def3a 7a2 beyd la hadit hala2?"]
     assert row["messages"][1]["content"] == _stored(row["labels"]["from_spec"])["row"]["messages"][1]["content"]
-    assert "mn awal hal shaher la hadit halla2, adde sert saref?" in found
+    assert "mn awal hal shaher la hadit halla2, sho seret saref?" in found  # her line, with "sho" (2026-11-23)
 
 
 def test_the_sarle_questions_come_first_and_none_says_a_ruled_out_form(tmp_path):

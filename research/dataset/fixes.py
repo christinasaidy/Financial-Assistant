@@ -99,10 +99,31 @@ def _single(found: re.Match) -> str:
     return word.capitalize() if found.group(1)[0].isupper() else word
 
 
+# - Numbers said in words before a period (her spellings, 2026-11-23): "ekher tlet shhour", "arba3 shhour",
+#   "3ashr iyem", 5 = "khames" (a few "khamst"), 6 = "set" (her "set / sette esshor"), in about half of the Arabizi
+#   questions that write 3, 4, 5, 6 or 10 in digits before shhour / eshhor / iyem / jema3 ... (other numbers: not hers).
+_PERIOD_NOUNS = "shhour|shhur|eshhor|eshor|esshor|oshhor|iyem|iyyem|ayyam|ayam|jema3|jme3|jemaa|jeme3"
+_IN_WORDS = {"3": "tlet", "4": "arba3", "5": "khames", "6": "set", "10": "3ashr"}
+_DIGITS = re.compile(rf"(?<![\w.])(3|4|5|6|10) ({_PERIOD_NOUNS})(?!\w)", re.IGNORECASE)
+_WORDS = re.compile(rf"(?<!\w)(tlet|arba3|khames|khamst|set|3ashr) ({_PERIOD_NOUNS})(?!\w)", re.IGNORECASE)
+_AS_DIGITS = {"tlet": "3", "arba3": "4", "khames": "5", "khamst": "5", "set": "6", "3ashr": "10"}
+
+
 def _usual(question: str) -> str:
-    """The question in lower case with sho / mish / mesh written shu / msh: what both hash-picked fixes read, so
-    neither changes what the other picks and running them again changes nothing."""
-    return re.sub(r"(?<!\w)(mish|mesh)(?!\w)", "msh", re.sub(r"(?<!\w)sho(?!\w)", "shu", question.lower()))
+    """The question in lower case with sho / mish / mesh written shu / msh and numbers before a period in digits:
+    what the hash-picked fixes read, so none changes what another picks and running them again changes nothing."""
+    q = re.sub(r"(?<!\w)(mish|mesh)(?!\w)", "msh", re.sub(r"(?<!\w)sho(?!\w)", "shu", question.lower()))
+    return _WORDS.sub(lambda m: f"{_AS_DIGITS[m.group(1)]} {m.group(2)}", q)
+
+
+def numbers_in_words(question: str) -> str:
+    if not _DIGITS.search(question):
+        return question
+    key = int(hashlib.sha256(f"numbers/{_usual(question)}".encode("utf-8")).hexdigest(), 16)
+    if key % 2:
+        return question
+    five = "khamst" if key % 5 == 0 else "khames"  # mostly khames, her better form
+    return _DIGITS.sub(lambda m: f"{five if m.group(1) == '5' else _IN_WORDS[m.group(1)]} {m.group(2)}", question)
 
 
 def single_letters(question: str) -> str:
@@ -135,7 +156,7 @@ def fixed_question(question: str) -> str:
         question = rule(question)
     for word, fixed in QUESTION_WORDS:
         question = word.sub(fixed, question)
-    return her_spellings(single_letters(question))
+    return numbers_in_words(her_spellings(single_letters(question)))
 
 
 def fixed_reply(reply: str, vendors=()) -> str:
