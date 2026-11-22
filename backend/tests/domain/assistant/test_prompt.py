@@ -334,3 +334,12 @@ def test_the_rules_tell_a_list_of_shops_from_the_top_one_and_name_the_new_query_
     ]
     positions = [prompt.index(rule) for rule in rules]
     assert listed < positions[0] and positions == sorted(positions) and positions[-1] < prompt.index("Today:")
+
+
+def test_the_rules_say_last_time_and_usually_are_not_always_a_price():
+    """The shortcut rules (approved by the user on 2026-11-22), right after the last-receipt rule."""
+    prompt = build_prompt("ekher marra rehet 3a Spinneys, adde sarafet?", NAMES, TODAY, gender=Gender.NOT_GIVEN)
+    last_receipt = prompt.index('- "My last receipt from <shop>"')
+    last_time = prompt.index('- "The last time" (ekher marra) is not always a price')
+    usually = prompt.index('- "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price')
+    assert last_receipt < last_time < usually < prompt.index("Today:")

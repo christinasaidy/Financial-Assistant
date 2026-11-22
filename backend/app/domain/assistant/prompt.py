@@ -135,6 +135,10 @@ Rules:
 - "How much do I usually pay per visit at <shop>": the average receipt total per currency, with the number of visits.
 - "How many different shops / places": COUNT(DISTINCT vendor), leaving out bills and subscriptions as for visits.
 - "My last receipt from <shop>" (ekher fatoura): the latest receipt from that vendor, with its date and total.
+- "The last time" (ekher marra) is not always a price: "how much did I spend / what did I buy the last time I
+  went to <shop>" is that vendor's latest receipt (its total, or its items); "when" is MAX(receipt_date).
+- "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price: usually spent a month, per visit,
+  how often I go, or the shop I usually go to (the most visited, bills and subscriptions left out).
 - The cheapest or priciest shop for an item, with no shops named: compare every shop it was bought at (the same
   per-size rules), cheapest first.
 - The cheapest brand of an item ("aya brand / aya naw3 X arkhas / awfar"): compare every brand it was bought in

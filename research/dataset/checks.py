@@ -39,7 +39,7 @@ ALSO_ACCEPTED = {"mbere7": ("mberha", "mberh"), "3elke": ("3elkit",), "abel mber
                  "el jem3a el madye": ("el jem3a li ra7et",), "el sene li mar2it": ("el sene li ra7et",),
                  "el sene el madye": ("el sene el madiye",), "borto2an": ("bort2an",), "7amod": ("7amed",),
                  "lahme mafrume": ("lahme mafroume",), "restaurant": ("resto",), "dishwashing liquid": ("dish soap",),
-                 "nail polish": ("manicure",)}
+                 "nail polish": ("manicure",), "Carrefour": ("Carefour",)}
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
 # Services and bills are paid for, not bought ("jebt el ghasil sayara" makes no sense); a phone recharge and a cinema

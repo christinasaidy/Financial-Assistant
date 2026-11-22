@@ -51,6 +51,11 @@ PART4_RULES = """
 - "How much do I usually pay per visit at <shop>": the average receipt total per currency, with the number of visits.
 - "How many different shops / places": COUNT(DISTINCT vendor), leaving out bills and subscriptions as for visits.
 - "My last receipt from <shop>" (ekher fatoura): the latest receipt from that vendor, with its date and total."""
+SHORTCUT_RULES = """
+- "The last time" (ekher marra) is not always a price: "how much did I spend / what did I buy the last time I
+  went to <shop>" is that vendor's latest receipt (its total, or its items); "when" is MAX(receipt_date).
+- "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price: usually spent a month, per visit,
+  how often I go, or the shop I usually go to (the most visited, bills and subscriptions left out)."""  # the shortcut words (2026-11-22)
 PART4_PERIOD_RULE = """
   "The end of the month" is its 21st to its last day: this month (bi ekher heda el shaher), a named month
   (b ekher shaher teshreen) or the one just asked about (bi ekher hedek el shaher); reply CLARIFY for
@@ -116,7 +121,7 @@ def without_batch5_lines(prompt: str) -> str:
         prompt = prompt.replace(f"\n{line}\n", "\n", 1)
     for before, now in CHANGED_RULES:
         prompt = prompt.replace(now, before, 1)
-    return prompt.replace(NEW_RULE, "", 1).replace(PART4_RULES, "", 1).replace(PART4_PERIOD_RULE, "", 1)
+    return prompt.replace(NEW_RULE, "", 1).replace(PART4_RULES, "", 1).replace(PART4_PERIOD_RULE, "", 1).replace(SHORTCUT_RULES, "", 1)
 
 
 def rerender(example: dict) -> dict:
