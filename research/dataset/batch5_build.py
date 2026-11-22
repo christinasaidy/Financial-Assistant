@@ -36,7 +36,7 @@ JOBS_FILE = RAW_DIR / "jobs.jsonl"
 AUTHORED_DIR = RAW_DIR / "authored"
 DATA_DIR = build.DATA_DIR / "batch5"
 # Spellings Christina rejected (2026-11-19): never in a new line.
-REJECTED = ("li fet", "fetou", "jem3at", "eshhor", "ekhirin", "sarle spent", "baskawit", "li mar2o")
+REJECTED = ("li fet", "fetou", "jem3at", "ekhirin", "sarle spent", "baskawit", "li mar2o")  # "eshhor" accepted again (her, 2026-11-23)
 
 
 class AuthoredError(ValueError):

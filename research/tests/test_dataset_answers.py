@@ -82,9 +82,13 @@ def test_a_category_is_ranked_by_all_its_currencies_in_usd_and_tax_is_never_firs
     assert ab.winner("categories", job["columns"], [dining_usd, tax]) == "Dining"
 
 
-@pytest.mark.parametrize("word", ["kallefetne", "kallefoune", "3elka", "eshhor", "jem3at"])
+@pytest.mark.parametrize("word", ["kallefetne", "kallefoune", "3elka", "jem3at"])
 def test_a_rejected_spelling_is_refused(word):
     assert f"rejected spelling ['{word}']" in _with("a-t-1350", f"{WRITTEN['a-t-1350']} {word}")
+
+
+def test_eshhor_is_accepted_again():  # her ruling of 2026-11-23 ("its fine"); rejected on 2026-11-19
+    assert not any("rejected spelling" in p for p in _with("a-t-1350", f"{WRITTEN['a-t-1350']} eshhor"))
 
 
 def test_a_fraction_of_a_visit_is_refused_but_a_price_before_marra_is_not():
