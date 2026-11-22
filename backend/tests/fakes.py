@@ -7,7 +7,7 @@ from app.application.receipts.interfaces import StoredFile
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered
-from app.domain.users.user import User
+from app.domain.users.user import Gender, User
 
 
 class FakeReceiptExtractor:
@@ -100,27 +100,27 @@ class FakeHasher:
 
 class InMemoryUserRepository:
     def __init__(self) -> None:
-        self._rows: dict[int, tuple[str, str]] = {}  # id -> (email, password_hash)
+        self._rows: dict[int, tuple[User, str]] = {}  # id -> (user, password_hash)
         self._next_id = 1
 
-    def add(self, email: str, password_hash: str) -> User:
-        if any(existing == email for existing, _ in self._rows.values()):
+    def add(self, email: str, password_hash: str, first_name: str, gender: Gender) -> User:
+        if any(user.email == email for user, _ in self._rows.values()):
             raise EmailAlreadyRegistered("Email is already registered")
-        user_id = self._next_id
+        user = User(id=self._next_id, email=email, first_name=first_name, gender=gender)
         self._next_id += 1
-        self._rows[user_id] = (email, password_hash)
-        return User(id=user_id, email=email)
+        self._rows[user.id] = (user, password_hash)
+        return user
 
     def get_credentials_by_email(self, email: str) -> StoredCredentials | None:
-        for user_id, (stored_email, password_hash) in self._rows.items():
-            if stored_email == email:
-                return StoredCredentials(User(user_id, stored_email), password_hash)
+        for user, password_hash in self._rows.values():
+            if user.email == email:
+                return StoredCredentials(user, password_hash)
         return None
 
     def get_by_id(self, user_id: int) -> User | None:
         if user_id not in self._rows:
             return None
-        return User(user_id, self._rows[user_id][0])
+        return self._rows[user_id][0]
 
     def delete(self, user_id: int) -> bool:
         return self._rows.pop(user_id, None) is not None

@@ -47,7 +47,7 @@ def sign_in(client, engine):
         email = f"{uuid.uuid4()}@test.local"
         emails.append(email)
         body = {"email": email, "password": "correct-horse"}
-        assert client.post("/auth/register", json=body).status_code == 201
+        assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
         token = client.post("/auth/login", json=body).json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
 

@@ -22,7 +22,8 @@ def seed_user(evaluation: Evaluation, path: Path = SEED_FILE) -> int:
     data = json.loads(path.read_text(encoding="utf-8"))
     rate = Decimal(data["rate"])
     email = f"evaluation-{uuid.uuid4()}@{EMAIL_DOMAIN}"
-    user_id = evaluation.auth.register(RegisterRequest(email, secrets.token_urlsafe(24))).id
+    password = secrets.token_urlsafe(24)
+    user_id = evaluation.auth.register(RegisterRequest(email, password, "Evaluation", "prefer_not_to_say")).id
     category_ids = {category.name: category.id for category in evaluation.categories.list_all(user_id)}
     for receipt in data["receipts"]:
         evaluation.receipts.create_manual(user_id, ConfirmReceiptRequest(

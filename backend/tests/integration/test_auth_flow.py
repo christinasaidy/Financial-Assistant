@@ -7,16 +7,21 @@ from decimal import Decimal
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 
 from app.api.app import create_app
 from app.domain.receipts.extraction import ExtractedLine, ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered, InvalidToken
+from app.domain.users.user import Gender
 from app.infrastructure.config import Settings
 from app.infrastructure.database.connection import user_scoped_connection
 from app.infrastructure.database.user_repository import SqlUserRepository
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.main import build_app, build_container
 from tests.fakes import FakeReceiptExtractor
+from tests.integration.test_isolation import sqlstate
+
+CHECK_VIOLATION = "23514"
 
 
 @pytest.fixture
@@ -29,14 +34,44 @@ def email(engine):
 
 def test_repository_round_trip_and_duplicate_detection(engine, email):
     repo = SqlUserRepository(engine)
-    user = repo.add(email, "some-hash")
+    user = repo.add(email, "some-hash", "Christina", Gender.FEMALE)
+    assert (user.first_name, user.gender) == ("Christina", Gender.FEMALE)
     assert repo.get_by_id(user.id) == user
     stored = repo.get_credentials_by_email(email.upper())
     assert stored is not None and stored.user == user and stored.password_hash == "some-hash"
     with pytest.raises(EmailAlreadyRegistered):
-        repo.add(email.upper(), "other-hash")
+        repo.add(email.upper(), "other-hash", "Christina", Gender.FEMALE)
     assert repo.get_credentials_by_email("nobody@test.local") is None
     assert repo.get_by_id(-1) is None
+
+
+@pytest.mark.parametrize("gender", list(Gender))
+def test_every_gender_is_stored_and_read_back(engine, email, gender):
+    repo = SqlUserRepository(engine)
+    user = repo.add(email, "some-hash", "Rami", gender)
+    assert repo.get_by_id(user.id).gender is gender
+    with engine.connect() as conn:
+        stored = conn.execute(text("SELECT gender FROM users WHERE id = :id"), {"id": user.id}).scalar_one()
+    assert stored == gender.value
+
+
+def test_an_account_made_before_names_were_asked_reads_as_none(engine, make_user):
+    user_id = make_user()  # inserted with only an email and a password hash, like the rows made before 0008
+    repo = SqlUserRepository(engine)
+    user = repo.get_by_id(user_id)
+    assert (user.first_name, user.gender) == (None, None)
+    assert repo.get_credentials_by_email(user.email).user == user
+
+
+@pytest.mark.parametrize(
+    "first_name, gender",
+    [("", "female"), ("   ", "female"), ("x" * 51, "female"), ("Christina", "other"), ("Christina", "Female")],
+)
+def test_the_database_refuses_a_blank_or_long_name_and_an_unknown_gender(engine, email, first_name, gender):
+    insert = text("INSERT INTO users (email, password_hash, first_name, gender) VALUES (:e, 'x', :name, :gender)")
+    with pytest.raises(DBAPIError) as err, engine.begin() as conn:
+        conn.execute(insert, {"e": email, "name": first_name, "gender": gender})
+    assert sqlstate(err) == CHECK_VIOLATION
 
 
 def test_full_flow_through_the_real_app(engine, email):
@@ -45,13 +80,20 @@ def test_full_flow_through_the_real_app(engine, email):
         pytest.skip("JWT_SECRET is not set")
     client = TestClient(build_app(settings))
 
-    assert client.post("/auth/register", json={"email": email, "password": "correct-horse"}).status_code == 201
-    assert client.post("/auth/register", json={"email": email, "password": "correct-horse"}).status_code == 409
+    new_user = {"email": email, "password": "correct-horse", "first_name": " Christina ", "gender": "female"}
+    registered = client.post("/auth/register", json=new_user)
+    assert registered.status_code == 201
+    profile = {"id": registered.json()["id"], "email": email, "first_name": "Christina", "gender": "female"}
+    assert registered.json() == profile
+    assert client.post("/auth/register", json=new_user).status_code == 409
+    assert client.post("/auth/register", json=new_user | {"first_name": " "}).status_code == 422
+    assert client.post("/auth/register", json=new_user | {"gender": "other"}).status_code == 422
     assert client.post("/auth/login", json={"email": email, "password": "wrong-password"}).status_code == 401
 
-    token = client.post("/auth/login", json={"email": email, "password": "correct-horse"}).json()["access_token"]
-    me = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
-    assert me.status_code == 200 and me.json()["email"] == email
+    login = client.post("/auth/login", json={"email": email, "password": "correct-horse"}).json()
+    assert login["user"] == profile
+    me = client.get("/auth/me", headers={"Authorization": f"Bearer {login['access_token']}"})
+    assert me.status_code == 200 and me.json() == profile
 
     # The stored value is an Argon2 hash, never the password.
     with engine.connect() as conn:
@@ -84,7 +126,7 @@ def test_deleting_an_account_removes_its_rows_and_files_and_nothing_of_others(en
         people = []
         for address in emails:
             body = {"email": address, "password": "correct-horse"}
-            assert client.post("/auth/register", json=body).status_code == 201
+            assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
             login = client.post("/auth/login", json=body).json()
             headers = {"Authorization": f"Bearer {login['access_token']}"}
             upload = client.post("/receipts", files={"file": ("r", uuid.uuid4().bytes, "image/jpeg")}, headers=headers)

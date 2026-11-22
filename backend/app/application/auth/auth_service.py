@@ -4,7 +4,7 @@ from app.application.auth.dtos import LoginRequest, LoginResponse, RegisterReque
 from app.application.auth.interfaces import PasswordHasher, TokenService, UserRepository
 from app.application.receipts.interfaces import FileStorage
 from app.domain.users.errors import InvalidCredentials, InvalidEmail, InvalidToken
-from app.domain.users.user import normalize_email, validate_password
+from app.domain.users.user import User, normalize_email, normalize_first_name, parse_gender, validate_password
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,10 @@ class AuthService:
     def register(self, request: RegisterRequest) -> UserResponse:
         email = normalize_email(request.email)
         validate_password(request.password)
-        user = self._users.add(email, self._hasher.hash(request.password))
-        return UserResponse(id=user.id, email=user.email)
+        first_name = normalize_first_name(request.first_name)
+        gender = parse_gender(request.gender)
+        user = self._users.add(email, self._hasher.hash(request.password), first_name, gender)
+        return _response(user)
 
     def login(self, request: LoginRequest) -> LoginResponse:
         try:
@@ -42,7 +44,7 @@ class AuthService:
         return LoginResponse(
             access_token=token.token,
             expires_in=token.expires_in,
-            user=UserResponse(id=stored.user.id, email=stored.user.email),
+            user=_response(stored.user),
         )
 
     def authenticate(self, token: str) -> int:
@@ -73,4 +75,8 @@ class AuthService:
         if user is None:
             # A valid token for an account that no longer exists.
             raise InvalidToken("Account no longer exists")
-        return UserResponse(id=user.id, email=user.email)
+        return _response(user)
+
+
+def _response(user: User) -> UserResponse:
+    return UserResponse(id=user.id, email=user.email, first_name=user.first_name, gender=user.gender)
