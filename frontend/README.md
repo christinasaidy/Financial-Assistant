@@ -81,7 +81,7 @@ violations to prove it catches them.
 frontend/
   app/                         Expo Router routes only
     _layout.tsx                fonts, splash, SessionProvider, status bar, who sees which routes
-    index.tsx                  launch route: yellow paper while the session is checked, then redirects (TODO launch)
+    index.tsx                  launch route: LaunchScreen while the session is checked, then redirects
     (auth)/sign-in.tsx         placeholder (TODO auth)
     (auth)/sign-up.tsx         placeholder (TODO auth)
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
@@ -98,7 +98,7 @@ frontend/
       format/                  money.ts (D034), dates.ts (dd/mm/yyyy, 24 h)
     features/
       auth/{domain,application,data,ui}
-      launch/{domain,application,data,ui}   empty, for the launch screen
+      launch/ui                LaunchScreen (yellow paper, large wordmark); no other layers
       home/{domain,application,data,ui}     empty, for Home
   tests/                       mirrors src/; plus architecture.test.ts and routes.test.tsx
   assets/                      fonts (+ DejaVu LICENSE), icons, wordmark, paper textures, splash
