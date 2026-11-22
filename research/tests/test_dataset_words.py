@@ -19,6 +19,7 @@ JOBS = {j["job_id"]: j for j in map(json.loads, words.JOBS_FILE.read_text(encodi
 MATRA7 = json.loads(words.MATRA7_FILE.read_text(encoding="utf-8"))
 DAY_BEFORE = json.loads(words.DAY_BEFORE_FILE.read_text(encoding="utf-8"))
 AAL = json.loads(words.AAL_FILE.read_text(encoding="utf-8"))  # approved 2026-11-22
+EVERYDAY = json.loads(words.EVERYDAY_FILE.read_text(encoding="utf-8"))  # her review 2026-11-22
 
 
 @pytest.fixture(scope="module")
@@ -31,13 +32,14 @@ def stored():
     return words.stored(), words.stored_specs()
 
 
-def _raw(tmp_path, matra7=MATRA7, day_before=DAY_BEFORE, aal=AAL):
+def _raw(tmp_path, matra7=MATRA7, day_before=DAY_BEFORE, aal=AAL, everyday=EVERYDAY):
     raw = tmp_path / "raw"
     raw.mkdir()
     shutil.copy(words.JOBS_FILE, raw / words.JOBS_FILE.name)
     (raw / words.MATRA7_FILE.name).write_text(json.dumps(matra7), encoding="utf-8")
     (raw / words.DAY_BEFORE_FILE.name).write_text(json.dumps(day_before), encoding="utf-8")
     (raw / words.AAL_FILE.name).write_text(json.dumps(aal), encoding="utf-8")
+    (raw / words.EVERYDAY_FILE.name).write_text(json.dumps(everyday), encoding="utf-8")
     return raw
 
 
@@ -73,8 +75,8 @@ def test_a_category_counts_a_lines_own_category_first(plan):
 
 def test_every_approved_version_becomes_one_example_and_none_is_near_a_test_question(tmp_path):
     report = replay(out_dir=tmp_path)
-    assert report == {"train": 42, "validation": 8, "near test questions, dropped": 0,  # + her 10 aal, 2026-11-22
-                      "words": {"matra7": 19, "aal": 10, "abel mbereh": 21}}  # fmt: skip
+    assert report == {"train": 90, "validation": 16, "near test questions, dropped": 0,  # + her 10 aal and 56
+                      "words": {"matra7": 19, "aal": 10, "everyday": 56, "abel mbereh": 21}}  # everyday, 2026-11-22
     rows = [json.loads(line) for split in ("train", "validation")
             for line in (tmp_path / f"words_{split}.jsonl").read_text(encoding="utf-8").splitlines()]  # fmt: skip
     assert {r["labels"]["part"] for r in rows} == {"words"}
@@ -147,7 +149,7 @@ def test_a_job_without_its_versions_refuses_the_whole_set(tmp_path):
 def test_a_version_near_a_held_out_question_is_dropped(tmp_path):
     report = replay(raw_dir=_raw(tmp_path), out_dir=tmp_path / "out", held_out=(DAY_BEFORE["w-25"][0]["question"],))
     assert report["near test questions, dropped"] >= 1
-    assert report["train"] + report["validation"] == 50 - report["near test questions, dropped"]
+    assert report["train"] + report["validation"] == 106 - report["near test questions, dropped"]
 
 
 # --- aal (to the, before an unnamed thing), approved 2026-11-22 ---
@@ -172,3 +174,52 @@ def test_an_aal_version_without_its_item_is_refused(stored):
     with pytest.raises(WordsError, match="does not mention"):
         words.matra7_examples([version], *stored, "aal")
 
+
+
+# --- the everyday words from her list (her review 2026-11-22) ---
+
+
+@pytest.fixture(scope="module")
+def everyday(stored):
+    return {read_prompt(e["messages"][0]["content"]).question: e for e in words.everyday_examples(EVERYDAY, *stored)}
+
+
+def test_an_everyday_version_keeps_its_stored_answer(everyday, stored):
+    rows, _ = stored
+    example = everyday["khaberne 3and aya ma7al sarafet aktar shi ekher shaher"]  # her fix: khaberne, single letters
+    assert example["messages"][1]["content"] == rows["b3-38-7"]["messages"][1]["content"]
+    assert example["labels"]["word"] == "everyday"
+
+
+def test_a_question_back_echoes_her_spelling(everyday):
+    assert everyday["shefle addesh dafa3et 3al 7amed"]["messages"][1]["content"].startswith(
+        "CLARIFY: ma edert le2e fatoura 3an 7amed")
+
+
+@pytest.mark.parametrize(("question", "template"), [
+    ("shil hal fatoura, sajalta ghalat", "U9"),  # an action the assistant cannot do
+    ("adeysh ra7 osrof bokra w ba3d bokra?", "U2"),  # a prediction
+    ("adde 2abadet retib hal shaher?", "U5"),  # income
+])  # fmt: skip
+def test_an_everyday_refusal(everyday, question, template):
+    example = everyday[question]
+    assert example["messages"][1]["content"] == "UNSUPPORTED" and example["labels"]["template"] == template
+
+
+def test_her_rejected_list_words_are_not_used():
+    text = json.dumps(EVERYDAY)
+    assert "fershet sean" not in text and "shteret" not in text and "khabberne" not in text
+
+
+def test_her_list_spellings_count_as_the_period_and_item_words():
+    from research.dataset.checks import mentions
+
+    assert mentions("adesh sarafet el shaher li ra7?", ("li mara2",))
+    assert mentions("shefle addesh dafa3et 3al 7amed", ("7amod",))
+
+
+def test_a_version_said_by_the_wrong_gender_is_refused(stored):
+    version = {"spec": "b4-47-17", "language": "mixed", "question": "quick question, how much def3a 3al lahme mafroume?",
+               "gender": "woman"}  # user 47 is a man
+    with pytest.raises(WordsError, match="said by a woman"):
+        words.matra7_examples([version], *stored, "everyday")

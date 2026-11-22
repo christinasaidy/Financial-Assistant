@@ -44,6 +44,7 @@ from research.dataset.users import gender_of, make_user, remove_user, seed_user
 RAW_DIR = build.RAW_DIR / "batch5" / "words"
 MATRA7_FILE = RAW_DIR / "matra7.json"
 AAL_FILE = RAW_DIR / "aal.json"  # "aal" (to the) before an unnamed thing, 2026-11-22
+EVERYDAY_FILE = RAW_DIR / "everyday.json"  # her word list's unseen everyday words, 2026-11-22
 JOBS_FILE = RAW_DIR / "day_before_jobs.jsonl"
 DAY_BEFORE_FILE = RAW_DIR / "day_before.json"
 DATA_DIR = build.DATA_DIR / "batch5"
@@ -207,11 +208,50 @@ def matra7_examples(versions: list[dict], rows: dict[str, dict], specs: dict[str
             from research.dataset.deciding import without_lead_in  # noqa: PLC0415 (deciding imports this module)
 
             spec = without_lead_in(spec)
-        _check(version["spec"], version, spec, _catalogue(version["spec"]))
+        reply = row["messages"][1]["content"]
+        if spec.kind in ("clarify", "reply") and version["language"] != "english":  # the question back echoes the new word
+            from research.dataset.replies import users_reply  # noqa: PLC0415
+
+            rng = random.Random(f"{SEED}/{word}/{version['spec']}/{version['question']}")
+            reply = users_reply(Version(version["language"], version["question"], reply), spec,
+                                _catalogue(version["spec"]), rng).reply  # fmt: skip
+            found = problems(Version(version["language"], version["question"], reply), spec, _catalogue(version["spec"]))
+            if found:
+                raise WordsError(f"{version['spec']}: {version['question']!r}: {'; '.join(found)}")
+        else:
+            _check(version["spec"], version, spec, _catalogue(version["spec"]))
+        if version.get("gender") and gender_of(row["labels"]["user"]).value != version["gender"]:
+            raise WordsError(f"{version['spec']}: said by a {version['gender']}, but its user is not")
         parts = read_prompt(row["messages"][0]["content"])
         labels = {**row["labels"], "word": word}
         out.append(_example(version["question"], version["language"], parts.names, parts.today, labels["user"],
-                            row["messages"][1]["content"], labels))  # fmt: skip
+                            reply, labels))  # fmt: skip
+    return out
+
+
+# The everyday words (2026-11-22): her word list's words never seen in training, as new versions of her reviewed
+# questions and as refusals (debts, the bank, income, tomorrow, and actions the assistant cannot do), on stored users.
+ACTIONS = ("shil", "sajelle", "zakerne", "zakrini", "b3atle", "ma7e")
+
+
+def everyday_examples(everyday: dict, rows, specs, data_dir: Path = build.DATA_DIR) -> list[dict]:
+    from research.dataset import deciding  # noqa: PLC0415 (deciding imports this module)
+
+    out = matra7_examples(everyday["versions"], rows, specs, "everyday")
+    pools, taken = deciding.context_rows(data_dir), Counter()
+    for n, line in enumerate(everyday["refusals"]):
+        row = deciding._on_user(pools, line, taken)
+        found = [f"rejected spelling {w!r}" for w in answers_build.REJECTED
+                 if re.search(rf"(?<!\w){re.escape(w)}(?!\w)", line["question"], re.IGNORECASE)]  # fmt: skip
+        if found:
+            raise WordsError(f"refusal {n}: {line['question']!r}: {'; '.join(found)}")
+        words_in = set(re.findall(r"[\w']+", line["question"].lower()))
+        template = "U9" if words_in & set(ACTIONS) else "U2" if "bokra" in words_in else "U5"
+        parts = read_prompt(row["messages"][0]["content"])
+        labels = {"template": template, "kind": "unsupported", "language": line["language"], "user": row["labels"]["user"],
+                  "split": row["labels"]["split"], "spec": f"everyday-u{n}", "result_rows": None, "word": "everyday"}
+        out.append(_example(line["question"], line["language"], parts.names, parts.today, labels["user"], "UNSUPPORTED",
+                            labels))  # fmt: skip
     return out
 
 
@@ -238,6 +278,8 @@ def replay(raw_dir: Path = RAW_DIR, out_dir: Path = DATA_DIR, data_dir: Path = b
     rows, specs = stored(data_dir), stored_specs(stored_raw)
     examples = matra7_examples(json.loads((raw_dir / MATRA7_FILE.name).read_text(encoding="utf-8")), rows, specs)
     examples += matra7_examples(json.loads((raw_dir / AAL_FILE.name).read_text(encoding="utf-8")), rows, specs, "aal")
+    examples += everyday_examples(json.loads((raw_dir / EVERYDAY_FILE.name).read_text(encoding="utf-8")), rows, specs,
+                                  data_dir)  # fmt: skip
     examples += day_before_examples(jobs, json.loads((raw_dir / DAY_BEFORE_FILE.name).read_text(encoding="utf-8")))
     held_out = build.test_questions(None) if held_out is None else held_out
     out, near = {"train": [], "validation": []}, 0

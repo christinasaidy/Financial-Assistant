@@ -164,6 +164,14 @@ def plan() -> list[dict]:
             continue
         out.append({"job_id": f"e-that-{n}", "user": n, "template": "N12", "kind": "end of that month",
                     "first_target": _money(whole), "target": _money(end), "about": whole.description})
+    # "el jem3a li ra7et" is usually last week, sometimes last Friday (her review 2026-11-22): one example of the day,
+    # "nhar el jem3a li ra7" = the most recent Friday before today, on the first train user who bought something then.
+    for n, split, data in users():
+        friday = periods.weekday(today[n] - timedelta(days=1), 4)
+        if split == "train" and data.receipts_in(friday):
+            out.append({"job_id": f"e-friday-{n}", "user": n, "template": "N12", "kind": "last friday",
+                        "target": _money(friday)})
+            break
     # "bi ekher el shaher" alone: the question back; on two users the answer "eh" follows.
     for n in (33, 45, 37):
         out.append({"job_id": f"e-ask-{n}", "user": n, "template": "C4", "kind": "ask", "target": None})

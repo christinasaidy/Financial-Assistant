@@ -43,8 +43,8 @@ def test_every_approved_line_becomes_one_example_and_none_is_near_a_test_questio
         "N1": 42, "N2": 15, "N3": 31, "N4": 27, "N5": 27, "N6": 21, "N7": 30, "N8": 24, "N10": 27, "N9": 15, "C2": 21}}
     assert c == {"train": 29, "validation": 1, "near test questions, dropped": 0,
                  "kinds": {"K4L": 6, "K4T": 6, "K4Y": 4, "K4P": 8, "C9": 6}}
-    assert m == {"train": 25, "validation": 1, "near test questions, dropped": 0,
-                 "kinds": {"N1": 1, "N2": 1, "N11": 1, "N3": 3, "N4": 1, "N5": 1, "N12": 15, "C4": 3}}
+    assert m == {"train": 26, "validation": 1, "near test questions, dropped": 0,  # + last Friday, her review 2026-11-22
+                 "kinds": {"N1": 1, "N2": 1, "N11": 1, "N3": 3, "N4": 1, "N5": 1, "N12": 16, "C4": 3}}
 
 
 def test_the_saved_jobs_are_the_plan_and_no_query_answers_nothing():
@@ -156,3 +156,8 @@ def test_the_part_4_rules_are_in_the_prompt_and_older_prompts_still_rebuild():
     assert PART4_RULES in INSTRUCTIONS and PART4_PERIOD_RULE in INSTRUCTIONS
     without = without_batch5_lines(INSTRUCTIONS)
     assert "aghla fatoura" not in without and "bi ekher heda el shaher" not in without
+
+
+def test_nhar_el_jem3a_li_ra7_is_the_last_friday():  # her review 2026-11-22: el jem3a li ra7et can mean the day
+    assert MORE_JOBS["e-friday-33"]["target"].endswith("WHERE receipt_date = '2026-05-22' GROUP BY currency")
+    assert date(2026, 5, 22).weekday() == 4 and date.fromisoformat(MORE_JOBS["e-friday-33"]["today"]) == date(2026, 5, 26)

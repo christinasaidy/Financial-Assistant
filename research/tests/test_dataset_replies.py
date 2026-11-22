@@ -94,3 +94,18 @@ def test_her_spelling_of_the_season_passes_the_checks():
 
     assert mentions("baddi majmou3 masroufe hal fasel", ("semester", "fasl"))
     assert not mentions("baddi majmou3 masroufe hal shaher", ("semester", "fasl"))
+
+
+def test_no_spelling_is_listed_twice_in_also_accepted():
+    """A repeated key silently drops the first entry (2026-11-22: "li mara2" lost her "ekher l shaher" that way)."""
+    import ast
+    from pathlib import Path
+
+    from research.dataset import checks
+
+    tree = ast.parse(Path(checks.__file__).read_text(encoding="utf-8"))
+    table = next(node.value for node in ast.walk(tree) if isinstance(node, ast.Assign)
+                 and any(getattr(t, "id", None) == "ALSO_ACCEPTED" for t in node.targets))  # fmt: skip
+    keys = [key.value for key in table.keys]
+    assert len(keys) == len(set(keys)), sorted({k for k in keys if keys.count(k) > 1})
+    assert checks.ALSO_ACCEPTED["li mara2"] == ("ekher l shaher", "el shaher li ra7")

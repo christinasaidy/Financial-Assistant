@@ -28,12 +28,18 @@ MAX_LENGTH = 300
 # approved 2026-11-14; 3elkit (3elkit Trident), abl mbereh (the day before yesterday), la hadit hala2 and sar
 # masroufe (so far), ekher l shaher (last month) and kanoun l awal (December) 2026-11-20, her spellings; the batch-1
 # cleanup's duals (shahrain, jem3ten: "2") and "nesbet el fare2" (the percent) 2026-11-21; her spellings of gift,
-# repairs and season in the batch-1 rewrites (hadeya, hdeye, tosli7, fasel) and "hayda l shaher", "tlet", "ma3jun snen" (part 4) 2026-11-22
+# repairs and season in the batch-1 rewrites (hadeya, hdeye, tosli7, fasel) and "hayda l shaher", "tlet", "ma3jun snen" (part 4) 2026-11-22; her word list's spellings
+# (everyday words, her review 2026-11-22: "keep them, whats the harm")
 ALSO_ACCEPTED = {"mbere7": ("mberha", "mberh"), "3elke": ("3elkit",), "abel mbereh": ("abl mbereh",),
-                 "abel mbere7": ("abl mbere7",), "la hala2": ("la hadit hala2",), "li mara2": ("ekher l shaher",),
+                 "abel mbere7": ("abl mbere7",), "la hala2": ("la hadit hala2",), "li mara2": ("ekher l shaher", "el shaher li ra7"),
                  "sar le": ("sar masroufe",), "kanoun el awal": ("kanoun l awal",), "tneen": ("shahrain", "jem3ten"),
                  "bel miyye": ("nesbet",), "el ablo": ("bel ablo",), "el ishtirak": ("bel ishtirak",),
-                 "hadeye": ("hadeya", "hdeye"), "tasli7": ("tosli7",), "fasl": ("fasel",), "hal shaher": ("hayda l shaher",), "tlete": ("tlet",), "ma3jun snan": ("ma3jun snen",)}
+                 "hadeye": ("hadeya", "hdeye"), "tasli7": ("tosli7",), "fasl": ("fasel",), "hal shaher": ("hayda l shaher", "men awal el shaher la lyom"), "tlete": ("tlet",),
+                 "ma3jun snan": ("ma3jun snen",), "el shaher li ata3": ("el shaher li ra7",),
+                 "el jem3a el madye": ("el jem3a li ra7et",), "el sene li mar2it": ("el sene li ra7et",),
+                 "el sene el madye": ("el sene el madiye",), "borto2an": ("bort2an",), "7amod": ("7amed",),
+                 "lahme mafrume": ("lahme mafroume",), "restaurant": ("resto",), "dishwashing liquid": ("dish soap",),
+                 "nail polish": ("manicure",)}
 NEAR_DUPLICATE = 0.85
 LANGUAGES = ("arabizi", "mixed", "english")
 # Services and bills are paid for, not bought ("jebt el ghasil sayara" makes no sense); a phone recharge and a cinema
