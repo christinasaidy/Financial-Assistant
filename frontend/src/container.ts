@@ -11,10 +11,13 @@ import { SESSION_KEY, secureValue } from '@/shared/storage/tokenStore';
 import { AuthService } from './features/auth/application/authService';
 import { ApiAuthRepository } from './features/auth/data/apiAuthRepository';
 import { SecureTokenStore } from './features/auth/data/secureTokenStore';
+import { HomeService } from './features/home/application/homeService';
+import { ApiHomeRepository } from './features/home/data/apiHomeRepository';
 
 /** The services screens may use. Repositories and the HTTP client stay inside this file. */
 export type Container = {
   auth: AuthService;
+  home: HomeService;
 };
 
 export function createContainer(): Container {
@@ -29,7 +32,9 @@ export function createContainer(): Container {
 
   auth = new AuthService(new ApiAuthRepository(http), new SecureTokenStore(secureValue(SESSION_KEY)));
 
-  return { auth };
+  const home = new HomeService(new ApiHomeRepository(http));
+
+  return { auth, home };
 }
 
 let instance: Container | null = null;
