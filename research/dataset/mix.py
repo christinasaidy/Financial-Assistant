@@ -30,6 +30,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from research.dataset.fixes import fixed_question
 from research.dataset.genders import UnformedReply
 from research.dataset.history import HistoryError, add_history, history_report
 from research.dataset.rerender import UnreadablePrompt, read_prompt, rerender
@@ -45,13 +46,25 @@ SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl
            "batch5/kinds_{split}.jsonl", "batch5/kinds_chats_{split}.jsonl",  # part 4's new query kinds (2026-11-22)
            "batch5/kinds_more_{split}.jsonl",  # part 4: her added lines and the end of the month (2026-11-22)
            "batch5/months_{split}.jsonl",  # named months that already passed this year (2026-11-22)
-           "batch5/shortcuts_{split}.jsonl")  # ekher marra / 3adatan with other meanings than a price (2026-11-22)
+           "batch5/shortcuts_{split}.jsonl",  # ekher marra / 3adatan with other meanings than a price (2026-11-22)
+           "batch5/until_now_{split}.jsonl")  # her "la hadit hala2" (2026-11-22)
 # Part 2 rebuilds every stored small-talk example (R1-R5) with a reply of its kind, so the stored ones are left out.
 SMALLTALK_SOURCE = "batch5/smalltalk_{split}.jsonl"
 SMALLTALK_TEMPLATES = frozenset({"R1", "R2", "R3", "R4", "R5"})
 # The answer step's examples (batch 5 part 2, 2026-11-20): their prompt is the answer prompt, already as the app
 # builds it, so they are not rebuilt, get no earlier exchanges and are not counted among the questions.
 ANSWER_SOURCES = ("batch5/answers_{split}.jsonl",)
+_QUESTION_LINE = re.compile(r"^Question: (.*)$", re.MULTILINE)
+
+
+def with_fixed_question(answer: dict) -> dict:
+    """An answer example as written, but its question with the approved question fixes (fixes.fixed_question), as
+    every rebuilt question has them (2026-11-22)."""
+    prompt = answer["messages"][0]["content"]
+    fixed = _QUESTION_LINE.sub(lambda m: "Question: " + fixed_question(m.group(1)), prompt)
+    if fixed == prompt:
+        return answer
+    return {**answer, "messages": [{**answer["messages"][0], "content": fixed}, *answer["messages"][1:]]}
 SEED = "fyp-dataset/mix-batch4"
 
 BOUNDARY_SHARE = 0.15
@@ -197,7 +210,7 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None) -> dict[st
                 source == SMALLTALK_SOURCE or json.loads(line)["labels"]["template"] not in SMALLTALK_TEMPLATES)]
         random.Random(f"{SEED}/{split}").shuffle(lines)
         rebuilt, _ = add_history([rerender(json.loads(line)) for line in lines], split)
-        answers = [json.loads(line) for source in ANSWER_SOURCES
+        answers = [with_fixed_question(json.loads(line)) for source in ANSWER_SOURCES
                    for line in (data_dir / source.format(split=split)).read_text(encoding="utf-8").splitlines()
                    if line.strip()]  # fmt: skip
         rows = rebuilt + answers

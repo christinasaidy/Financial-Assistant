@@ -11,6 +11,8 @@ turns), so the model never sees the old shape next to the new one.
 
 import re
 
+from research.dataset import batch1_cleanup
+
 _VISITS_PER_MONTH = re.compile(r"^SELECT ROUND\(COUNT\(DISTINCT receipt_id\) / 3\.0, 1\) AS visits_per_month FROM ")
 _WITH_VISITS = "SELECT COUNT(DISTINCT receipt_id) AS visits, ROUND(COUNT(DISTINCT receipt_id) / 3.0, 1) AS visits_per_month FROM "
 
@@ -64,6 +66,27 @@ def _top_visited(reply: str, vendors) -> str:
     not_subscriptions = f" AND vendor NOT IN ({listed})" if theirs else ""
     return (f"SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM category_spending WHERE category <> 'Utilities'"
             f"{not_subscriptions} AND {found.group('period')} GROUP BY vendor ORDER BY visits DESC LIMIT 1")
+
+
+# - Question words (approved by Christina on 2026-11-22), rewritten in the question and in a chat's earlier questions,
+#   so the model never sees them: "man2ish" (1 batch-4 question; her word is mana2ish, the plural of man2ushi) and
+#   batch 4's one "3al el" ("aday def3a 3al el iqos" -> "3al iqos").
+# - Her batch-1 rules (batch1_cleanup.py) applied to every stored question: they were only ever run on batch 1, and
+#   batch 2 still had them: sarfet -> sarafet (174 questions), "ekher 2 shhour" -> "ekher shahrain" (34), "el osbou3
+#   li mara2" -> "el jem3a li mar2it" (26), baskawit -> baskot (10), "kam total" -> "aday total" (1). Her "articles"
+#   rule is left out: written for batch 1's wording, it breaks batch 2's ("se3er el litre ma3 ..." -> "litre el ma3").
+QUESTION_WORDS = ((re.compile(r"(?<!\w)man2ish(?!\w)", re.IGNORECASE), "mana2ish"),
+                  (re.compile(r"(?<!\w)3al el (?=\w)", re.IGNORECASE), "3al "))
+QUESTION_RULES = (batch1_cleanup.sarfet, batch1_cleanup.kam_money, batch1_cleanup.rejected_word, batch1_cleanup.dual,
+                  batch1_cleanup.period)  # batch 1's order
+
+
+def fixed_question(question: str) -> str:
+    for rule in QUESTION_RULES:
+        question = rule(question)
+    for word, fixed in QUESTION_WORDS:
+        question = word.sub(fixed, question)
+    return question
 
 
 def fixed_reply(reply: str, vendors=()) -> str:

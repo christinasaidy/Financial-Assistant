@@ -14,7 +14,7 @@ from datetime import date
 
 from app.domain.assistant.prompt import GENDER_LINES, INSTRUCTIONS, Exchange, UserNames, build_prompt
 
-from research.dataset.fixes import fixed_reply
+from research.dataset.fixes import fixed_question, fixed_reply
 from research.dataset.genders import for_gender, question_for_gender
 from research.dataset.users import gender_of
 
@@ -131,9 +131,9 @@ def rerender(example: dict) -> dict:
     gender = gender_of(labels["user"])
     old_prompt, old_reply = example["messages"][0]["content"], example["messages"][1]["content"]
     parts = read_prompt(old_prompt)
-    history = tuple(Exchange(question_for_gender(e.question, gender), for_gender(fixed_reply(e.reply, parts.names.vendors), gender, e.question))
+    history = tuple(Exchange(question_for_gender(fixed_question(e.question), gender), for_gender(fixed_reply(e.reply, parts.names.vendors), gender, e.question))
                     for e in parts.history)  # fmt: skip
-    prompt = build_prompt(question_for_gender(parts.question, gender), parts.names, parts.today, history,
+    prompt = build_prompt(question_for_gender(fixed_question(parts.question), gender), parts.names, parts.today, history,
                           gender=gender)  # fmt: skip
 
     unchanged = build_prompt(parts.question, parts.names, parts.today, parts.history, gender=gender)

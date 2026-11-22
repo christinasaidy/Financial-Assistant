@@ -2,11 +2,15 @@
 approved on 2026-11-18 (research/dataset/raw/batch5/gender_forms_reviewed.md); do not change an expected value to
 make a test pass."""
 
+import json
+import re
 from datetime import date
 
 import pytest
 
 from app.domain.assistant.prompt import Exchange, Gender, UserNames, build_prompt
+from research.dataset import mix
+from research.dataset.fixes import fixed_question
 from research.dataset.genders import PERIOD_QUESTIONS, UnformedReply, for_gender
 from research.dataset.rerender import UnreadablePrompt, read_prompt, rerender, without_batch5_lines
 
@@ -170,6 +174,61 @@ def test_the_users_question_and_earlier_questions_take_the_speakers_form():
     prompt = new["messages"][0]["content"]
     assert "Question: aday defe3 3al lahme?\nReply: SELECT 1" in prompt
     assert prompt.endswith("Question: w 3al khobez, aday defe3?\nReply:")
+
+
+def test_man2ish_becomes_her_mana2ish_in_the_question_and_earlier_questions():
+    """Her ruling (2026-11-22): mana2ish is the plural of man2ushi; no one writes man2ish."""
+    history = (Exchange("kam marra seret ekle man2ish heda el shaher?", "SELECT 1"),)
+    new = rerender(old_example(NOT_GIVEN, "w Man2ish mn Furn el Hara?", "SELECT 2", history))
+    prompt = new["messages"][0]["content"]
+    assert "Question: kam marra seret ekle mana2ish heda el shaher?\nReply: SELECT 1" in prompt
+    assert prompt.endswith("Question: w mana2ish mn Furn el Hara?\nReply:")
+    assert "man2ish" not in prompt.lower()
+
+
+def test_no_mix_question_says_man2ish():
+    for split in ("train", "validation"):
+        assert "man2ish" not in (mix.DATA_DIR / "mix" / f"{split}.jsonl").read_text(encoding="utf-8").lower()
+
+
+# Her batch-1 rules on the other batches' questions (approved 2026-11-22), with batch 2's own lines.
+BATCH2_FIXES = [
+    ("adday sarfet 3a conditioner L'Oreal ekher 2 shhour?", "adday sarafet 3a conditioner L'Oreal ekher shahrain?"),
+    ("kam 3elbet shampoo jebt ekher 2 shhour?", "kam 3elbet shampoo jebt ekher shahrain?"),
+    ("jame3le kel li dafa3to el osbou3 li mara2 w 3tine ye bel USD",
+     "jame3le kel li dafa3to el jem3a li mar2it w 3tine ye bel USD"),
+    ("aday sarafet 3al baskawit men 1 la 5 ayloul?", "aday sarafet 3al baskot men 1 la 5 ayloul?"),
+    ("kam total taxi rides paid for hal sene, mesh receipt count?",
+     "aday total taxi rides paid for hal sene, mesh receipt count?"),
+    ("badi wa2ef dekhan, 2ele aday def3a 3al el iqos hal shaher", "badi wa2ef dekhan, 2ele aday def3a 3al iqos hal shaher"),
+]  # fmt: skip
+
+
+@pytest.mark.parametrize("stored, fixed", BATCH2_FIXES)
+def test_her_batch1_rules_fix_the_other_batches_questions(stored, fixed):
+    assert fixed_question(stored) == fixed
+
+
+def test_her_articles_rule_is_left_out_because_it_breaks_batch2s_wording():
+    stored = "men kel el marraat li jebt fiya ma3joun snen, shu moyenne se3er el litre ma3 arkhas w aghla se3er?"
+    assert fixed_question(stored) == stored
+
+
+def test_an_answer_example_gets_the_same_question_fix_and_nothing_else():
+    answer = {"messages": [{"role": "user", "content": "You write the answer...\nQuestion: aday sarfet?\nRow: 1"},
+                           {"role": "assistant", "content": "REPLY: Sarafet $12.50."}], "labels": {"kind": "answer"}}
+    fixed = mix.with_fixed_question(answer)
+    assert fixed["messages"][0]["content"] == "You write the answer...\nQuestion: aday sarafet?\nRow: 1"
+    assert fixed["messages"][1:] == answer["messages"][1:] and fixed["labels"] == answer["labels"]
+    assert answer["messages"][0]["content"].endswith("sarfet?\nRow: 1")  # the stored example is not changed
+
+
+def test_no_mix_question_keeps_a_form_she_ruled_out():
+    ruled_out = re.compile(r"(?<!\w)(sarfet|baskawit|man2ish)(?!\w)|osbou3 li mara2|(?<!\w)(2|tneen) shhour", re.I)
+    for split in ("train", "validation"):
+        for line in (mix.DATA_DIR / "mix" / f"{split}.jsonl").read_text(encoding="utf-8").splitlines():
+            for question in re.findall(r"^Question: (.*)$", json.loads(line)["messages"][0]["content"], re.M):
+                assert not ruled_out.search(question), question
 
 
 # --- the period question in her forms (2026-11-19; neutral forms approved the same day) ---
