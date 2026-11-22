@@ -9,7 +9,7 @@ import random
 from dataclasses import replace
 
 from research.dataset.catalogue import Catalogue
-from research.dataset.checks import Version, contains
+from research.dataset.checks import ALSO_ACCEPTED, Version, contains
 from research.dataset.templates import Spec
 
 GREETINGS = ("Marhaba", "Hi", "Bonjour")  # no kifak / kifik: the app does not know the user's gender yet
@@ -74,4 +74,5 @@ def _line(question: str, spec: Spec, catalogue: Catalogue, rng: random.Random) -
 def _word_used(question: str, spec: Spec) -> str:
     """The word the question used for the thing it asks about (one of the words it had to mention)."""
     words = spec.mentions[0]
-    return next((word for word in sorted(words, key=len, reverse=True) if contains(question, word)), words[-1])
+    spelled = words + tuple(alias for word in words for alias in ALSO_ACCEPTED.get(word, ()))  # her spellings too
+    return next((word for word in sorted(spelled, key=len, reverse=True) if contains(question, word)), words[-1])

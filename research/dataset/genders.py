@@ -224,13 +224,70 @@ PERIOD_QUESTIONS = (
 )  # fmt: skip
 
 
+def _same(reply: str) -> Forms:
+    return Forms(reply, reply, reply)
+
+
+# A question that refers to something earlier with nothing earlier in the chat (C3) was always answered "7a2 shu?"
+# (the price of what?), which fits a price question only. When it asks about a place, counts times, or asks about
+# "the last one" without a price, it gets one of these instead, picked by its question (approved by Christina on
+# 2026-11-21: "lets be creative fr").
+REFERS_TO_PRICE = FORMS[0]
+PLACE_QUESTIONS = (_same("CLARIFY: wayn bel zabt? shu esm el ma7al?"), _same("CLARIFY: ayya ma7al bel zabt?"),
+                   FORMS[10], _same("CLARIFY: aan aya ma7al aam tehki?"))  # FORMS[10]: aya mahal azdak?
+THING_QUESTIONS = (_same("CLARIFY: shu heda bl zabet?"), _same("CLARIFY: shu howe bl zabet?"),
+                   _same("CLARIFY: aan shu aam tehki bl tehdid?"), _same("CLARIFY: 3an aya gharad aam tehke?"))
+LAST_ONE_QUESTION = _same("CLARIFY: ekher wa7ad men shu?")
+_PLACE = re.compile(r"\b(honik|hunik|there|ma7al|mahal|mat3am|mataam|restaurant|shop|place)\b")
+_THING = re.compile(r"\b(shi|shaghle|wa7ad|wa7de|ha2o|ha2a|7a2o|azra2|blue|thing|one)\b")
+_PRICE = re.compile(r"\b(ha2|ha2o|ha2a|7a2|7a2o|se3r|se3er|se3ro|se3ra|price|cost|kalafne|kalafetne|kalifne|"
+                    r"tole3|total|pay|paid|spend|spent|dafa3et|sarafet|edfaa|jebt|jebet)\b")
+_COUNT = re.compile(r"\b(kam marra|kam mara|marraat|marat)\b")
+_LAST_ONE = re.compile(r"\b(ekher wa7ad|ekher wa7de|ekher shi|last one)\b")
+
+# "No receipts from <shop>" (C2) in each of her forms, picked by the question (2026-11-21); the first is the stored one.
+NO_RECEIPT_AT = ("ma la2ayt fatoura bi", "ma la2ayt wala fatoura bi", "ma la2ayt fatoura mn 3end", "ma la2ayt fatoura mn",
+                 "ma l2it fatoura bi", "ma edert le2e fatoura bi")  # fmt: skip
+_NO_RECEIPT_AT = re.compile(r"^CLARIFY: ma la2ayt fatoura bi (?P<x>.+?)(?:, 2asdak (?P<y>.+?)\?)?$")
+_SUGGESTION = {Gender.MAN: ", 2asdak {y}?", Gender.WOMAN: ", 2asdik {y}?", Gender.NOT_GIVEN: ", ya3ne {y}?"}
+_BASKAWIT = re.compile(r"\bbaskawit\b")  # her ruling 2026-11-16: biscuits / baskot, never baskawit
+
+
+def _pick(options: tuple, question: str):
+    return options[int(hashlib.sha256(question.encode("utf-8")).hexdigest(), 16) % len(options)]
+
+
+def _refers_to(question: str) -> Forms:
+    """The question back for a C3 question, by what it leaves unclear (the price question when unsure)."""
+    words = " ".join(re.sub(r"[^\w\s]", " ", question.lower()).split())
+    if _PLACE.search(words) and not _THING.search(words):
+        return _pick(PLACE_QUESTIONS, question)
+    if _COUNT.search(words):
+        return _pick(THING_QUESTIONS, question)
+    if _LAST_ONE.search(words) and not _PRICE.search(words):
+        return LAST_ONE_QUESTION
+    return REFERS_TO_PRICE
+
+
+def _no_receipt_at(found: re.Match, gender: Gender, question: str) -> str:
+    opening = _pick(NO_RECEIPT_AT, question) if question else NO_RECEIPT_AT[0]
+    tail = _SUGGESTION[gender].format(y=found.group("y")) if found.group("y") else ""
+    return f"CLARIFY: {opening} {found.group('x')}{tail}"
+
+
 def for_gender(reply: str, gender: Gender, question: str = "") -> str:
     """The reply in the user's form. A reply with no gendered words is returned as it is; a masculine reply with no
     approved forms raises UnformedReply. The assistant's question about the period takes one of PERIOD_QUESTIONS,
     chosen by the user's `question` (the first form when none is given)."""
+    reply = _BASKAWIT.sub("baskot", reply)
     if reply == PERIOD_QUESTIONS[0].man:
         pick = int(hashlib.sha256(question.encode("utf-8")).hexdigest(), 16) % len(PERIOD_QUESTIONS) if question else 0
         return PERIOD_QUESTIONS[pick].of(gender)
+    if reply == REFERS_TO_PRICE.man and question:
+        return _refers_to(question).of(gender)
+    found = _NO_RECEIPT_AT.match(reply)
+    if found:
+        return _no_receipt_at(found, gender, question)
     for pattern, forms in _PATTERNS:
         found = pattern.match(reply)
         if found:

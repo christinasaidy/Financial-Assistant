@@ -69,3 +69,39 @@ def test_a_fine_line_is_left_alone():
     for q in ("shu tole3 majmou3 fawatire men Ogero hal shaher?", "2arenle masroufe hal shaher 3an el shaher li mara2",
               "ekher marra jebt shawarma, b adde ken?"):  # fmt: skip
         assert bc.cleaned(q) == (q, [])
+
+
+# --- the rewrites of 2026-11-22 (raw/batch5/batch1_rewrites_review.md, approved with her edits) ---
+
+import json  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from research.dataset.rerender import read_prompt  # noqa: E402
+
+DATA = Path(bc.__file__).parent / "data"
+
+
+def _batch1_questions() -> set[str]:
+    return {read_prompt(json.loads(line)["messages"][0]["content"]).question
+            for split in ("train", "validation")
+            for line in (DATA / f"{split}.jsonl").read_text(encoding="utf-8").splitlines()}  # fmt: skip
+
+
+@pytest.mark.parametrize(("old", "new"), [
+    ("adde dafa3et bi falafel", "adeysh dafa3et 3al falafel?"),
+    ("ma fhemet el jawab, fik tshra7a abssat?", "ma fhemet el jaweb, wade7le aktar"),
+    ("baddi total masroufe el fasl hada", "baddi majmou3 masroufe hal fasel"),  # her spelling, accepted by the checks
+    ("adde dafa3et bi hadeye", "adday dafa3et 3al hdeye?"),
+    ("check el budget, amra over limit?", "check el budget, sert defe3 aktar mn el limit?"),
+])  # fmt: skip
+def test_an_approved_rewrite_replaces_its_question_in_batch1(old, new):
+    questions = _batch1_questions()
+    assert new in questions and old not in questions
+
+
+def test_the_rewrite_groups_sql_lines_are_dropped_by_her_plan():
+    drops = json.loads((Path(bc.__file__).parent / "review_drops.json").read_text(encoding="utf-8"))
+    planned = [d for d in drops if d["why"].startswith("batch-1 audit: needs a native rewrite")]
+    assert len(planned) == 420 and len({d["question"] for d in planned}) == 412
+    questions = _batch1_questions()
+    assert not any(d["question"] in questions for d in planned)

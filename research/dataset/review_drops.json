@@ -3244,5 +3244,2525 @@
   "question": "el fatourat el kahraba, kam marra ken fi moshtarayete el shaher li ata3",
   "first": null,
   "why": "audit 2026-11-21: Counts electricity bills (paid once a month: never asked as times); 'moshtarayete' is formal and bare 'li ata3' has no noun."
+ },
+ {
+  "spec": "1-3",
+  "question": "adde dafa3et 7a2 el fuel per liter ekher marra",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-4",
+  "question": "7seble 7a2 el streaming subscription, Netflix aw Shahid, aya ken arkhas 7asab li dafa3to el 30 yom el 7ad",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-4",
+  "question": "shu el streaming subscription ken awfar, Netflix aw Shahid, 7asab li dafa3to el 30 yom el 7ad",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-6",
+  "question": "shu aktar mahal akal ma3ashe mbere7",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-8",
+  "question": "3tine total li sarafto 3a bulgur hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-11",
+  "question": "shu average se3er el cocoa bi fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-11",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3al cocoa",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-15",
+  "question": "2arenle masroufe 3al receipts hal shaher wel shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-17",
+  "question": "7seble adde kalifne el kortasie hal esbou3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-19",
+  "question": "check if I spent more this month hal shaher or last month el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-20",
+  "question": "but at Barbar",
+  "first": "adde dafa3et 3al tawouk hal weekend?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-21",
+  "question": "nafs el shi bas lal Medco",
+  "first": "shu el masroufat 3al car wash bi july?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-22",
+  "question": "el javelle nafs el size, ben O&C w Abou Jihad dafa3et aktar 7a2 li 3end min",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-22",
+  "question": "2arenle 7a2 el klor per 100g, O&C aw Abou Jihad ken a2al",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-22",
+  "question": "el javel per 100ml, O&C aw Abou Jihad, which one was cheaper for me",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "1-23",
+  "question": "adde tole3 3laye el groceries last week, bde shuf 7asse",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-0",
+  "question": "7seble bil miye iza zedet aw na2aset masroufe 3an li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-0",
+  "question": "baddi chouf el bel miyye change fi masroufe hal shaher 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-2",
+  "question": "masroufe hal shaher 3ad el 29 zed aw na2as 3an el nafs el ayyam el shaher li mara2?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-2",
+  "question": "compare masroufe hal shaher 3ad el 29 with el nafs el ayyam li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-8",
+  "question": "w el ekher 3a aya shop?",
+  "first": "kam fetoura 3ande 3al popcorn?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-12",
+  "question": "masroufe hal shaher zedet aw na2aset bel miyye mn el shaher li mara2?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-12",
+  "question": "adde el fare2 percent fi masroufe hal shaher 3an el shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-13",
+  "question": "7seble adde dafa3et aal na2rashe bi tlete shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-14",
+  "question": "show me the total masrouf hal shaher compared to el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-16",
+  "question": "bas men macdo?",
+  "first": "aday dafa3et 3a burger hal 3 shuhur?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-16",
+  "question": "w el 7a2 bi mcdo?",
+  "first": "shu el 7a2 li sarafet 3al burger mn ekher 3 shuhur?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-20",
+  "question": "kam marra jebt ta3be2a el jem3a li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "2-20",
+  "question": "baddi a3ref kam marra ken fi dollarat lal khatt el jem3a el madye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-0",
+  "question": "w el marra li abla?",
+  "first": "adde dafa3et 3al feta last time?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-8",
+  "question": "shu average se3er el chocolate li bejibo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-8",
+  "question": "shu average se3er el chocolate li dafa3to 3a fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-13",
+  "question": "3edde el marraat li shtarayt fiya burger li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-15",
+  "question": "3tine total li sarafto 3a mele7 men teshreen el tene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-15",
+  "question": "how much did I spend on mele7 since teshreen el tene?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-17",
+  "question": "7seble adde dafa3et aal na2el hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-18",
+  "question": "ekher marra jebt shawarma, b adde ken 7a2a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-19",
+  "question": "7seble fare2 el masrouf hal shaher w el shaher li ablo, 3adde?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-22",
+  "question": "kam dazine tea jebt men awal el sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "3-23",
+  "question": "baddi esm el mahal li sarafet fi aktar shi el weekend",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-4",
+  "question": "shu tole3it 3a may Rim ekher shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-5",
+  "question": "shu aktar mahal akal ma3ashe el weekend",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-5",
+  "question": "wen ba3za2et aktar shi hal weekend, 3andi el receipt",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-13",
+  "question": "shou majmou3 masroufe shbat",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-14",
+  "question": "7seble masroufe 3a fatourat el kahraba men kel el fawatir hal shahr",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-14",
+  "question": "how much did I spend on fatourat el kahraba hal shaher?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-16",
+  "question": "bde 7seble adde kallafne el 2edwiti men 9 l 20 march",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-17",
+  "question": "w el 7a2 men McDonald's?",
+  "first": "aday dafa3et 3al fries hal shaher?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "4-19",
+  "question": "shu aktar mahal akal ma3ashe hal sabet",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-1",
+  "question": "7seble se3er el 100g lal mozzarella men Spinneys w O&C, aya ken arkhas",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-1",
+  "question": "el mozzarella, Spinneys aw O&C kalifne a2al 7asab li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-5",
+  "question": "Abou Jihad men 7zayran, kam marra shetrit men 3andon",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-7",
+  "question": "shouf el fawatire, kam marra ken fiya ticket cinema el week-end",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-9",
+  "question": "shu el 5 categories akalo akbar 7essa el khamis el ekher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-10",
+  "question": "el feta President adde kallafne hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-11",
+  "question": "kam units fresh juice jebt nhar el erb3a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-14",
+  "question": "baddi a3ref taman el donut li shetritto hal chaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-17",
+  "question": "7seble masroufe 3a bitaket cinema men kel el fawatir el sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "5-18",
+  "question": "w el time before that?",
+  "first": "adde dafa3et 3al hummus ekher marra?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-0",
+  "question": "2arenle masroufe hal shaher 3an el nafs el ayyam el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-0",
+  "question": "adde dafa3et hal shaher 7ad el youm w adde dafa3et el nafs el ayyam li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-0",
+  "question": "7seble fare2 masrouf hal shaher w el shaher li mara2 3an el nafs el dates",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-1",
+  "question": "w Spinneys?",
+  "first": "kam marra re7et 3a Netflix hal sene?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-3",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet foul 1 kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-3",
+  "question": "men kel el marraat li jebt fiya ful, adde ken se3er kilo el bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-3",
+  "question": "shu average li dafa3to 3a 3elbet foul 1 kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-4",
+  "question": "el lip balm adde ekhado menne 7a2o ekher marra",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-4",
+  "question": "ekher marra jebt lip balm, b adde ken el price",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-5",
+  "question": "el masrouf 3al na2el aktar bi nisan aw ayyar?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-5",
+  "question": "2arenle el mouwasalet ben nisan w ayyar, fin aktar?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-5",
+  "question": "shu el masrouf 3al transport, nisan aw ayyar?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-7",
+  "question": "adde dafa3et 3a akel lal kaleb Pedigree hal wikend",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-8",
+  "question": "adde masrouf hal shaher 3an el shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-8",
+  "question": "compare masrouf hal shaher with el shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-9",
+  "question": "3tine total masroufe 3a dog food sabet w a7ad",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-10",
+  "question": "ekher 3elbet akyes zebbele jebta adde ken 7a2a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-10",
+  "question": "shaklon ghalo el kyess zbele aday ken ha2o ekher marra shtrit",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-15",
+  "question": "farjine kif twaza3it masriyete ben el categories li mar2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-16",
+  "question": "farjine el top 5 categories li 3am bi sarafet aktar men ayyar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-17",
+  "question": "nafs el 7asab la walnuts?",
+  "first": "aday dafa3et 3a toy mn december?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-19",
+  "question": "shu average se3er el dog food li bejibo fi 7 ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-19",
+  "question": "bel moyenne adde 3am edfa3 7a2 akel lal kaleb, w shu aghla w a7af se3er fi 7 ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-19",
+  "question": "men kel el marraat li jebt dog food fi 7 ayyam, adde ken se3er el paket bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "6-19",
+  "question": "shu average 7a2 el dog food li bejibo fi 7 ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-1",
+  "question": "b adde % zedet el masrouf 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-3",
+  "question": "show me the total masrouf hal shaher compared to el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-13",
+  "question": "aktar masriyete la aya mahal ra7o hal weekend",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-13",
+  "question": "baddi a3ref aya shop akhad aktar shi hal weekend",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-16",
+  "question": "kam marra re7et 3a Toters mbere7?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-20",
+  "question": "wen ra7o mosriyete ekher 3 shhour, 3tine breakdown 7asab el category",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-20",
+  "question": "farjine masroufe ekher 3 shhour 7asab el category, 3tine breakdown",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-23",
+  "question": "7a2 el toom li dafa3to bi O&C a2al men Le Charcutier aw la, 7asab 100g",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "7-23",
+  "question": "nafs el tum, O&C aw Le Charcutier ken arkhas 7asab el 100g li shtarayto",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-6",
+  "question": "adde kalafetne ekher pack fawet se7iye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-6",
+  "question": "shu ken el 7a2 el pads bi ekher fetoura",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-7",
+  "question": "3tine total li dafa3et 3a benzine lyoum",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-8",
+  "question": "min aktar mahal dafa3etlo aktar shi el tanayn",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-8",
+  "question": "aya shop elo akbar 7essa men masroufe el tanayn",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-11",
+  "question": "7seble se3er el razors men Carrefour w Pharmacie Mazloum, aya awfar 7asab li shtarayto",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-17",
+  "question": "nsit b adde jebt el bouza, shouf ekher marra shtarayto",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-17",
+  "question": "el buza shu ken se3ro bi ekher fetoura",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-21",
+  "question": "el fare2 el 7a2 bi masroufe hal shaher 3an el shaher li mara2 b adde bel miyye?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "8-22",
+  "question": "compare my expenses hal shaher with el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-0",
+  "question": "baddi a3ref adde dafa3et mn awal",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-1",
+  "question": "shu ken se3ro el music subscription bi ekher fetoura",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-4",
+  "question": "shu tole3 majmou3 li dafa3to 3a philips light bulb hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-4",
+  "question": "7seble masroufe 3al philips light bulb hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-6",
+  "question": "aya 5 no3 masrouf akalo akbar 7essa men shahrain",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-10",
+  "question": "adde masrouf hal shaher w adde el shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-10",
+  "question": "check if I spent more hal shaher or el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-11",
+  "question": "adde dafa3et 3and Ogero hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-11",
+  "question": "shu tole3 majmou3 fawatire men Ogero hal chaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-12",
+  "question": "ekher 3elbet deodorant adde ken el litr",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-13",
+  "question": "ekher 3elbet may adde kalafetne 7a2 liter",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-15",
+  "question": "7seble masroufe 3a spaghetti men kel el fawatir el tammouz",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-16",
+  "question": "shu tole3 majmou3 fawatire men Rizk Market men ekher sab3 ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-16",
+  "question": "7seble kel li dafa3to 3and Rizk Market hal sab3a ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "9-18",
+  "question": "shu el categories li 3a shu sarafet kel hal masari el sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-0",
+  "question": "bas Allo Taxi",
+  "first": "adde dafa3et 3a Dunkin mn el 3 shaher li ablo?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-3",
+  "question": "jame3le masroufe hal sene w 3tini el total la dollar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-5",
+  "question": "el jazar, bi Hibou aw O&C dafa3et a2al 7a2 el 100g?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-6",
+  "question": "adde dafa3et 7a2 el benzine ekher marra lal liter",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-6",
+  "question": "ekher marra jebt fuel, b adde ken el liter",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-8",
+  "question": "shaklon ghalo el zayt aday ken ha2o ekher mara shtrit",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-10",
+  "question": "bala el akel w bala shi, bde bas masrouf el kahraba w internet hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-12",
+  "question": "show me the comparison between my spending hal shaher and li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-17",
+  "question": "7seble masroufe 3a khass men ekher shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-17",
+  "question": "3tine total li sarafto 3a khas men kel el ma7allet el ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-19",
+  "question": "adde el fare2 ben masroufe hal shaher w el shaher li ablo fi bel miyye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-20",
+  "question": "kam fetoura 3ande bel total, give me the number",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "10-21",
+  "question": "w el previous one?",
+  "first": "adde dafa3et 3al jacket ekher marra?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-2",
+  "question": "farjine el mahal li dafa3etlo aktar shi mn awal el sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-3",
+  "question": "shu tole3 majmou3 fawatire men Alfa hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-6",
+  "question": "aya 3 shi akalo akbar 7essa men masriyete hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-10",
+  "question": "el tawouk, kam marra jebt men fawatire ekher 6 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-10",
+  "question": "shouf el receipts li ekher 6 months, kam marra jebt tawouk",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-11",
+  "question": "shu el masrouf 3al groceries bi july w september, fin aktar?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-15",
+  "question": "7seble kel li dafa3to 3a jebne men kel el fawatir ekher 6 shuhur",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-15",
+  "question": "7seble masroufe 3a jebne men last 6 months",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-16",
+  "question": "adde bel moyenne 3am edfa3 7a2 litre energy drink men 6 ila 15 kanoun el tene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-16",
+  "question": "adde 3am edfa3 7a2 litre energy drink bel moyenne mn 6 ila 15 kanoun el tene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-18",
+  "question": "el may, adde 3am totla3 3laye bel moyenne 3al liter hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-19",
+  "question": "3a shu waza3to masroufe hal shaher 7asab el category",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-19",
+  "question": "wen ra7o masriyete hal shaher, farjine el tafasil",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-19",
+  "question": "baddi breakdown la masroufe hal shaher 7asab no3 el masrouf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-20",
+  "question": "el bayd li dafa3et 7a2a a2al, Abou Jihad aw Fahed Supermarket?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-20",
+  "question": "ben Abou Jihad w Fahed, wen kalafetne el beyd a2al 7asab el 7abbe",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-23",
+  "question": "el noodles 3adatan b adde 3am jebon kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "11-23",
+  "question": "men kel el marraat li jebt fiya indomie, adde ken se3er kilo el bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-0",
+  "question": "shetrit pansements men Pharmacie Mazloum w Pharmacie Nassar, 3and min el 7a2a ken arkhas 7asab li shtarayto",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-0",
+  "question": "nafs el bandages, Pharmacie Mazloum aw Pharmacie Nassar, which one was cheaper per piece 7asab li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-2",
+  "question": "baddi a3ref kam marra ken fi 7alaweyet bi moshtarayete ekher 6 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-6",
+  "question": "kam kilo la7me jebt from ab till now",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-7",
+  "question": "shu tole3 majmou3 li dafa3to 3a jebneh President",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-10",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet couscous 1 kilo jemaa li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-10",
+  "question": "shu average li dafa3to 3a 3elbet couscous per kilo last week",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-12",
+  "question": "w el croissant count?",
+  "first": "kam marra shtarayt tuna men september?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-13",
+  "question": "shu aktar mahal akal ma3ashe el jem3a li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-15",
+  "question": "7seble adde kallafne el 7ayawanet alife el sayf li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-20",
+  "question": "masroufe hal shaher 3an el 19 zed aw na2as 3an el shaher li ablo?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-20",
+  "question": "3tine total el masrouf hal shaher w total el nafs el ayyam el shaher li mara2 jamb ba3ed",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "12-23",
+  "question": "kam kilo zaytoun did I buy hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-5",
+  "question": "shu average se3er 3elbet el gazoz bi fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-5",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet soda",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-5",
+  "question": "el soda, shu average se3er li dafa3to 3aleha",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-7",
+  "question": "adde dafa3et aal transport mn 1 adar 7tal 10",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-7",
+  "question": "7seble adde kallafne el mouwasalet men 1 adar 7tal 10",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-12",
+  "question": "shu el average se3er el semsom li jebt fi el weekend, w shu el lowest w highest",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-13",
+  "question": "2arenle masroufe hal shaher 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-13",
+  "question": "adde dafa3et hal shaher 7ad el yom w adde dafa3et el shaher li ablo bi nafs el ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-17",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet el mele7",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-18",
+  "question": "ma baddi adde dafa3et, bas kam marra re7et 3a Alfa hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-21",
+  "question": "shu aktar mahal akal ma3ashe el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "13-21",
+  "question": "wen ba3za2et aktar shi last month, esm el mahal w el 7essa?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-0",
+  "question": "wen el shop li aktar 7essa mn masroufe hal jemaa li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-3",
+  "question": "aya shop elo akbar 7essa men masroufe hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-3",
+  "question": "which shop did I spend the most at hal shaher, 3ini el esm",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-4",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a kilo el shokolata",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-5",
+  "question": "2arenle el percent change fi masroufe hal shaher compared to last month",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-6",
+  "question": "jame3le total li sarafto 3a krem tartib men kel el fawatir hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-16",
+  "question": "shu el khamse categories li akhalo aktar shi mn 10 l 19 teshreen el tene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-16",
+  "question": "give me the top 5 categories mn 10 l 19 teshreen el tene 7asab el masari",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-17",
+  "question": "shu aktar masrouf 3al entertainment hal shaher aw el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-18",
+  "question": "wen ra7o mosriyete hal 10 ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-18",
+  "question": "farjine masroufe hal 10 ayyam category category",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-19",
+  "question": "men awal el sene la halla2 kam zyara 3a Pharmacie Nassar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-21",
+  "question": "aya mahal dafa3etlo aktar shi hal shaher, 7a2 el total?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-21",
+  "question": "farjine aya shop elo akbar 7essa men masroufe hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "14-21",
+  "question": "show me the shop where I spent the most shi hal shaher, w el total",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-1",
+  "question": "3tine total li sarafto 3a hommos hab men 9 adar la 21",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-1",
+  "question": "jame3le taman kel 7ommos yebis li shtarayto men 9 adar la 21",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-2",
+  "question": "bel moyenne adde 3am edfa3 7a2 kilo el fasoulya",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-2",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet fasoulia",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-2",
+  "question": "shu average se3er el fasoulya li bejibo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-4",
+  "question": "baddi a3ref 3edde el marraat li jebt khobz hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-4",
+  "question": "el 5obez, kam marra ken fi moshtarayete hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-7",
+  "question": "baddi 3adad el zeit zaytoun li shtarayton hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-7",
+  "question": "kam bottles of zeit zaytoun jebt hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-9",
+  "question": "shu el masariy el na2el bi ekher tleteh shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-9",
+  "question": "7seble adde dafa3et aal mouwasalet men tlete shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-10",
+  "question": "shu tole3 majmou3 li sarafet 3al bouza ta Haagen-Dazs hal 12 yom men shbat",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-14",
+  "question": "ma baddi 3adad el 7abbet, baddi kam marra shtarayt t7in",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-14",
+  "question": "kam marra jebt t7in fi kol el fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-19",
+  "question": "adde salata shtarayt ekher 3 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-19",
+  "question": "3eddele kel el salata li jebton ekher 3 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-22",
+  "question": "aya ba3za2et aktar, hal shaher aw el shaher li ata3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-23",
+  "question": "7seble adde dafa3et 3al na2el bi nisan",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "15-23",
+  "question": "aday tole3 3laye el mouwasalet bi nisan",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-2",
+  "question": "shu sarle def3a bi Bou Khalil men 10 la 17 november",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-3",
+  "question": "adde masroufe hal shaher 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-3",
+  "question": "compare masroufe hal shaher with el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-5",
+  "question": "shu aktar mahal akal ma3ashe hal jem3a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-5",
+  "question": "aktar masriyete la aya mahal ra7o hal esbou3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-6",
+  "question": "adde dafa3et 3and Spotify lyoum",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-6",
+  "question": "adde dafa3et 3and Spotify today",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-8",
+  "question": "3eddele fawatir Sephora bel total",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-10",
+  "question": "kam fetoura 3ande el yom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-10",
+  "question": "3eddele fawatir lyom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-11",
+  "question": "ekher 3elvet bouza jebta adde dafa3et 7a2a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-12",
+  "question": "shu tole3it 3a katchab Heinz ekher shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-13",
+  "question": "shu ken se3er liter el may fawwara bi ekher fetoura",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-13",
+  "question": "shu ken se3er liter el may fawwara last time",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-15",
+  "question": "shu el masriyete el tesleye el yawm",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-20",
+  "question": "farjine majmou3 li dafa3to bel USD bi kanoun el awal",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-21",
+  "question": "ma baddi adde dafa3et, bas kam marra re7et 3a ABC jem3a el madye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-22",
+  "question": "2arenle masrouf hal shaher 3a nafs el ayame el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "16-22",
+  "question": "compare masrouf hal shaher with el shaher li mara2 on same days",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-0",
+  "question": "7seble kam kilou mrabba jebt el madi",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-1",
+  "question": "w el marra li abla?",
+  "first": "shu el price dafa3et 3al salt last time?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-2",
+  "question": "baddi a2ref el percent change fi masroufe hal shaher 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-5",
+  "question": "adde sarafet 3al ajhize electroniye hal osbou3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-6",
+  "question": "shu ken masroufe mn tammouz",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-6",
+  "question": "total masroufe mn tammouz la now",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-8",
+  "question": "adde dafa3et hal shaher 3an el shaher li mara2?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-9",
+  "question": "el pansements adde ekhado menne 7a2o ekher marra",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-9",
+  "question": "shu ken se3ro el plaster bi ekher fetoura",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-9",
+  "question": "ekher marra jebt bandages, b adde ken 7a2o",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-11",
+  "question": "el may rim adde kalifne hal jemaa",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-11",
+  "question": "shu tole3it 3a may rim hal jem3a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-11",
+  "question": "adde dafa3et 3a rim water hal osbou3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-12",
+  "question": "3eddele kilo za3ter li shtarayton el sayfiye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-14",
+  "question": "adde receipt 3ande sabet w a7ad",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-14",
+  "question": "baddi a3ref kam fawta tole3o el weekend li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-16",
+  "question": "el kahraba mbere7, adde 3am totla3 3laye bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-16",
+  "question": "bel moyenne adde 3am edfa3 7a2 fatourat el kahraba mbere7",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-17",
+  "question": "7seble se3er el wara2 toilette ben Charcutier Aoun w Hibou, 2elle min ken arkhas 7asab el 7a2 li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-17",
+  "question": "nafs el wara2 toilet, aoun aw Hibou, 3and min dafa3et 7a2a a2al per piece",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-17",
+  "question": "el wara2 toilette li shtarayto, Charcutier Aoun aw Hibou, wen ken awfar 7asab li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-17",
+  "question": "7seble se3er el wara2 toilette ben aoun w Hibou, which one was cheaper per piece 7asab li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "17-23",
+  "question": "w el marra li abla?",
+  "first": "adde dafa3et 3al shawarma last time?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-1",
+  "question": "kam 3elbet wara2 toilet jebt ekher 6 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-1",
+  "question": "baddi 3adad el wara2 toilette li shtarayton men ekher 6 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-1",
+  "question": "kam wara2 toilette shtarayt ekher 6 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-3",
+  "question": "adde dafa3et aal akel barra mn 10 tammouz 3al 18",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-3",
+  "question": "shu el 7a2a el kalafne 3al resto mn 10 tammouz 3al 18",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-5",
+  "question": "nafs el so3al bas lal lavage",
+  "first": "kam fetoura 3ande bi tissues shaher el li ablo?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-6",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet tahini 1 kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-6",
+  "question": "average se3er el tahini per kilo men kel el marraat",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-10",
+  "question": "baddi a3ref el 5 categories el akbar bi masari el ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-13",
+  "question": "farjini el top 5 categories akalo akbar hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-13",
+  "question": "shu el khamse categories el akbar el masrouf bihom hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-16",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet drinking glasses",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-16",
+  "question": "men kel el marraat li jebt fiya drinking glasses, adde ken se3er bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "18-18",
+  "question": "jame3le taman kel el banadoura li shtarayton hal sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-0",
+  "question": "shou el top 5 categories masrouf 3alayon lyom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-0",
+  "question": "farjini el top 5 categories el aktar masrouf lyoum",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-3",
+  "question": "adde dafa3et 7a2 el noodles ekher marra, el kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-4",
+  "question": "adde dafa3et 3a nutella chocolate spread hal weekend",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-4",
+  "question": "shu tole3 masroufe 3a nutella sabet w a7ad",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-7",
+  "question": "aya 3 categories akhalo akbar 7essa men masriyete hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-8",
+  "question": "men ben kel el ma7allet li shteret menna hal 14 yom, aya wa7ad akhad aktar shi",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-8",
+  "question": "aya shop elo akbar 7essa men masroufe hal 14 yom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-12",
+  "question": "bas jem3a li mar2it",
+  "first": "adde sarafet 3al Petzone hal shaher?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-12",
+  "question": "el jem3a li mar2it",
+  "first": "aday dafa3et bi Petzone hal shaher?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-13",
+  "question": "3tine total li sarafto 3a cacao men kel el ma7allet men ayyar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-16",
+  "question": "men kel el marraat li jebt fiya enab, adde ken se3er kilo el bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-21",
+  "question": "el laban bi Carrefour aw Abou Jihad kalifne a2al",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-21",
+  "question": "compare el 7a2 el laban per 100g, Carrefour aw Abou Jihad, wen dafa3et a2al",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "19-22",
+  "question": "kam 3alla2at shtarayt hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-0",
+  "question": "aktar masriyete la aya mahal ra7o el tanayn",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-5",
+  "question": "7seble adde kalafne el mawed tandif hal osbou3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-7",
+  "question": "kam marra jebt taxi ride el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-7",
+  "question": "baddi a3ref kam marra shtarayt taksi men fawatire el madi",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-7",
+  "question": "el service, kam marra talabet ekher shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-7",
+  "question": "kam marra jebt taxi ride last month",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-8",
+  "question": "7seble fare2 masrouf el tarfih ben shbat w ayyar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-8",
+  "question": "aya shaher ba3za2et fi aktar, shbat aw ayyar 3al tesleye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-12",
+  "question": "7seble se3er el cinema ticket men Vox Cinemas w Grand Cinemas, aya awfar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-12",
+  "question": "el bitaket cinema, men Vox aw Grand kenet el saf2a a7san 7asab li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-14",
+  "question": "kam marra shtarayt tobacco sticks el sayf li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-14",
+  "question": "kam marra shtarayt tobacco sticks el sayf, 3adde el fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-17",
+  "question": "kam kilo ma3karona shtarayt ekher 7 yom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-17",
+  "question": "kam kilo pasta jebt ekher 7 days",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-18",
+  "question": "baddi 3adad el marraat li shetrit fiya taxi ride, el sayf li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-18",
+  "question": "kam marra ken fi taxi bi moshtarayete el sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-18",
+  "question": "ma baddi 3adad el 7abbet, baddi kam marra shtarayt service el sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-18",
+  "question": "kam marra jebt taxi el sayf, shouf el fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "20-23",
+  "question": "adde dafa3et 3and Alfa el jemaa li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-0",
+  "question": "how much did I spend on groceries the last tlete shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-3",
+  "question": "how much percent zed masroufe hal shaher 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-8",
+  "question": "min aktar mahal mestafid menne hal sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-8",
+  "question": "farjine el shop li dafa3etlo aktar shi el sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-15",
+  "question": "shu el 5 no3 masrouf akal el ma3ash aktar hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-16",
+  "question": "kam marra re7et 3a Al Rifai hal khamis",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-16",
+  "question": "Al Rifai hal khamis, how many times did I go there?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-17",
+  "question": "aya shop elo akbar 7essa men masroufe bi tammouz mn 7 l 14",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-17",
+  "question": "shu aktar mahal akal ma3ashe el 7 l 14 tammouz",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-17",
+  "question": "baddi a3ref wen sarafet aktar shi from 7 to 14 tammouz",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-19",
+  "question": "kam sh3ayriye jebt men kel el fawatir",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-19",
+  "question": "kam sh3ayriye did I buy in total",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-21",
+  "question": "men kel el fawatire li jebt fiya perfume, adde ken se3er el 3eter bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-21",
+  "question": "3eter el perfume adde 3am ykallefne 3adatan",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "21-21",
+  "question": "shu average se3er el perfume li bejibo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-1",
+  "question": "adde el fare2 ben masroufe hal shaher w el shaher li mara2 fi bel miyye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-3",
+  "question": "aya 5 categories akalo akbar 7essa men masriyete hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-4",
+  "question": "shu el bel miyye el fare2 fi masroufe hal shaher 3an el shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-4",
+  "question": "b adde bel miyye tbadlet el masroufat men el shaher li mara2 la hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-5",
+  "question": "shu el fare2 ben masroufe bi september w shbat, wel shaher el a2al?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-7",
+  "question": "adde mkalfetne ekher ishtirak generator",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-10",
+  "question": "ekher 3elbet sabbat jebta adde dafa3et 7a2a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-11",
+  "question": "adde dafa3et bi IPT since the start of the year",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-15",
+  "question": "3tine total li sarafto 3a crepe men awal el sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-15",
+  "question": "jame3le taman kel crepe li shtarayton men awal el sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-16",
+  "question": "7seble masroufe 3a tissues men tleteh shaher la halla2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-16",
+  "question": "3tine total li dafa3et 3a wara2 ma7arem men tleteh shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-17",
+  "question": "kel hal dafe3 3a shu, rattible masrouf tanayn 7asab el category",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-17",
+  "question": "3a shu sarafet kel hal masari tanayn",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-17",
+  "question": "shu 3a shu twaza3 masrouf tanayn, farjine el breakdown",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-20",
+  "question": "el la7meh nafs el 7a2a, men Charcutier Aoun aw Happy kenet el saf2a a7san 7asab li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-21",
+  "question": "shu kalifne el resto ekher shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "22-22",
+  "question": "shu average se3er el internet li dafa3to hal jem3a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-3",
+  "question": "shu el total 3a batteries Duracell men ekher 30 days",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-4",
+  "question": "adde fawatir Alfa 3ande bel shaher ayloul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-4",
+  "question": "kam receipt 3ande men Alfa september",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-6",
+  "question": "shu ken se3ro el cable bi ekher fetoura",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-7",
+  "question": "farjine 3adad el fawatir taba3 mbere7",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-8",
+  "question": "3tine total li sarafto 3a khobz lyom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-9",
+  "question": "aya shaher ba3za2et fi aktar, nisan aw ayyar 3al tarfih?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-10",
+  "question": "aya shaher ba3za2et fi aktar 3al so7a, hal shaher aw li ablo?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-19",
+  "question": "aya 3 categories akalo akbar 7essa men awal ayloul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "23-19",
+  "question": "baddi a3ref aktar 3 ashya sarafet 3alayon mn awal ayloul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-6",
+  "question": "shakle 3am edfa3 ma3ash el mwazafin, min aktar mahal dafa3etlo el 6 shhour el akher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-10",
+  "question": "kam kg mozzarella shtarayt bi tleteh shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-10",
+  "question": "3eddele kilo mozarella li jebton hal 3 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-10",
+  "question": "kam kilo mozzarella jebt ekher 3 months",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-16",
+  "question": "shou el damage bel dollar el sayf",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-17",
+  "question": "7seble se3er el bandora men Abou Jihad w Hibou, aya awfar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-17",
+  "question": "shetrit nafs el tomatoes, men Abou Jihad aw Hibou ken awfar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-18",
+  "question": "aya 5 categories akalo akbar 7essa men masriyete hal shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-23",
+  "question": "2arenle masroufe hal shaher 3al 13 yom ma3 el shaher li ablo 3al nafs el 13 yom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "24-23",
+  "question": "compare masroufe hal shaher 3al 13 yom with the same 13 days of el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-0",
+  "question": "7seble 3and Maison M ekher tlete ayyam",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-6",
+  "question": "3tine total masroufe 3a ta3be2a hal jem3a el madye",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-7",
+  "question": "3ed kam marra re7et 3a Hallab, just want to know the count",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-8",
+  "question": "7seble adde dafa3et aal na2el hal 3ashra yaom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-8",
+  "question": "shu masariyete aal mouwasalet ekher 3ashra yaom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-8",
+  "question": "adde sarafet aal transport in the last 3ashra yaom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-10",
+  "question": "min aktar mahal mestafid menne hal jem3ten",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-12",
+  "question": "w adde toothbrush?",
+  "first": "adde dafa3et 3a kaak hal shaher?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-14",
+  "question": "7asse kel masriyete ra7o 3al fawe7esh, adde dafa3et mn adar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-15",
+  "question": "shu average se3er el frez per kilo li dafa3to",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-20",
+  "question": "w el marra li abla?",
+  "first": "shu el price 3a laban last time?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-21",
+  "question": "bde bas el 7a2 el mouwasalet, adde dafa3et",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "25-22",
+  "question": "7seble kam kilou fustok 3ande men awal el sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-1",
+  "question": "nafs el shafrat, wen dafa3et 7a2a a2al, Bou Khalil aw Pharmacie Mazloum",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-4",
+  "question": "kam kg kusa shtarayt hal 14 yom",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-4",
+  "question": "3eddele kilo koosa li jebt el 2 weeks el li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-9",
+  "question": "7seble kel li dafa3to 3a ta3be2a men 12 ab la 23 ab",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-11",
+  "question": "adde dafa3et 3and Ishtirak el Hay el last 10 days",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-12",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet borghol 1 kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-12",
+  "question": "el bulgur average se3er kilo el 3am jebon",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-15",
+  "question": "w el previous one?",
+  "first": "adde dafa3et 3a taxi ekher marra?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "26-19",
+  "question": "shouf fawatire w 2elle kam marra jebt samneh fi 6 shhour",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-4",
+  "question": "shu aktar, masrouf november or june",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-7",
+  "question": "shetrit falafel men Macdo w Malak, 3and min dafa3et 7a2a a2al 7asab el 7abbe",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-7",
+  "question": "el falafel, Macdo aw Malak el Tawouk ken awfar 7asab li shtarayto",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-7",
+  "question": "shetrit falafel men Macdo w Malak, wen ken 7a2a el 7abbe a2al 7asab el receipts",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-10",
+  "question": "men ben kel el ma7allet li shteret menna men awal el sene, aya wa7ad akhad aktar shi",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-11",
+  "question": "shu average se3er el bulgur li shtarayto mn 12 December ila 22 December",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-11",
+  "question": "mn kel fawatire li jebt mn 12 December ila 22, shu moyenne se3er el burghul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-11",
+  "question": "shu average se3er el bulgur li dafa3to between 12 and 22 december",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-12",
+  "question": "men kel el marraat li jebt fiya pistachios, adde ken se3er kilo el bel moyenne",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-16",
+  "question": "shu average se3er el nail polish bi fawatire",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-17",
+  "question": "bas 3al Sephora receipts",
+  "first": "adde sarafet 3al sunscreen el summer?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "27-21",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet energy drink",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-0",
+  "question": "w Hawa Chicken?",
+  "first": "kam marra re7et 3a EDL fi april?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-1",
+  "question": "7sebleli bil miye iza dafa3et aktar hal shaher w b adde",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-11",
+  "question": "nafs el razors, 3and min dafa3et 7a2a a2al, Pharmacie Nassar aw Charcutier Aoun",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-11",
+  "question": "el rasoir li dafa3to bi Pharmacie Nassar a2al men Charcutier Aoun aw aktar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-11",
+  "question": "shu el price per piece for razors, Pharmacie Nassar aw Charcutier Aoun, 2elle ken awfar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-14",
+  "question": "2arenle bel miyye el zayda aw el na2as fi masroufe hal shaher 3an li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-14",
+  "question": "2arenle el percent change fi masroufe hal shaher compared to el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-21",
+  "question": "7seble kel li dafa3to 3a mouzil 3ara2 Nivea men awal 7zayran",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-22",
+  "question": "adde % el tazayod fi el masrouf hal shaher mn el shaher el mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "28-22",
+  "question": "shu el % el fare2 ben masroufe hal shaher w el shaher li ablo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-10",
+  "question": "w el time before that?",
+  "first": "shu ekher se3er dafa3to 3a brownies?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-15",
+  "question": "aktar masriyete la aya mahal ra7o men el 7 la el 18 ayloul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-15",
+  "question": "aya mahal akhad aktar shi men el 7 la el 18 ayloul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-15",
+  "question": "wen el shop li dafa3etlo aktar shi men el 7 la el 18 ayloul",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-19",
+  "question": "3tine total li sarafto 3a pet treats hal esbou3",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-19",
+  "question": "shu el 7a2 li dafa3et 3a pet treats hal jem3a",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-23",
+  "question": "shu el 2 categories li akalo aktar masrouf el taleta",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "29-23",
+  "question": "farjini el top 2 categories bi aktar 7essa el taleta",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-1",
+  "question": "bas lal rame wara2",
+  "first": "aday dafa3et 3al delivery hal summer?",
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-3",
+  "question": "kam marra re7et 3a O&C jem3a li mar2it",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-4",
+  "question": "men kel fawatire, shu moyenne li dafa3to 3a 3elbet yogurt 1 kilo",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-5",
+  "question": "7seble kel li dafa3to 3a batikh men kel el fawatir hal sene",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-7",
+  "question": "adde masroufe hal shaher 3an el shaher li mara2",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-8",
+  "question": "7seble masroufe 3a rame wara2 men kel el fawatir el 3a adar",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-9",
+  "question": "7seble se3er el 100g lal kheyar ben Carrefour w O&C, wen ken arkhas",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-9",
+  "question": "nafs el kheyar, 3and min dafa3et a2al 7asab el 100g, Carrefour aw O&C",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-9",
+  "question": "shouf fawatire men Carrefour w O&C, wen ken 7a2 el kheyar a7san 7asab el 100g",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-10",
+  "question": "adde dafa3et aktar, hal shaher w el shaher li mara2?",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-13",
+  "question": "el zeit zaytoun adde ekhado menne 7a2o ekher marra lal liter",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-13",
+  "question": "ekher 3elbet zeit zaytoun jebta adde dafa3et 7a2a lal liter",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-13",
+  "question": "nsit b adde jebt el zeit zaytoun, shouf ekher marra shtarayto lal liter",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-17",
+  "question": "7seble masroufe 3a robe men kel el fawatir el 7ziran",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-17",
+  "question": "baddi a3ref taman el dress li shtarayto bi hzairan",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-17",
+  "question": "shu el total li dafa3et 3a dress bi 7zayran",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
+ },
+ {
+  "spec": "30-22",
+  "question": "7seble kel li dafa3to 3and Shahid ekher shaher",
+  "first": null,
+  "why": "batch-1 audit: needs a native rewrite (rewrite group, SQL: dropped by her plan of 2026-11-21)"
  }
 ]

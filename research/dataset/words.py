@@ -7,7 +7,9 @@ Two sets, both written by the assistant and reviewed by Christina:
 
 - matra7 / matrah ("place"; plurals amekin, matare7, matareh): new versions of stored batch 2-4 questions
   (raw/batch5/words/matra7.json). Each keeps its stored question's gold reply and result; only the user's wording
-  is new, so no SQL runs again. The existing versions stay as they are.
+  is new, so no SQL runs again. The existing versions stay as they are. The same for "aal" (to the, before an
+  unnamed thing: "aday dafa3et aal khebez"), 10 versions of batch 4 item questions (raw/batch5/words/aal.json,
+  2026-11-22): the batch-1 cleanup dropped the broken lines that held most of the mix's "aal".
 - abel mbereh (the day before yesterday; also 2abel mbereh, awalt mbereh): one new question per batch 1-4 user who
   bought something that day, the six kinds in turn (total, item, top shop, what was bought, visits, category), and
   three for users who bought nothing then (an empty day), built from the batches' own SQL pieces with the
@@ -41,6 +43,7 @@ from research.dataset.users import gender_of, make_user, remove_user, seed_user
 
 RAW_DIR = build.RAW_DIR / "batch5" / "words"
 MATRA7_FILE = RAW_DIR / "matra7.json"
+AAL_FILE = RAW_DIR / "aal.json"  # "aal" (to the) before an unnamed thing, 2026-11-22
 JOBS_FILE = RAW_DIR / "day_before_jobs.jsonl"
 DAY_BEFORE_FILE = RAW_DIR / "day_before.json"
 DATA_DIR = build.DATA_DIR / "batch5"
@@ -191,15 +194,22 @@ def _catalogue(spec_id_or_user: str | int):
     return build.load_catalogue()
 
 
-def matra7_examples(versions: list[dict], rows: dict[str, dict], specs: dict[str, Spec]) -> list[dict]:
+def matra7_examples(versions: list[dict], rows: dict[str, dict], specs: dict[str, Spec], word: str = "matra7"
+                    ) -> list[dict]:  # fmt: skip
+    """New versions of stored questions, labelled with the word they bring (matra7, aal)."""
     out = []
     for version in versions:
         if version["spec"] not in rows:
             raise WordsError(f"no stored example for {version['spec']}")
         row = rows[version["spec"]]
-        _check(version["spec"], version, specs[version["spec"]], _catalogue(version["spec"]))
+        spec = specs[version["spec"]]
+        if word != "matra7":  # a new version brings its own lead-in (as part 3's, 2026-11-20); the matra7 ones as approved
+            from research.dataset.deciding import without_lead_in  # noqa: PLC0415 (deciding imports this module)
+
+            spec = without_lead_in(spec)
+        _check(version["spec"], version, spec, _catalogue(version["spec"]))
         parts = read_prompt(row["messages"][0]["content"])
-        labels = {**row["labels"], "word": "matra7"}
+        labels = {**row["labels"], "word": word}
         out.append(_example(version["question"], version["language"], parts.names, parts.today, labels["user"],
                             row["messages"][1]["content"], labels))  # fmt: skip
     return out
@@ -225,8 +235,9 @@ def replay(raw_dir: Path = RAW_DIR, out_dir: Path = DATA_DIR, data_dir: Path = b
            stored_raw: Path = build.RAW_DIR, held_out: tuple[str, ...] | None = None) -> dict:  # fmt: skip
     """Both sets as examples. Refuses (WordsError) before writing anything if a version fails a check."""
     jobs = [json.loads(line) for line in (raw_dir / JOBS_FILE.name).read_text(encoding="utf-8").splitlines()]
-    examples = matra7_examples(json.loads((raw_dir / MATRA7_FILE.name).read_text(encoding="utf-8")),
-                               stored(data_dir), stored_specs(stored_raw))  # fmt: skip
+    rows, specs = stored(data_dir), stored_specs(stored_raw)
+    examples = matra7_examples(json.loads((raw_dir / MATRA7_FILE.name).read_text(encoding="utf-8")), rows, specs)
+    examples += matra7_examples(json.loads((raw_dir / AAL_FILE.name).read_text(encoding="utf-8")), rows, specs, "aal")
     examples += day_before_examples(jobs, json.loads((raw_dir / DAY_BEFORE_FILE.name).read_text(encoding="utf-8")))
     held_out = build.test_questions(None) if held_out is None else held_out
     out, near = {"train": [], "validation": []}, 0

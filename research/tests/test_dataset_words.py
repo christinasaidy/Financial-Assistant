@@ -18,6 +18,7 @@ from research.dataset.words import WordsError, replay
 JOBS = {j["job_id"]: j for j in map(json.loads, words.JOBS_FILE.read_text(encoding="utf-8").splitlines())}
 MATRA7 = json.loads(words.MATRA7_FILE.read_text(encoding="utf-8"))
 DAY_BEFORE = json.loads(words.DAY_BEFORE_FILE.read_text(encoding="utf-8"))
+AAL = json.loads(words.AAL_FILE.read_text(encoding="utf-8"))  # approved 2026-11-22
 
 
 @pytest.fixture(scope="module")
@@ -30,12 +31,13 @@ def stored():
     return words.stored(), words.stored_specs()
 
 
-def _raw(tmp_path, matra7=MATRA7, day_before=DAY_BEFORE):
+def _raw(tmp_path, matra7=MATRA7, day_before=DAY_BEFORE, aal=AAL):
     raw = tmp_path / "raw"
     raw.mkdir()
     shutil.copy(words.JOBS_FILE, raw / words.JOBS_FILE.name)
     (raw / words.MATRA7_FILE.name).write_text(json.dumps(matra7), encoding="utf-8")
     (raw / words.DAY_BEFORE_FILE.name).write_text(json.dumps(day_before), encoding="utf-8")
+    (raw / words.AAL_FILE.name).write_text(json.dumps(aal), encoding="utf-8")
     return raw
 
 
@@ -71,8 +73,8 @@ def test_a_category_counts_a_lines_own_category_first(plan):
 
 def test_every_approved_version_becomes_one_example_and_none_is_near_a_test_question(tmp_path):
     report = replay(out_dir=tmp_path)
-    assert report == {"train": 33, "validation": 7, "near test questions, dropped": 0,
-                      "words": {"matra7": 19, "abel mbereh": 21}}  # fmt: skip
+    assert report == {"train": 42, "validation": 8, "near test questions, dropped": 0,  # + her 10 aal, 2026-11-22
+                      "words": {"matra7": 19, "aal": 10, "abel mbereh": 21}}  # fmt: skip
     rows = [json.loads(line) for split in ("train", "validation")
             for line in (tmp_path / f"words_{split}.jsonl").read_text(encoding="utf-8").splitlines()]  # fmt: skip
     assert {r["labels"]["part"] for r in rows} == {"words"}
@@ -145,4 +147,28 @@ def test_a_job_without_its_versions_refuses_the_whole_set(tmp_path):
 def test_a_version_near_a_held_out_question_is_dropped(tmp_path):
     report = replay(raw_dir=_raw(tmp_path), out_dir=tmp_path / "out", held_out=(DAY_BEFORE["w-25"][0]["question"],))
     assert report["near test questions, dropped"] >= 1
-    assert report["train"] + report["validation"] == 40 - report["near test questions, dropped"]
+    assert report["train"] + report["validation"] == 50 - report["near test questions, dropped"]
+
+
+# --- aal (to the, before an unnamed thing), approved 2026-11-22 ---
+
+
+def test_an_aal_version_keeps_its_stored_questions_reply_and_needs_no_lead_in(stored):
+    rows, specs = stored
+    version = next(v for v in AAL if v["spec"] == "b4-47-1")  # stored: "emme aletle eno ktir 3am jib khebez, ..."
+    assert version["question"] == "adesh sarafet aal khebez ekher shaher?"
+    example = words.matra7_examples([version], rows, specs, "aal")[0]
+    assert example["messages"][1]["content"] == rows["b4-47-1"]["messages"][1]["content"]
+    assert read_prompt(example["messages"][0]["content"]).question == version["question"]
+    assert example["labels"]["word"] == "aal"
+
+
+def test_every_aal_version_says_aal():
+    assert len(AAL) == 10 and all(" aal " in f" {v['question']} " for v in AAL)
+
+
+def test_an_aal_version_without_its_item_is_refused(stored):
+    version = {"spec": "b4-47-1", "language": "arabizi", "question": "adesh sarafet aal akel ekher shaher?"}
+    with pytest.raises(WordsError, match="does not mention"):
+        words.matra7_examples([version], *stored, "aal")
+

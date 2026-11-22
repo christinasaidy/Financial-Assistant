@@ -69,3 +69,28 @@ def test_mixed_versions_get_them_too_and_english_versions_and_queries_keep_qwens
     assert replied(spec, "I didn't get that", language="english") == "CLARIFY: qwen's words"
     query = Spec("T1", "sql", "", "SELECT 1", ())
     assert users_reply(Version("arabizi", "adde sarafet?"), query, CATALOGUE, random.Random(1)).reply is None
+
+
+# Her spellings in the batch-1 rewrites (2026-11-22): the checks accept them and the ask-back repeats them.
+C5_GIFTS = ("hadeye", "hadaya", "hdaya", "gifts", "gift")  # templates.c5_no_such_items
+C5_REPAIRS = ("tasli7", "tesli7", "repairs", "siyene", "siyane", "maintenance")
+
+
+@pytest.mark.parametrize(("words", "question", "word"), [
+    (C5_GIFTS, "adesh kalafoune el hadeya li jebton?", "hadeya"),
+    (C5_GIFTS, "adday dafa3et 3al hdeye?", "hdeye"),
+    (C5_REPAIRS, "aday dafa3et 3al tosli7?", "tosli7"),
+])  # fmt: skip
+def test_her_spelling_of_gift_or_repairs_passes_the_checks_and_is_repeated_back(words, question, word):
+    from research.dataset.checks import mentions
+
+    assert mentions(question, words)
+    group = "gifts" if words is C5_GIFTS else "repairs"
+    assert replied(clarify("C5", words, group=group), question) == f"CLARIFY: ma edert le2e fatoura 3an {word}"
+
+
+def test_her_spelling_of_the_season_passes_the_checks():
+    from research.dataset.checks import mentions
+
+    assert mentions("baddi majmou3 masroufe hal fasel", ("semester", "fasl"))
+    assert not mentions("baddi majmou3 masroufe hal shaher", ("semester", "fasl"))

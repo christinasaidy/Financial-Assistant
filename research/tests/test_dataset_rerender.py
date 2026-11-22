@@ -312,3 +312,71 @@ def test_a_users_own_subscriptions_are_left_out_in_the_rebuilt_example():
     old = {"messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": TOP_VISITED}],
            "labels": {"user": MAN, "language": "arabizi", "spec": "b3-x-1"}}  # fmt: skip
     assert "vendor NOT IN ('Anghami')" in rerender(old)["messages"][1]["content"]
+
+
+# --- the questions back for C3 and C2, varied by the question (Christina, 2026-11-21) ---
+
+from research.dataset import genders as g  # noqa: E402
+
+PRICE = "CLARIFY: 7a2 shu? fik taati tafasil aktar"
+PLACE = {"CLARIFY: wayn bel zabt? shu esm el ma7al?", "CLARIFY: ayya ma7al bel zabt?", "CLARIFY: aya mahal azdak?",
+         "CLARIFY: aan aya ma7al aam tehki?"}
+THING = {"CLARIFY: shu heda bl zabet?", "CLARIFY: shu howe bl zabet?", "CLARIFY: aan shu aam tehki bl tehdid?",
+         "CLARIFY: 3an aya gharad aam tehke?"}
+
+
+@pytest.mark.parametrize("question", ["kam marra dafa3et honik", "aday sarafet bi hedek el mat3am?",
+                                      "the place li hkina 3ano, how much did I spend there?"])
+def test_a_vague_place_gets_a_question_about_the_place(question):
+    assert for_gender(PRICE, Gender.MAN, question) in PLACE
+
+
+@pytest.mark.parametrize("question", ["kam marra shtarayt heda last month?", "hayda kam marra shtrito?"])
+def test_counting_an_unnamed_thing_gets_a_question_about_the_thing(question):
+    assert for_gender(PRICE, Gender.WOMAN, question) in THING
+
+
+def test_the_last_one_without_a_price_gets_ekher_wa7ad_men_shu():
+    assert for_gender(PRICE, Gender.MAN, "ekher wa7ad jebto ken arkhas aw la2?") == "CLARIFY: ekher wa7ad men shu?"
+
+
+@pytest.mark.parametrize("question", ["aday ken ha2o?", "adde ken 7a2 ekher wa7ad", "ekher wa7ad, aday kalafne?",
+                                      "honik dafa3et a2al 7a2o?"])
+def test_a_price_question_keeps_7a2_shu_in_the_users_form(question):
+    assert for_gender(PRICE, Gender.MAN, question) == PRICE
+    assert for_gender(PRICE, Gender.WOMAN, question) == "CLARIFY: 7a2 shu? fiki taate tafasil aktar"
+
+
+def test_a_place_question_with_a_gendered_form_takes_the_users_gender():
+    question = next(q for q in (f"kam marra rehet 3a hedek el mat3am {n}" for n in range(200))
+                    if for_gender(PRICE, Gender.MAN, q) == "CLARIFY: aya mahal azdak?")
+    assert for_gender(PRICE, Gender.WOMAN, question) == "CLARIFY: aya mahal azdik?"
+    assert for_gender(PRICE, Gender.NOT_GIVEN, question) == "CLARIFY: aya mahal bel zabt?"
+
+
+def test_no_receipt_at_a_shop_takes_one_of_her_forms_and_the_suggestion_by_gender():
+    reply = "CLARIFY: ma la2ayt fatoura bi Hawa Chicken, 2asdak Barbar?"
+    seen = set()
+    for n in range(60):
+        question = f"adde dafa3et bi Hawa Chicken {n}"
+        man, woman = for_gender(reply, Gender.MAN, question), for_gender(reply, Gender.WOMAN, question)
+        opening = man.removeprefix("CLARIFY: ").removesuffix(" Hawa Chicken, 2asdak Barbar?")
+        assert opening in g.NO_RECEIPT_AT and woman == man.replace("2asdak", "2asdik")
+        assert for_gender(reply, Gender.NOT_GIVEN, question) == man.replace("2asdak", "ya3ne")
+        seen.add(opening)
+    assert seen == set(g.NO_RECEIPT_AT)
+    alone = for_gender("CLARIFY: ma la2ayt fatoura bi Petzone", Gender.WOMAN, "adde ken 7a2 el masrouf bi Petzone")
+    assert alone.removeprefix("CLARIFY: ").removesuffix(" Petzone") in g.NO_RECEIPT_AT
+
+
+def test_the_same_question_always_gets_the_same_reply_and_no_question_keeps_the_stored_one():
+    reply = "CLARIFY: ma la2ayt fatoura bi Hawa Chicken, 2asdak Barbar?"
+    assert for_gender(reply, Gender.MAN, "adde dafa3et bi Hawa Chicken") == for_gender(
+        reply, Gender.MAN, "adde dafa3et bi Hawa Chicken")
+    assert for_gender(reply, Gender.MAN) == reply and for_gender(PRICE, Gender.MAN) == PRICE
+
+
+def test_baskawit_in_a_reply_becomes_baskot():  # her ruling 2026-11-16
+    reply = "CLARIFY: ma edert le2e fatoura 3an 3elke, 2asdak baskawit?"
+    assert for_gender(reply, Gender.WOMAN, "adde sarafet 3al 3elke?") == (
+        "CLARIFY: ma edert le2e fatoura 3an 3elke, 2asdik baskot?")
