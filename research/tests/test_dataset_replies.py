@@ -59,7 +59,7 @@ def test_replies_use_the_users_lines():
     assert reply("R1", "sabah el kheir") == "REPLY: sabah el nour"
     assert reply("R1", "hi kifak") in ("REPLY: Marhaba", "REPLY: Hi", "REPLY: Bonjour")
     assert reply("R2", "merci ktir") in tuple(f"REPLY: {line}" for line in THANKS)
-    assert reply("R3", "shu fik ta3mel?") == "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+    assert reply("R3", "shu fik ta3mel?") == "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen"  # 2026-11-23
     assert reply("R4", "wow ma kent metwa23a") == "REPLY: hahaha, fie se3dak b shi tene?"
 
 

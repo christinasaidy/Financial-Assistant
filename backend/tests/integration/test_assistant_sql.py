@@ -145,6 +145,26 @@ def test_amounts_in_pounds_are_also_given_in_dollars_at_the_saved_rate(container
     assert (total, round(total_usd, 2)) == (Decimal("895000.00"), Decimal("10.00"))
 
 
+def test_every_amount_is_also_given_in_pounds_at_the_saved_rate(container, alice_with_receipts):
+    """Migration 0009 (approved 2026-11-23): "bel lira" is answered like "bel dollar"."""
+    _, alice = alice_with_receipts
+    lbp = container.assistant.run_query(alice, "SELECT total, total_lbp FROM receipts WHERE currency = 'LBP'").rows[0]
+    assert lbp[0] == lbp[1] == Decimal("895000.00")  # pounds stay as they are
+    usd = container.assistant.run_query(alice, "SELECT total, total_usd, total_lbp FROM receipts WHERE currency = 'USD'")
+    for total, total_usd, total_lbp in usd.rows:
+        assert total == total_usd and round(total_lbp / total) == 89500  # dollars times the receipt's saved rate
+
+
+def test_the_amounts_in_pounds_add_up_across_the_views(container, alice_with_receipts):
+    _, alice = alice_with_receipts
+    by_receipt = one_value(container.assistant.run_query(alice, "SELECT SUM(total_lbp) FROM receipts"))
+    by_category = one_value(container.assistant.run_query(alice, "SELECT SUM(amount_lbp) FROM category_spending"))
+    by_line = one_value(container.assistant.run_query(alice, "SELECT SUM(line_total_lbp) FROM purchases"))
+    by_receipt_usd = one_value(container.assistant.run_query(alice, "SELECT SUM(total_usd) FROM receipts"))
+    assert round(by_category) == round(by_receipt) == round(by_receipt_usd * 89500)
+    assert by_line <= by_receipt  # receipts without items and the tax row are only in category_spending
+
+
 def test_purchases_show_each_item_with_its_effective_category(container, alice_with_receipts):
     _, alice = alice_with_receipts
     result = container.assistant.run_query(

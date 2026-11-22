@@ -59,7 +59,7 @@ FORMS = (
     Forms("CLARIFY: aya mahal azdak?", "CLARIFY: aya mahal azdik?", "CLARIFY: aya mahal bel zabt?"),
     Forms("REPLY: eh hon, fiye se3dak?", "REPLY: eh hon, fiye se3dik?", "REPLY: eh hon, shu fiye a3mel?"),
     # Table C.
-    Forms("REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen",
+    Forms("REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen",  # sarafet: her ruling of 2026-11-23
           "REPLY: fie jewbik 3an masroufik men fawatirik: adde sarafte, aa shu, wen",
           "REPLY: fie jeweb 3an el masruf men el fwatir: adde, aa shu, wen"),
     Forms("CLARIFY: aymta w mn aya mahal jebto? aw shu fi yekun maktoub 3al fatoura?",

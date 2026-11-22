@@ -113,6 +113,7 @@ def _usual(question: str) -> str:
     """The question in lower case with sho / mish / mesh written shu / msh and numbers before a period in digits:
     what the hash-picked fixes read, so none changes what another picks and running them again changes nothing."""
     q = re.sub(r"(?<!\w)(mish|mesh)(?!\w)", "msh", re.sub(r"(?<!\w)sho(?!\w)", "shu", question.lower()))
+    q = re.sub(r"(?<!\w)bs(?!\w)", "bas", q)
     return _WORDS.sub(lambda m: f"{_AS_DIGITS[m.group(1)]} {m.group(2)}", q)
 
 
@@ -135,18 +136,24 @@ def single_letters(question: str) -> str:
     return _DOUBLED.sub(_single, question)
 
 
+_OLD_C = "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+_NEW_C = "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen"
+
+
 # - Her everyday spellings (2026-11-22: "sho, mish ... are very common"): the mix had sho 1 / shu 1,151 and mish 1 /
 #   msh + mesh 193. About a third of the questions with "shu" say "sho", and about a third with "msh" / "mesh" say
-#   "mish" (a hash of the question picks which, each word on its own). "bs" is not hers: left out.
-HER_SPELLINGS = ((re.compile(r"(?<!\w)shu(?!\w)", re.IGNORECASE), "sho", "sho"),
-                 (re.compile(r"(?<!\w)(msh|mesh)(?!\w)", re.IGNORECASE), "mish", "mish"))  # fmt: skip
+#   "mish" (a hash of the question picks which, each word on its own); "bs" in about a quarter of those with "bas"
+#   (her 2026-11-18 "bs = bas", and 2026-11-23: the model must understand both).
+HER_SPELLINGS = ((re.compile(r"(?<!\w)shu(?!\w)", re.IGNORECASE), "sho", "sho", 3),
+                 (re.compile(r"(?<!\w)(msh|mesh)(?!\w)", re.IGNORECASE), "mish", "mish", 3),
+                 (re.compile(r"(?<!\w)bas(?!\w)", re.IGNORECASE), "bs", "bs", 4))  # bs: a quarter (her, 2026-11-23)
 
 
 def her_spellings(question: str) -> str:
     """Stable: the choice reads the question with sho / mish put back, so running it again changes nothing."""
     key = _usual(question)
-    for word, spelling, salt in HER_SPELLINGS:
-        if word.search(question) and int(hashlib.sha256(f"{salt}/{key}".encode("utf-8")).hexdigest(), 16) % 3 == 0:
+    for word, spelling, salt, one_in in HER_SPELLINGS:
+        if word.search(question) and int(hashlib.sha256(f"{salt}/{key}".encode("utf-8")).hexdigest(), 16) % one_in == 0:
             question = word.sub(lambda m: spelling.capitalize() if m.group(0)[0].isupper() else spelling, question)
     return question
 
@@ -159,10 +166,34 @@ def fixed_question(question: str) -> str:
     return numbers_in_words(her_spellings(single_letters(question)))
 
 
+# - Reply words (her rulings, 2026-11-23): table C's man reply says "adde sarafet" (it said "sarfet", approved before
+#   her "sarfet is wrong"); stored replies are changed before their gender form is looked up. And fawatirak /
+#   fawatirik are correct but fwatirak / fwatirik a bit more common: about 60% of the replies that use them say
+#   fwatirak / fwatirik (a hash of the question picks which; the reply tables keep her approved fawatirak).
+REPLY_WORDS = ((f"{_OLD_C}", f"{_NEW_C}"),)
+
+
+def stored_reply_words(reply: str) -> str:
+    for old, new in REPLY_WORDS:
+        reply = reply.replace(old, new)
+    return reply
+
+
+_FAWATIR = re.compile(r"(?<!\w)fawatir(ak|ik)(?!\w)")
+
+
+def reply_spellings(reply: str, question: str) -> str:
+    if reply.startswith("SELECT") or not _FAWATIR.search(reply):
+        return reply
+    if int(hashlib.sha256(f"fwatir/{_usual(question)}".encode("utf-8")).hexdigest(), 16) % 10 >= 6:
+        return reply
+    return _FAWATIR.sub(lambda m: "fwatir" + m.group(1), reply)
+
+
 def fixed_reply(reply: str, vendors=()) -> str:
     """The gold reply with every approved fix applied (`vendors`: the user's, as the prompt lists them); any other
     reply is returned as it is."""
-    return _top_visited(_price_change(_VISITS_PER_MONTH.sub(_WITH_VISITS, reply, count=1)), vendors)
+    return _top_visited(_price_change(_VISITS_PER_MONTH.sub(_WITH_VISITS, stored_reply_words(reply), count=1)), vendors)
 
 
 # - "The pharmacy" when the user has two (her ruling, 2026-11-22): a stored question about "el saydaliye / pharmacie /

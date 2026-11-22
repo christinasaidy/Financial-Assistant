@@ -40,8 +40,8 @@ TABLE_A = [
      "CLARIFY: ma edert le2e fatoura 3an yoga mat, 2asdik tapis?", "CLARIFY: ma edert le2e fatoura 3an yoga mat, ya3ne tapis?"),
     ("CLARIFY: aya mahal azdak?", "CLARIFY: aya mahal azdik?", "CLARIFY: aya mahal bel zabt?"),
     ("REPLY: eh hon, fiye se3dak?", "REPLY: eh hon, fiye se3dik?", "REPLY: eh hon, shu fiye a3mel?"),  # her row 12
-    # Her table C.
-    ("REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen",
+    # Her table C ("adde sarafet": her ruling of 2026-11-23; it said "sarfet").
+    ("REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen",
      "REPLY: fie jewbik 3an masroufik men fawatirik: adde sarafte, aa shu, wen",
      "REPLY: fie jeweb 3an el masruf men el fwatir: adde, aa shu, wen"),
     ("CLARIFY: aymta w mn aya mahal jebto? aw shu fi yekun maktoub 3al fatoura?",
@@ -555,8 +555,10 @@ def test_sho_and_mish_each_take_about_a_third_of_their_questions_and_running_aga
     assert all(fixed_question(fixed_question(q)) == fixed_question(q) for q in questions[:200])
 
 
-def test_bas_is_never_written_bs_and_a_capital_stays():
-    assert not any(" bs " in her_spellings(f"aday sarafet bas {i} hal shaher") for i in range(300))
+def test_bs_takes_about_a_quarter_of_the_questions_with_bas_and_a_capital_stays():
+    """Her rulings: "bs = bas" (2026-11-18); the model must understand both (2026-11-23)."""
+    share = sum(" bs " in her_spellings(f"aday sarafet bas {i} hal shaher") for i in range(600)) / 600
+    assert 0.18 < share < 0.32
     capital = next(her_spellings(f"Shu {i}") for i in range(100) if her_spellings(f"Shu {i}") != f"Shu {i}")
     assert capital.startswith("Sho ")
 
@@ -602,3 +604,20 @@ def test_numbers_in_words_take_about_half_mostly_khames_and_stay_put():
     assert 0.4 < len(words) / len(fixed) < 0.6
     assert sum("khames" in f for f in words) > 2 * sum("khamst" in f for f in words) > 0
     assert all(fixed_question(f) == f for f in fixed)
+
+
+# Reply spellings (her rulings, 2026-11-23).
+from research.dataset.fixes import reply_spellings, stored_reply_words  # noqa: E402
+
+
+def test_fawatirak_stays_correct_and_fwatirak_takes_about_60_percent_of_the_replies():
+    replies = [reply_spellings("REPLY: Eza baddak tshuf shi bi fawatirak, ana hon", f"q {i}") for i in range(600)]
+    share = sum("fwatirak" in r for r in replies) / len(replies)
+    assert 0.5 < share < 0.7 and any("fawatirak" in r for r in replies)
+    assert reply_spellings("SELECT 'fawatirak'", "q") == "SELECT 'fawatirak'"  # never inside a query
+
+
+def test_a_stored_table_c_reply_says_sarafet_before_its_gender_form_is_looked_up():
+    stored = "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+    assert stored_reply_words(stored) == "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen"
+    assert for_gender(stored_reply_words(stored), Gender.WOMAN).endswith("adde sarafte, aa shu, wen")

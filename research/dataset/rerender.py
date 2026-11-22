@@ -14,7 +14,7 @@ from datetime import date
 
 from app.domain.assistant.prompt import GENDER_LINES, INSTRUCTIONS, Exchange, UserNames, build_prompt
 
-from research.dataset.fixes import fixed_question, fixed_reply, pharmacy_reply
+from research.dataset.fixes import fixed_question, fixed_reply, pharmacy_reply, reply_spellings
 from research.dataset.genders import for_gender, question_for_gender
 from research.dataset.users import gender_of
 
@@ -39,7 +39,11 @@ CHANGED_RULES = ((
     "  A pharmacy (pharmacie): vendor IN the user's shops whose name says Pharmacie.",  # her pharmacy rulings, 2026-11-22
     '  A pharmacy (pharmacie): "saydaliyet X" / "Pharmacie X" is that one shop; "el saydaliyet", "pharmacies" or "a\n'
     '  pharmacy" is every shop whose name says Pharmacie (vendor IN them); "el saydaliye" / "the pharmacy" with no\n'
-    '  name: CLARIFY which, naming them, when the user has more than one, otherwise that one.'),
+    '  name: CLARIFY which, naming them, when the user has more than one, otherwise that one.'), (
+    'receipts(receipt_id, receipt_date, vendor, currency, total, total_usd)\n  one row per receipt. Use it for total spending and for counting receipts or visits.\npurchases(receipt_id, receipt_date, vendor, item, item_name, category, quantity, unit_price, line_total,\n          size_amount, size_unit, currency, line_total_usd, brand)\n  one row per purchased line. item is the text printed on the receipt; item_name is what the product is.\n  line_total is what was paid for the line, unit_price the price of one unit (may be null).\n  size_amount and size_unit are the size of one unit in g, ml or pcs (null when not printed).\n  brand is lower case (null when not printed).\ncategory_spending(receipt_id, receipt_date, vendor, category, currency, amount, amount_usd)\n  spending split by category; adds up to the receipts\' totals. Use it for spending by category and for\n  "where did my money go". Its \'Tax, discounts & rounding\' category is the difference between a receipt\'s\n  total and its lines.\ncurrency is \'USD\' or \'LBP\'. Every amount also has a USD value (total_usd, line_total_usd, amount_usd) at the rate\nsaved with its receipt.',  # the LBP columns of migration 0009 (2026-11-23)
+    'receipts(receipt_id, receipt_date, vendor, currency, total, total_usd, total_lbp)\n  one row per receipt. Use it for total spending and for counting receipts or visits.\npurchases(receipt_id, receipt_date, vendor, item, item_name, category, quantity, unit_price, line_total,\n          size_amount, size_unit, currency, line_total_usd, brand, line_total_lbp)\n  one row per purchased line. item is the text printed on the receipt; item_name is what the product is.\n  line_total is what was paid for the line, unit_price the price of one unit (may be null).\n  size_amount and size_unit are the size of one unit in g, ml or pcs (null when not printed).\n  brand is lower case (null when not printed).\ncategory_spending(receipt_id, receipt_date, vendor, category, currency, amount, amount_usd, amount_lbp)\n  spending split by category; adds up to the receipts\' totals. Use it for spending by category and for\n  "where did my money go". Its \'Tax, discounts & rounding\' category is the difference between a receipt\'s\n  total and its lines.\ncurrency is \'USD\' or \'LBP\'. Every amount also has a USD value (total_usd, line_total_usd, amount_usd) and an LBP\nvalue (total_lbp, line_total_lbp, amount_lbp) at the rate saved with its receipt.'), (
+    '  If the user asks for dollars ("bel dollar"), return only the USD value.',  # lira like dollars (her ruling, 2026-11-23)
+    '  If the user asks for dollars ("bel dollar"), return only the USD value. In lira ("bel lira", "bl lira", "bel LBP"),\n  return only the LBP value; for the receipts paid in lira ("li dafa3to bel lira"), use currency = \'LBP\'.')
 )  # fmt: skip
 
 
@@ -136,7 +140,7 @@ def rerender(example: dict) -> dict:
     gender = gender_of(labels["user"])
     old_prompt, old_reply = example["messages"][0]["content"], example["messages"][1]["content"]
     parts = read_prompt(old_prompt)
-    history = tuple(Exchange(question_for_gender(fixed_question(e.question), gender), for_gender(fixed_reply(e.reply, parts.names.vendors), gender, e.question))
+    history = tuple(Exchange(question_for_gender(fixed_question(e.question), gender), reply_spellings(for_gender(fixed_reply(e.reply, parts.names.vendors), gender, e.question), e.question))
                     for e in parts.history)  # fmt: skip
     prompt = build_prompt(question_for_gender(fixed_question(parts.question), gender), parts.names, parts.today, history,
                           gender=gender)  # fmt: skip
@@ -151,6 +155,6 @@ def rerender(example: dict) -> dict:
     rebuilt["messages"][0]["content"] = prompt
     reply = pharmacy_reply(fixed_reply(old_reply, parts.names.vendors), parts.question, parts.names.vendors,
                            english=labels.get("language") == "english")  # "the pharmacy" with two: ask which (2026-11-22)
-    rebuilt["messages"][1]["content"] = for_gender(reply, gender, parts.question)
+    rebuilt["messages"][1]["content"] = reply_spellings(for_gender(reply, gender, parts.question), parts.question)
     rebuilt["labels"]["gender"] = gender.value
     return rebuilt

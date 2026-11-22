@@ -63,7 +63,7 @@ def _line(question: str, spec: Spec, catalogue: Catalogue, rng: random.Random) -
     if spec.template == "R2":
         return rng.choice(THANKS)
     if spec.template == "R3":
-        return "fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+        return "fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen"  # her 2026-11-23
     if spec.template == "R5":  # a sign-off
         return rng.choice(SIGN_OFFS) + (", Bye!" if rng.random() < 0.5 else "")
     if spec.template == "R4":
