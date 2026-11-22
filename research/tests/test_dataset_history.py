@@ -342,3 +342,43 @@ def test_written_chats_are_never_taken_as_questions_to_give_history_to():
                           period="none")) for n in range(10)]  # fmt: skip
     with pytest.raises(HistoryError, match=r"train: 0\.0% of chats ignore"):  # none given, not some written ones
         add_history(rows, "train")
+
+
+def test_arabizi_questions_get_history_on_up_to_half_their_versions_and_keep_one_without():
+    """Her OK of 2026-11-23: Arabizi had history on 21% of its questions against English 56%."""
+    import json
+
+    from research.dataset import mix
+
+    added, versions = Counter(), Counter()
+    arabizi_without = Counter()
+    for line in (mix.DATA_DIR / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines():
+        row = json.loads(line)
+        labels = row["labels"]
+        if labels["kind"] == "answer" or not labels.get("spec") or labels.get("chat"):
+            continue  # written chats come with their own history; the limit is for questions the builder gives it to
+        versions[labels["spec"]] += 1
+        if labels.get("history_role") == "independent" and labels.get("history_specs"):
+            added[labels["spec"]] += 1
+        elif labels["language"] != "english" and not read_prompt(row["messages"][0]["content"]).history:
+            arabizi_without[labels["spec"]] += 1
+    assert all(n <= max(1, versions[spec] // 2) for spec, n in added.items())
+    many = [spec for spec, n in versions.items() if n >= 3 and added[spec]]
+    assert many and all(arabizi_without[spec] >= 1 or spec not in arabizi_without for spec in many)
+
+
+def test_arabizi_history_share_rose_and_the_gap_to_english_closed():
+    import json
+
+    from research.dataset import mix
+
+    counts, with_history = Counter(), Counter()
+    for line in (mix.DATA_DIR / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines():
+        row = json.loads(line)
+        if row["labels"]["kind"] == "answer":
+            continue
+        group = "english" if row["labels"]["language"] == "english" else "arabizi"
+        counts[group] += 1
+        with_history[group] += bool(read_prompt(row["messages"][0]["content"]).history)
+    arabizi, english = with_history["arabizi"] / counts["arabizi"], with_history["english"] / counts["english"]
+    assert arabizi > 0.25 and english - arabizi < 0.20

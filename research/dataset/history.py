@@ -6,7 +6,9 @@ Decided with Christina on 2026-11-17/18 (agent_documentation/PROGRESS.md):
 - Earlier exchanges are other questions of the same user and split, with their own gold replies. Arabizi and mixed
   ones come only from lines she reviewed (batches 3 and 4); English ones from any batch. About 70% are SQL turns and
   about 80% are in the question's language group (English, or Arabizi and mixed).
-- Per question, history on at most a third of its versions, and at least one Arabizi version keeps none.
+- Per question, history on at most a third of its versions (half when it has Arabizi versions, and Arabizi ones
+  are given first: her OK of 2026-11-23, Arabizi had history on 21% vs English 56%), and at least one Arabizi
+  version keeps none.
 - Among the examples with history about 70% ignore it (a new question that states what it needs; a refusal; thanks;
   "ma fhemet") and about 30% use it (follow-ups). The share is checked: 65-75%.
 - 1-6 earlier exchanges, 35 / 25 / 17 / 11 / 7 / 5%, under the app's own limits: the history goes through the app's
@@ -240,10 +242,11 @@ def add_history(rows: list[dict], split: str) -> tuple[list[dict], dict]:
     versions = defaultdict(list)
     for turn, row in zip(turns, rows):
         versions[turn.spec].append(turn)
-    allowed = {spec: len(v) // 3 for spec, v in versions.items()}
+    allowed = {spec: len(v) // (2 if any(t.group == "arabizi" for t in v) else 3) for spec, v in versions.items()}
     arabizi_left = {spec: sum(t.group == "arabizi" for t in v) for spec, v in versions.items()}
     candidates = sorted((t for t in turns if can_be_given(t, rows[t.index])), key=lambda t: (t.spec, t.index))
     rng.shuffle(candidates)
+    candidates.sort(key=lambda t: t.group != "arabizi")  # Arabizi first (stable: still shuffled within)
     given = 0
     for turn in candidates:
         if given == wanted:
