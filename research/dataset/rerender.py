@@ -39,6 +39,24 @@ CHANGED_RULES = ((
 )  # fmt: skip
 
 
+# Part 4's rules (approved by Christina on 2026-11-22), after "List what I bought / spent".
+PART4_RULES = """
+- "Which shops / restaurants did I go to" (aya mata3em, 3edele el mahalet): every vendor with its total, most first.
+  "The most" (aktar shi) is the top one only. "The places I went to most" (top matare7): every vendor by visits.
+- "What did I buy at <shop>": that vendor's purchases, with receipt_date, item_name, currency and line_total, by date.
+- "Which items did I spend the most on": items by their USD total, most first; 3 when no number is given.
+- The priciest or cheapest things I bought (aghla / arkhas osas, ghrad): items by price per unit in USD,
+  MAX or MIN(line_total_usd / quantity) per item_name; 1 when one is asked, otherwise the number asked or 3.
+- "The biggest receipt" (aghla fatoura): the receipt with the highest total_usd, with its date, vendor and total.
+- "How much do I usually pay per visit at <shop>": the average receipt total per currency, with the number of visits.
+- "How many different shops / places": COUNT(DISTINCT vendor), leaving out bills and subscriptions as for visits.
+- "My last receipt from <shop>" (ekher fatoura): the latest receipt from that vendor, with its date and total."""
+PART4_PERIOD_RULE = """
+  "The end of the month" is its 21st to its last day: this month (bi ekher heda el shaher), a named month
+  (b ekher shaher teshreen) or the one just asked about (bi ekher hedek el shaher); reply CLARIFY for
+  "bi ekher el shaher" alone."""
+
+
 class UnreadablePrompt(ValueError):
     """A stored prompt that is not in the form build_prompt writes."""
 
@@ -93,12 +111,12 @@ def _names(line: str, label: str) -> list[str]:
 
 
 def without_batch5_lines(prompt: str) -> str:
-    """The prompt as batches 1-4 wrote it: no gender line, no new rule, the changed rules as they were."""
+    """The prompt as batches 1-4 wrote it: no gender line, no new rules, the changed rules as they were."""
     for line in GENDER_LINES.values():
         prompt = prompt.replace(f"\n{line}\n", "\n", 1)
     for before, now in CHANGED_RULES:
         prompt = prompt.replace(now, before, 1)
-    return prompt.replace(NEW_RULE, "", 1)
+    return prompt.replace(NEW_RULE, "", 1).replace(PART4_RULES, "", 1).replace(PART4_PERIOD_RULE, "", 1)
 
 
 def rerender(example: dict) -> dict:

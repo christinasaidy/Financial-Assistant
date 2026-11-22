@@ -316,3 +316,21 @@ def test_the_prompt_states_the_brand_conventions():  # approved 2026-11-16
             "bought in\n  (the same per-size rules), cheapest first; leave out lines with no brand.\n") in prompt  # fmt: skip
     assert ("- Which brand or kind is better (ahsan, afdal): reply CLARIFY; receipts show prices, not quality.\n"
             in prompt)  # fmt: skip
+
+
+def test_the_rules_tell_a_list_of_shops_from_the_top_one_and_name_the_new_query_kinds():
+    """Part 4's rule lines (approved by the user on 2026-11-22), after "List what I bought / spent"."""
+    prompt = build_prompt("aya mata3em rehet 3layon hal shaher?", NAMES, TODAY, gender=Gender.NOT_GIVEN)
+    listed = prompt.index('- "List what I bought / spent"')
+    rules = [
+        '- "Which shops / restaurants did I go to" (aya mata3em, 3edele el mahalet): every vendor with its total, most first.'
+        '\n  "The most" (aktar shi) is the top one only.',
+        '- "What did I buy at <shop>": that vendor\'s purchases',
+        '- "Which items did I spend the most on": items by their USD total, most first; 3 when no number is given.',
+        "- The priciest or cheapest things I bought (aghla / arkhas osas, ghrad)",
+        '- "The biggest receipt" (aghla fatoura): the receipt with the highest total_usd',
+        '- "How much do I usually pay per visit at <shop>": the average receipt total per currency',
+        '- "How many different shops / places": COUNT(DISTINCT vendor), leaving out bills and subscriptions',
+    ]
+    positions = [prompt.index(rule) for rule in rules]
+    assert listed < positions[0] and positions == sorted(positions) and positions[-1] < prompt.index("Today:")

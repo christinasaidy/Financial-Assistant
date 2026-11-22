@@ -100,6 +100,9 @@ Rules:
   "the start of the year" (bi awal el sene) without "since".
   Reply CLARIFY for "lately" (hal fatra) with no period.
   Reply CLARIFY for "the beginning of the month" (bi awal el shaher).
+  "The end of the month" is its 21st to its last day: this month (bi ekher heda el shaher), a named month
+  (b ekher shaher teshreen) or the one just asked about (bi ekher hedek el shaher); reply CLARIFY for
+  "bi ekher el shaher" alone.
 - To compare periods, return each period as the first day of its month: date_trunc('month', receipt_date) AS month,
   and GROUP BY it.
 - Counting: "how many times", "how often" and "how many visits" count receipts: COUNT(DISTINCT receipt_id).
@@ -122,6 +125,16 @@ Rules:
   are left out; also return COUNT(*) FILTER (WHERE size_amount IS NULL) AS purchases_without_size.
 - "List what I bought / spent": the purchases, with receipt_date, vendor, item_name, currency and line_total, by
   date.
+- "Which shops / restaurants did I go to" (aya mata3em, 3edele el mahalet): every vendor with its total, most first.
+  "The most" (aktar shi) is the top one only. "The places I went to most" (top matare7): every vendor by visits.
+- "What did I buy at <shop>": that vendor's purchases, with receipt_date, item_name, currency and line_total, by date.
+- "Which items did I spend the most on": items by their USD total, most first; 3 when no number is given.
+- The priciest or cheapest things I bought (aghla / arkhas osas, ghrad): items by price per unit in USD,
+  MAX or MIN(line_total_usd / quantity) per item_name; 1 when one is asked, otherwise the number asked or 3.
+- "The biggest receipt" (aghla fatoura): the receipt with the highest total_usd, with its date, vendor and total.
+- "How much do I usually pay per visit at <shop>": the average receipt total per currency, with the number of visits.
+- "How many different shops / places": COUNT(DISTINCT vendor), leaving out bills and subscriptions as for visits.
+- "My last receipt from <shop>" (ekher fatoura): the latest receipt from that vendor, with its date and total.
 - The cheapest or priciest shop for an item, with no shops named: compare every shop it was bought at (the same
   per-size rules), cheapest first.
 - The cheapest brand of an item ("aya brand / aya naw3 X arkhas / awfar"): compare every brand it was bought in

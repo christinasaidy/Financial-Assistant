@@ -67,6 +67,9 @@ FORMS = (
           "CLARIFY: aymta w mn aya mahal? aw shu fi yekun maktoub 3al fatoura?"),
     Forms("CLARIFY: aya mahal? fik taati tafasil aktar", "CLARIFY: aya mahal? fiki taate tafasil aktar",
           "CLARIFY: aya mahal bel zabt?"),
+    # Part 4 (2026-11-22): "bi ekher el shaher" alone, checking it means the last 10 days of this month (her ruling).
+    Forms("CLARIFY: azdak ekher 10 iyem mn hal shaher?", "CLARIFY: azdik ekher 10 iyem mn hal shaher?",
+          "CLARIFY: ekher 10 iyem mn hal shaher?"),
 )
 
 # Table F: the small-talk replies of batch 5 part 2, by their number in raw/batch5/smalltalk_replies_review.md
@@ -197,6 +200,17 @@ DECIDING = {
                        "CLARIFY: Ma la2ayt ta7wilet bel fwatir, msajalin bi esem tene?"),),
 }
 
+# Table H: part 4's questions back when the user asks about prices in general ("wen arkhas mahal la jib khodra bi
+# beirut?"): what the receipts can do instead (her forms, 2026-11-22; {x} the place, {y} the thing or the shops).
+PRICES = {
+    "thing": Forms("CLARIFY: ma fiye 2elak 3an kel {x}, bas fiye shuf wen jebta arkhas mn fwatirak. 3an aya {y} badak ta3ref?",
+                   "CLARIFY: ma fiye 2elik 3an kel {x}, bas fiye shuf wen jebta arkhas mn fwatirik. 3an aya {y} badik ta3rfe?",
+                   "CLARIFY: ma fiye 2oul 3an kel {x}, bas fiye shuf wen kenet arkhas bel fwatir. 3an aya {y}?"),
+    "shops": Forms("CLARIFY: ma ba3ref el as3ar bi kel {x}, bas fiye 2arenlak el {y} li rehet 3layon. shu habeb taaref?",
+                   "CLARIFY: ma ba3ref el as3ar bi kel {x}, bas fiye 2arenlik el {y} li rehte 3layon. shu habe taarfe?",
+                   "CLARIFY: ma ba3ref el as3ar bi kel {x}, bas fiye 2aren el {y} bel fwatir. shu bel zabt?"),
+}  # fmt: skip
+
 # Words that address a man. A reply holding one must have its forms above.
 MASCULINE_WORDS = ("fik", "baddak", "azdak", "2asdak", "elak", "se3dak", "bse3dak", "jewbak", "masroufak", "masrufak",
                    "masarifak", "fawatirak", "jebto", "enta")  # fmt: skip
@@ -207,7 +221,7 @@ def _pattern(template: str) -> re.Pattern:
     return re.compile("^" + re.escape(template).replace(r"\{x\}", "(?P<x>.+?)").replace(r"\{y\}", "(?P<y>.+?)") + "$")
 
 
-_ALL_FORMS = (*FORMS, *SMALLTALK.values(), *(forms for group in DECIDING.values() for forms in group))
+_ALL_FORMS = (*FORMS, *SMALLTALK.values(), *(forms for group in DECIDING.values() for forms in group), *PRICES.values())
 _PATTERNS = tuple((_pattern(forms.man), forms) for forms in _ALL_FORMS)
 
 
