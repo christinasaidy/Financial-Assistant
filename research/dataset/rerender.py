@@ -55,7 +55,8 @@ SHORTCUT_RULES = """
 - "The last time" (ekher marra) is not always a price: "how much did I spend / what did I buy the last time I
   went to <shop>" is that vendor's latest receipt (its total, or its items); "when" is MAX(receipt_date).
 - "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price: usually spent a month, per visit,
-  how often I go, or the shop I usually go to (the most visited, bills and subscriptions left out)."""  # the shortcut words (2026-11-22)
+  how often I go, or the shop I usually go to (the most visited, bills and subscriptions left out). "What I
+  usually buy" (aam jib, 3am jibon) is the items on the most receipts (at <shop>, if named), top 5."""  # the shortcut words (2026-11-22)
 PART4_PERIOD_RULE = """
   "The end of the month" is its 21st to its last day: this month (bi ekher heda el shaher), a named month
   (b ekher shaher teshreen) or the one just asked about (bi ekher hedek el shaher); reply CLARIFY for

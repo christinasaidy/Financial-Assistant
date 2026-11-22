@@ -43,6 +43,11 @@ DATA_DIR = build.DATA_DIR / "batch5"
 SEED = "fyp-dataset/batch5-shortcuts"
 USUALLY = ("3adatan", "aadatan", "bel 3ade", "bl 3ade", "m3adal", "usually", "on average", "normally")
 LAST_TIME = batch4.LAST_TIME
+# "aam jib..." is habitual (what I usually buy): with 3adatan or alone, never with ekher marra (her ruling, 2026-11-22)
+HABIT = tuple(f"{a} {v}" for a in ("aam", "3am") for v in ("jib", "jibon", "jiba", "jibo", "jeeb", "jeebon", "jeeba",
+                                                           "jeebo"))  # fmt: skip
+USUAL_BUY = USUALLY + HABIT
+NOT_GOODS = ("utility", "subscription", "taxi", "fuel", "cinema", "gym", "car_wash", "delivery")  # no goods to list
 
 
 def _with(spec: Spec | None, words: tuple[str, ...]) -> Spec | None:
@@ -86,6 +91,26 @@ def usual_shop(data: UserData, rng: random.Random) -> Spec | None:
                 "no period).", target, (USUALLY,), labels={"period": "none"})  # fmt: skip
 
 
+def usual_items(data: UserData, rng: random.Random, at_shop: bool) -> Spec | None:
+    """What the user usually buys (at a shop, if `at_shop`): the items on the most receipts, top 5."""
+    if not at_shop:
+        target = (f"SELECT item_name, COUNT(DISTINCT receipt_id) AS times FROM purchases{t._where(kinds._not_bills(data))} "
+                  "GROUP BY item_name ORDER BY times DESC, item_name LIMIT 5")
+        return Spec("L5", "sql", "What the user USUALLY buys (the items on the most of their receipts, top 5, bills and "
+                    "subscriptions left out; no shop, no period).", target, (USUAL_BUY,), labels={"period": "none"})
+    visits = Counter(r.shop for r in data.user.receipts if r.lines and not kinds._is_bill_shop(data, r.shop)
+                     and data.shop(r.shop).kind not in NOT_GOODS)  # fmt: skip
+    shops = sorted(s for s, n in visits.items() if n >= 3)  # one visit is not "usually"
+    if not shops:
+        return None
+    shop = rng.choice(shops)
+    target = (f"SELECT item_name, COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE vendor = {t.quoted(shop)} "
+              "GROUP BY item_name ORDER BY times DESC, item_name LIMIT 5")
+    return Spec("L4", "sql", f"What the user USUALLY buys at {shop} (the items on the most of its receipts, top 5; not "
+                "every purchase, not a price).", target, (t.shop_words(data.shop(shop)), USUAL_BUY),
+                labels={"period": "none", "shop": shop})  # fmt: skip
+
+
 def when_last(data, rng, at_shop):
     return batch4.last_time(data, rng, at_shop)
 
@@ -106,30 +131,39 @@ def how_often(data, rng):
 WANTS = ((when_last, (True,), 6), (when_last, (False,), 6), (last_visit_total, (), 12), (last_visit_items, (), 10),
          (usual_month, (True,), 7), (usual_month, (False,), 3), (per_visit, (), 10), (how_often, (), 10),
          (usual_shop, (), 6))  # fmt: skip
+# Added after her review (2026-11-22): what I usually buy ("aam jibon 3adatan", or "aam jib" alone)
+USUAL_BUY_WANTS = {"train": ((usual_items, (True,), 10), (usual_items, (False,), 3)),
+                   "validation": ((usual_items, (True,), 1),)}
+
+
+def _add(jobs: list[dict], seen: set, split: str, pool: list, wants: tuple, prefix: str, seed: str) -> None:
+    turn = 0
+    for index, (maker, args, count) in enumerate(wants):
+        for copy in range(count):
+            for attempt in range(len(pool) * 3):
+                number, data = pool[(turn + attempt) % len(pool)]
+                spec = maker(data, random.Random(f"{seed}/{split}/{index}/{copy}/{attempt}"), *args)
+                key = (number, spec.target) if spec else None
+                if spec is not None and key not in seen:
+                    seen.add(key)
+                    jobs.append({"job_id": f"{prefix}-{split[0]}-{len(jobs)}", "user": number, "split": split,
+                                 "today": data.today.isoformat(), "spec": asdict(spec)})
+                    break
+            else:
+                raise WordsError(f"{split}: no user can make {maker.__name__}{args}")
+            turn += 1
 
 
 def plan() -> list[dict]:
-    """Every wanted spec, given to the users of its split in turn; validation gets one of each maker."""
+    """Every wanted spec, given to the users of its split in turn; validation gets one of each maker. The jobs added
+    after her review (what I usually buy) come last, so the reviewed jobs keep their ids."""
     everyone = kinds.users()
     jobs, seen = [], set()
-    for split in ("train", "validation"):
-        pool = [(n, d) for n, s, d in everyone if s == split]
-        wants = WANTS if split == "train" else tuple((m, a, 1) for m, a, _ in WANTS[::2])
-        turn = 0
-        for index, (maker, args, count) in enumerate(wants):
-            for copy in range(count):
-                for attempt in range(len(pool) * 3):
-                    number, data = pool[(turn + attempt) % len(pool)]
-                    spec = maker(data, random.Random(f"{SEED}/{split}/{index}/{copy}/{attempt}"), *args)
-                    key = (number, spec.target) if spec else None
-                    if spec is not None and key not in seen:
-                        seen.add(key)
-                        jobs.append({"job_id": f"s-{split[0]}-{len(jobs)}", "user": number, "split": split,
-                                     "today": data.today.isoformat(), "spec": asdict(spec)})
-                        break
-                else:
-                    raise WordsError(f"{split}: no user can make {maker.__name__}{args}")
-                turn += 1
+    pools = {split: [(n, d) for n, s, d in everyone if s == split] for split in ("train", "validation")}
+    for split, pool in pools.items():
+        _add(jobs, seen, split, pool, WANTS if split == "train" else tuple((m, a, 1) for m, a, _ in WANTS[::2]), "s", SEED)
+    for split, pool in pools.items():
+        _add(jobs, seen, split, pool, USUAL_BUY_WANTS[split], "u", f"{SEED}/usual-buy")
     return jobs
 
 

@@ -343,3 +343,4 @@ def test_the_rules_say_last_time_and_usually_are_not_always_a_price():
     last_time = prompt.index('- "The last time" (ekher marra) is not always a price')
     usually = prompt.index('- "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price')
     assert last_receipt < last_time < usually < prompt.index("Today:")
+    assert '"What I\n  usually buy" (aam jib, 3am jibon) is the items on the most receipts' in prompt

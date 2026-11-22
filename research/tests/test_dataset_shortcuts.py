@@ -15,7 +15,7 @@ from research.dataset.words import WordsError
 
 JOBS = [json.loads(line) for line in shortcuts.JOBS_FILE.read_text(encoding="utf-8").splitlines()]
 REVIEWED = json.loads(shortcuts.REVIEWED.read_text(encoding="utf-8"))
-LAST_KINDS, USUAL_KINDS = {"B11", "L1", "L2"}, {"B7", "N8", "B13", "L3"}
+LAST_KINDS, USUAL_KINDS = {"B11", "L1", "L2"}, {"B7", "N8", "B13", "L3", "L4", "L5"}
 
 
 @pytest.fixture(scope="module")
@@ -29,8 +29,9 @@ def replayed(tmp_path_factory):
 
 def test_her_reviewed_lines_all_become_examples(replayed):
     report, _ = replayed
-    assert report == {"train": 150, "validation": 10, "near test questions, dropped": 0,
-                      "kinds": {"B11": 26, "L1": 26, "L2": 30, "B7": 22, "N8": 22, "B13": 20, "L3": 14}}  # fmt: skip
+    assert report == {"train": 176, "validation": 12, "near test questions, dropped": 0,
+                      "kinds": {"B11": 26, "L1": 26, "L2": 30, "B7": 22, "N8": 22, "B13": 20, "L3": 14, "L4": 22,
+                                "L5": 6}}  # fmt: skip
 
 
 # Her "yali / li jebta" lines (2026-11-22): one more version of each "what I bought the last time" job.
@@ -70,6 +71,12 @@ APPROVED = {
         "SELECT ROUND(COUNT(DISTINCT receipt_id) / 3.0, 1) AS visits_per_month FROM receipts WHERE vendor = "
         "'Allo Taxi' AND receipt_date >= date_trunc('month', CURRENT_DATE) - INTERVAL '3 months' AND receipt_date < "
         "date_trunc('month', CURRENT_DATE)",
+    "aadatan shu botlob mn malak?":
+        "SELECT item_name, COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE vendor = 'Malak el Tawouk' "
+        "GROUP BY item_name ORDER BY times DESC, item_name LIMIT 5",
+    "shu el ghrad li aam jibon 3adatan?":
+        "SELECT item_name, COUNT(DISTINCT receipt_id) AS times FROM purchases WHERE category <> 'Utilities' "
+        "GROUP BY item_name ORDER BY times DESC, item_name LIMIT 5",
     "shu howe aktar ma7al brou7 3le 3adatan?":
         "SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM category_spending WHERE category <> 'Utilities' "
         "AND vendor NOT IN ('Anghami') GROUP BY vendor ORDER BY visits DESC LIMIT 1",
@@ -91,7 +98,7 @@ def test_her_spelling_carefour_is_kept_and_accepted():
 def test_every_line_uses_the_shortcut_word_of_its_kind(replayed):
     _, by_question = replayed
     last = re.compile(r"(?<!\w)(ekher|akher) ?mar+a(?!\w)|last time", re.IGNORECASE)
-    usual = re.compile("|".join(re.escape(w) for w in shortcuts.USUALLY), re.IGNORECASE)
+    usual = re.compile("|".join(re.escape(w) for w in shortcuts.USUAL_BUY), re.IGNORECASE)
     for question, row in by_question.items():
         kind = row["labels"]["template"]
         assert (last if kind in LAST_KINDS else usual).search(question), (kind, question)
@@ -130,3 +137,55 @@ def test_jobs_that_are_not_the_plan_are_refused(tmp_path):
     saved.write_text("".join(json.dumps(j, ensure_ascii=False) + "\n" for j in changed), encoding="utf-8")
     with pytest.raises(WordsError, match="prepare again"):
         shortcuts.replay(jobs_file=saved, out_dir=tmp_path / "out")
+
+
+# What I usually buy (L4 at a shop, L5 anywhere), approved by her on 2026-11-22 with one fix (b2otlob -> botlob).
+USUAL_BUY = json.loads((shortcuts.RAW_DIR / "usual_buy_reviewed.json").read_text(encoding="utf-8"))
+
+
+def test_her_usual_buy_lines_are_in_and_b2otlob_is_not(replayed):
+    _, by_question = replayed
+    lines = [v["question"] for versions in USUAL_BUY.values() for v in versions]
+    assert len(lines) == 28 and all(q in by_question for q in lines)
+    assert "aadatan shu botlob mn malak?" in lines
+    assert not any("b2otlob" in q for versions in REVIEWED.values() for q in (v["question"] for v in versions))
+
+
+def test_aam_jib_never_goes_with_ekher_marra(replayed):
+    """Her ruling: "aam jib..." is habitual (what I usually buy), with 3adatan or alone, never with the last time."""
+    _, by_question = replayed
+    habit = re.compile("|".join(re.escape(w) for w in shortcuts.HABIT), re.IGNORECASE)
+    for question, row in by_question.items():
+        if habit.search(question):
+            assert row["labels"]["template"] in USUAL_KINDS, question
+
+
+def test_some_usual_buy_lines_say_aam_jib_alone():
+    usually = re.compile("|".join(re.escape(w) for w in shortcuts.USUALLY), re.IGNORECASE)
+    alone = [v["question"] for vs in USUAL_BUY.values() for v in vs if not usually.search(v["question"])]
+    assert "mn Burger King, shu 3am jib?" in alone and len(alone) == 7  # of her 28 approved lines
+
+
+def test_usual_buy_is_the_items_on_the_most_receipts_top_5():
+    for job in JOBS:
+        kind, target = job["spec"]["template"], job["spec"]["target"]
+        if kind in ("L4", "L5"):
+            assert target.startswith("SELECT item_name, COUNT(DISTINCT receipt_id) AS times FROM purchases")
+            assert target.endswith("GROUP BY item_name ORDER BY times DESC, item_name LIMIT 5")
+        if kind == "L5":
+            data = {n: d for n, _, d in kinds.users()}[job["user"]]
+            assert f"WHERE {kinds._not_bills(data)} GROUP BY" in target
+
+
+def test_usual_buy_at_a_shop_only_where_goods_are_bought_on_3_visits():
+    data = {n: d for n, _, d in kinds.users()}
+    for job in JOBS:
+        if job["spec"]["template"] == "L4":
+            user, shop = data[job["user"]], job["spec"]["labels"]["shop"]
+            assert user.shop(shop).kind not in shortcuts.NOT_GOODS, shop
+            assert sum(1 for r in user.user.receipts if r.shop == shop and r.lines) >= 3, shop
+
+
+def test_the_reviewed_jobs_kept_their_ids_when_usual_buy_was_added():
+    assert [j["job_id"] for j in JOBS][:75] == [f"s-t-{i}" for i in range(70)] + [f"s-v-{i}" for i in range(70, 75)]
+    assert [j["job_id"] for j in JOBS][75:] == [f"u-t-{i}" for i in range(75, 88)] + ["u-v-88"]
