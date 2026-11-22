@@ -9,6 +9,14 @@ class WeakPassword(DomainError):
     default_message = "Password does not meet the requirements"
 
 
+class InvalidFirstName(DomainError):
+    default_message = "Enter a valid first name"
+
+
+class InvalidGender(DomainError):
+    default_message = "Gender must be female, male or prefer_not_to_say"
+
+
 class EmailAlreadyRegistered(DomainError):
     default_message = "Email is already registered"
 

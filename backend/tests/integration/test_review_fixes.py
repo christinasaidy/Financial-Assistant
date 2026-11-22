@@ -37,7 +37,7 @@ def client(engine, tmp_path):
 def alice(client, engine):
     email = f"{uuid.uuid4()}@test.local"
     body = {"email": email, "password": "correct-horse"}
-    assert client.post("/auth/register", json=body).status_code == 201
+    assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
     yield {"Authorization": "Bearer " + client.post("/auth/login", json=body).json()["access_token"]}
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})

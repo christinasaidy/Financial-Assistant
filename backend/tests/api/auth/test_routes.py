@@ -4,8 +4,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api.app import create_app
+from app.api.auth.schemas import UserOut
 from app.api.container import Container
 from app.application.auth.auth_service import AuthService
+from app.application.auth.dtos import UserResponse
 from app.infrastructure.security.token_service import JwtTokenService
 from tests.fakes import FakeHasher, InMemoryFileStorage, InMemoryUserRepository
 
@@ -20,8 +22,9 @@ def client():
     return TestClient(create_app(Container(auth=auth, **others)))
 
 
-def register(client, email="a@b.com", password="correct-horse"):
-    return client.post("/auth/register", json={"email": email, "password": password})
+def register(client, email="a@b.com", password="correct-horse", first_name="Christina", gender="female"):
+    body = {"email": email, "password": password, "first_name": first_name, "gender": gender}
+    return client.post("/auth/register", json=body)
 
 
 def login(client, email="a@b.com", password="correct-horse"):
@@ -35,15 +38,48 @@ def test_register_then_login_then_me(client):
     body = response.json()
     assert body["token_type"] == "bearer"
     assert "password" not in str(body)
+    assert body["user"] == {"id": 1, "email": "a@b.com", "first_name": "Christina", "gender": "female"}
 
     me = client.get("/auth/me", headers={"Authorization": f"Bearer {body['access_token']}"})
     assert me.status_code == 200
-    assert me.json()["email"] == "a@b.com"
+    assert me.json() == {"id": 1, "email": "a@b.com", "first_name": "Christina", "gender": "female"}
 
 
 def test_register_never_returns_the_password_or_hash(client):
     body = register(client).json()
-    assert set(body) == {"id", "email"}
+    assert set(body) == {"id", "email", "first_name", "gender"}
+
+
+def test_register_returns_the_trimmed_first_name_and_the_gender(client):
+    response = register(client, first_name="  Rami ", gender="prefer_not_to_say")
+    assert response.status_code == 201
+    assert response.json() == {"id": 1, "email": "a@b.com", "first_name": "Rami", "gender": "prefer_not_to_say"}
+
+
+@pytest.mark.parametrize("field", ["email", "password", "first_name", "gender"])
+def test_every_registration_field_is_required(client, field):
+    body = {"email": "a@b.com", "password": "correct-horse", "first_name": "Christina", "gender": "female"}
+    del body[field]
+    assert client.post("/auth/register", json=body).status_code == 422
+    assert login(client).status_code == 401  # nothing was created
+
+
+@pytest.mark.parametrize("first_name", ["", "   ", "x" * 51])
+def test_a_blank_or_too_long_first_name_is_unprocessable(client, first_name):
+    response = register(client, first_name=first_name)
+    assert response.status_code == 422
+    assert "first name" in response.json()["detail"].lower()
+    assert login(client).status_code == 401
+
+
+def test_a_first_name_of_50_characters_is_accepted(client):
+    assert register(client, first_name="x" * 50).status_code == 201
+
+
+@pytest.mark.parametrize("gender", ["other", "Female", "", None, 1])
+def test_an_unknown_gender_is_unprocessable(client, gender):
+    assert register(client, gender=gender).status_code == 422
+    assert login(client).status_code == 401
 
 
 def test_duplicate_registration_is_a_conflict(client):
@@ -68,3 +104,8 @@ def test_me_requires_a_valid_token(client):
     assert client.get("/auth/me").status_code == 401
     assert client.get("/auth/me", headers={"Authorization": "Bearer garbage"}).status_code == 401
     assert client.get("/auth/me", headers={"Authorization": "Basic abc"}).status_code == 401
+
+
+def test_an_account_made_before_names_were_asked_shows_none():
+    out = UserOut.from_user(UserResponse(id=7, email="old@b.com", first_name=None, gender=None))
+    assert out.model_dump() == {"id": 7, "email": "old@b.com", "first_name": None, "gender": None}

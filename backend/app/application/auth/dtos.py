@@ -2,17 +2,23 @@
 
 from dataclasses import dataclass
 
+from app.domain.users.user import Gender
+
 
 @dataclass(frozen=True)
 class UserResponse:
     id: int
     email: str
+    first_name: str | None  # None only for accounts made before names were asked
+    gender: Gender | None
 
 
 @dataclass(frozen=True)
 class RegisterRequest:
     email: str
     password: str
+    first_name: str
+    gender: str  # female, male or prefer_not_to_say
 
 
 @dataclass(frozen=True)

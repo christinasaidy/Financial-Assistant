@@ -64,7 +64,7 @@ def client(make_client):
 def alice(client, engine):
     email = f"{uuid.uuid4()}@test.local"
     body = {"email": email, "password": "correct-horse"}
-    assert client.post("/auth/register", json=body).status_code == 201
+    assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
     yield {"Authorization": "Bearer " + client.post("/auth/login", json=body).json()["access_token"]}
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})
@@ -277,7 +277,7 @@ def test_the_orphan_clean_up_removes_only_unreferenced_old_files_of_the_app(engi
 
     # 7. Another user's committed receipt, checked as that user.
     bob = {"email": f"{uuid.uuid4()}@test.local", "password": "correct-horse"}
-    assert client.post("/auth/register", json=bob).status_code == 201
+    assert client.post("/auth/register", json=bob | {"first_name": "Bob", "gender": "male"}).status_code == 201
     bob_headers = {"Authorization": "Bearer " + client.post("/auth/login", json=bob).json()["access_token"]}
     try:
         upload_bytes(b"bob's", bob_headers)

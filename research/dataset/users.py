@@ -397,7 +397,8 @@ def seed_user(services: Services, user: SyntheticUser) -> int:
     """Create the user, their private categories and their receipts; returns the new user's id. Remove the user
     with `remove_user` afterwards."""
     email = f"dataset-{user.number:02d}-{uuid.uuid4()}@{EMAIL_DOMAIN}"
-    user_id = services.auth.register(RegisterRequest(email, f"{uuid.uuid4()}{uuid.uuid4()}")).id
+    password = f"{uuid.uuid4()}{uuid.uuid4()}"
+    user_id = services.auth.register(RegisterRequest(email, password, "Dataset", "prefer_not_to_say")).id
     for name in user.private_categories:
         services.categories.create(user_id, name)
     ids = {category.name: category.id for category in services.categories.list_all(user_id)}

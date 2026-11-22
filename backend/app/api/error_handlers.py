@@ -27,6 +27,8 @@ from app.domain.users.errors import (
     EmailAlreadyRegistered,
     InvalidCredentials,
     InvalidEmail,
+    InvalidFirstName,
+    InvalidGender,
     InvalidToken,
     WeakPassword,
 )
@@ -49,6 +51,8 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (UnsupportedFileType, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE),
     (InvalidEmail, 422),
     (WeakPassword, 422),
+    (InvalidFirstName, 422),
+    (InvalidGender, 422),
     (InvalidReceipt, 422),
     (InvalidExchangeRate, 422),
     (InvalidBudget, 422),
