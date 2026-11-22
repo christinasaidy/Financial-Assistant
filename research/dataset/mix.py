@@ -30,7 +30,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from research.dataset.fixes import fixed_question
+from research.dataset.fixes import fixed_question, history_problem, wrong_gold
 from research.dataset.shop_names import Swapper
 from research.dataset.genders import UnformedReply
 from research.dataset.history import HistoryError, add_history, history_report
@@ -199,6 +199,27 @@ def part1_failures(report: dict[str, int]) -> list[str]:
     return [f"{name}: {report[name]} < {least}" for name, least in PART1_MINIMUMS.items() if report[name] < least]
 
 
+def _wrong_gold(row: dict) -> bool:
+    """A stored gold reply left out (fixes.wrong_gold); answers and unreadable prompts are kept."""
+    try:
+        question = read_prompt(row["messages"][0]["content"]).question
+    except UnreadablePrompt:
+        return False
+    return wrong_gold(question, row["messages"][1]["content"]) is not None
+
+
+def _without_bad_history(row: dict, stored: dict) -> dict | None:
+    """The row, or its version without added history when the history could never come from the app
+    (fixes.history_problem); a stored chat with such history is left out (2026-11-22)."""
+    try:
+        parts = read_prompt(row["messages"][0]["content"])
+    except UnreadablePrompt:
+        return row
+    if not parts.history or history_problem(parts.history, parts.names) is None:
+        return row
+    return None if read_prompt(stored["messages"][0]["content"]).history else stored
+
+
 def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None, swap_shops: bool = True) -> dict[str, int]:
     """Every batch, whole, shuffled with a fixed seed. Refuses (CoverageError) before writing anything if the
     training split misses a threshold. `swap_shops` (on in the real mix): made-up shop names and padded lists
@@ -212,7 +233,9 @@ def build_mix(data_dir: Path = DATA_DIR, out_dir: Path | None = None, swap_shops
             lines += [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip() and (
                 source == SMALLTALK_SOURCE or json.loads(line)["labels"]["template"] not in SMALLTALK_TEMPLATES)]
         random.Random(f"{SEED}/{split}").shuffle(lines)
-        rebuilt, _ = add_history([rerender(json.loads(line)) for line in lines], split)
+        before = [row for row in (rerender(json.loads(line)) for line in lines) if not _wrong_gold(row)]
+        rebuilt, _ = add_history(before, split)
+        rebuilt = [row for row in (_without_bad_history(new, old) for new, old in zip(rebuilt, before)) if row]
         swapper = Swapper(split)  # made-up shop names and padded lists (2026-11-22)
         if swap_shops:
             rebuilt = [swapper.swapped(row, index) for index, row in enumerate(rebuilt)]

@@ -99,13 +99,35 @@ def _single(found: re.Match) -> str:
     return word.capitalize() if found.group(1)[0].isupper() else word
 
 
+def _usual(question: str) -> str:
+    """The question in lower case with sho / mish / mesh written shu / msh: what both hash-picked fixes read, so
+    neither changes what the other picks and running them again changes nothing."""
+    return re.sub(r"(?<!\w)(mish|mesh)(?!\w)", "msh", re.sub(r"(?<!\w)sho(?!\w)", "shu", question.lower()))
+
+
 def single_letters(question: str) -> str:
     """The question with its listed doubled words single, in about half of the questions."""
     if not _DOUBLED.search(question):
         return question
-    if int(hashlib.sha256(question.lower().encode("utf-8")).hexdigest(), 16) % 2:
+    if int(hashlib.sha256(_usual(question).encode("utf-8")).hexdigest(), 16) % 2:
         return question
     return _DOUBLED.sub(_single, question)
+
+
+# - Her everyday spellings (2026-11-22: "sho, mish ... are very common"): the mix had sho 1 / shu 1,151 and mish 1 /
+#   msh + mesh 193. About a third of the questions with "shu" say "sho", and about a third with "msh" / "mesh" say
+#   "mish" (a hash of the question picks which, each word on its own). "bs" is not hers: left out.
+HER_SPELLINGS = ((re.compile(r"(?<!\w)shu(?!\w)", re.IGNORECASE), "sho", "sho"),
+                 (re.compile(r"(?<!\w)(msh|mesh)(?!\w)", re.IGNORECASE), "mish", "mish"))  # fmt: skip
+
+
+def her_spellings(question: str) -> str:
+    """Stable: the choice reads the question with sho / mish put back, so running it again changes nothing."""
+    key = _usual(question)
+    for word, spelling, salt in HER_SPELLINGS:
+        if word.search(question) and int(hashlib.sha256(f"{salt}/{key}".encode("utf-8")).hexdigest(), 16) % 3 == 0:
+            question = word.sub(lambda m: spelling.capitalize() if m.group(0)[0].isupper() else spelling, question)
+    return question
 
 
 def fixed_question(question: str) -> str:
@@ -113,7 +135,7 @@ def fixed_question(question: str) -> str:
         question = rule(question)
     for word, fixed in QUESTION_WORDS:
         question = word.sub(fixed, question)
-    return single_letters(question)
+    return her_spellings(single_letters(question))
 
 
 def fixed_reply(reply: str, vendors=()) -> str:
@@ -144,3 +166,34 @@ def pharmacy_reply(reply: str, question: str, vendors=(), english: bool = False)
         return reply
     a, b = pharmacies[:2] if len(pharmacies) == 2 else (", ".join(pharmacies[:-1]), pharmacies[-1])
     return f"CLARIFY: {a} or {b}?" if english else f"CLARIFY: azdak {a} aw {b}?"
+
+
+# - Gold replies left out of the mix (found by the pre-mortem audit, 2026-11-22): a question that names a period
+#   whose SQL has no date at all (8 batch-1 lines: "how much did I spend on President cheese this month"), and visits
+#   counted for a bill or a subscription (41 lines: "kam marra re7et 3a Touch?"; her rule: bills are not visits).
+_PERIOD = re.compile(r"\b(this|last) (month|year|week)\b|\bhal (shaher|sene|jem3a|jemaa|osbou3)\b|\bekher shaher\b|"
+                     r"\bmbere7\b|\byesterday\b|\btoday\b|\blyom\b|since the start", re.IGNORECASE)  # fmt: skip
+_BILLS = ("Netflix", "Spotify", "Shahid", "Anghami", "Ishtirak el Hay", "Ogero", "EDL", "Alfa", "Touch")
+
+
+def wrong_gold(question: str, reply: str) -> str | None:
+    """Why a stored gold reply must not be trained on, or None."""
+    reads = reply.startswith("SELECT") and " FROM " in reply  # a query over the receipts, not a placeholder
+    if reads and _PERIOD.search(question) and "receipt_date" not in reply and "CURRENT_DATE" not in reply:
+        return "a period with no date"
+    if "COUNT(DISTINCT receipt_id) AS visits" in reply and any(f"vendor = {_quoted(b)}" in reply for b in _BILLS):
+        return "visits to a bill"
+    return None
+
+
+def history_problem(question_turns, names) -> str | None:
+    """Why the earlier turns of a chat could never come from the app, or None: an earlier query naming a category,
+    shop or item not in the user's lists (the 6 "Rent" chats), or an earlier "the pharmacy" turn still adding two up."""
+    for turn in question_turns:
+        for column, listed in (("category", names.categories), ("vendor", names.vendors), ("item_name", names.items)):
+            for name in re.findall(rf"{column} = '((?:[^']|'')*)'", turn.reply):
+                if name.replace("''", "'") not in listed:
+                    return f"an earlier {column} not listed"
+        if pharmacy_reply(turn.reply, turn.question, names.vendors) != turn.reply:
+            return "an earlier pharmacy turn adding two up"
+    return None

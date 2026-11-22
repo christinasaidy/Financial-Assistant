@@ -9,6 +9,7 @@ reviewed), this module:
   included; the 8 "no receipts only" shops are always swapped; a made-up name is the answer at most 3 times;
 - pads the user's shop list with made-up names to 20-100 (the app's cap is 100), at random places, never of a kind
   the example mentions and never a pharmacy (the prompt picks pharmacies by name), so no reply becomes wrong;
+- types the shop in lower case in about 25% of the questions that name a listed one (the SQL keeps the name);
 - keeps 15% of the family and first names out of training (HELD_OUT), for fine-tune 5's test.
 Bills, subscriptions, taxis, delivery apps, cinemas, tobacco and department stores keep their real names (no local
 ones exist); items and the answer-step examples are not touched. Printed names only: no spoken forms (her choice:
@@ -29,6 +30,7 @@ from research.dataset.users import gender_of
 
 SEED = "fyp-dataset/batch5-shop-names"
 SWAP_SHARE, MOST_ANSWERS, PAD_LEAST, PAD_MOST = 0.3, 3, 20, 100
+LOWER_SHARE = 0.25  # questions typing a listed shop in lower case, as on a phone (the words audit, 2026-11-22)
 ASK_BACK_ONLY = ("McDonald's", "Sushi Co", "Maliks", "Dunkin", "Grand Cinemas", "Virgin Megastore", "Feel22",
                  "IQOS Boutique")  # fmt: skip
 SURNAMES = (
@@ -39,8 +41,9 @@ SURNAMES = (
     "Hachem Sarkis Bechara Maroun Najem Semaan Jabbour Khattar Rached Kfoury Ayoub Boustany Doumit Eid Hatem Mrad "
     "Obeid Saab Saber Tawk Younan Zahr Fayad Chedid Rahal Abi-Nader Abi-Khalil Abou-Jaoude Bou-Saab Nasr Sakr Helou "
     "Hosni Ghorayeb Mikati Daccache Lteif Massoud Abdallah Aziz Ibrahim Dib Gebran Habib Najm Rizk-Allah Wakim").split()  # fmt: skip
-FIRST_NAMES = ("Nader Fadi Rami Samir Elie Georges Joseph Michel Ali Hassan Khaled Walid Ziad Karim Charbel Fouad "
+FIRST_NAMES = ("Nader Rami Samir Elie Georges Joseph Michel Ali Hassan Khaled Walid Ziad Karim Charbel Fouad "
                "Marwan Nabil Salim Wadih Youssef Imad Samer Hadi Bassam Raymond Toufic Jamil Sami Ghassan").split()  # fmt: skip
+# No first name of a training line (deciding.LANDLORD "Abou Fadi") is in FIRST_NAMES, so none can be held out.
 # Kind words as receipts print them: "X {name}" or "{name} X" (a leading "+").
 PRINTED = {
     "supermarket": ("Supermarché", "Supermarket", "Market"), "minimarket": ("Mini Market", "Épicerie", "Alimentation"),
@@ -189,9 +192,16 @@ class Swapper:
             if name not in vendors:
                 vendors.insert(rng.randint(0, len(vendors)), name)
                 padded += 1
+        question = in_question(parts.question)
+        lowered = []
+        if rng.random() < LOWER_SHARE:  # the SQL keeps the exact name: only the question is typed in lower case
+            for name in sorted(vendors, key=len, reverse=True):
+                if name not in WORD_NAMES and name != name.lower() and re.search(rf"(?<![\w']){re.escape(name)}(?![\w'])", question):
+                    question = re.sub(rf"(?<![\w']){re.escape(name)}(?![\w'])", lambda _, n=name.lower(): n, question)
+                    lowered.append(name)
         history = tuple(Exchange(in_question(e.question), in_reply(e.reply)) for e in parts.history)
         names = UserNames(items=parts.names.items, vendors=vendors, categories=parts.names.categories)
-        prompt = build_prompt(in_question(parts.question), names, parts.today, history, gender=gender_of(row["labels"]["user"]))
+        prompt = build_prompt(question, names, parts.today, history, gender=gender_of(row["labels"]["user"]))
         new = {**row, "messages": [{**row["messages"][0], "content": prompt}, {**row["messages"][1], "content": in_reply(reply)}],
-               "labels": {**row["labels"], "shop_swap": mapping, "padded": padded}}  # fmt: skip
+               "labels": {**row["labels"], "shop_swap": mapping, "padded": padded, "lower_case": lowered}}  # fmt: skip
         return new

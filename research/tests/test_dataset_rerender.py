@@ -211,7 +211,8 @@ def test_her_batch1_rules_fix_the_other_batches_questions(stored, fixed):
 
 def test_her_articles_rule_is_left_out_because_it_breaks_batch2s_wording():
     stored = "men kel el marraat li jebt fiya ma3joun snen, shu moyenne se3er el litre ma3 arkhas w aghla se3er?"
-    assert fixed_question(stored) == stored
+    fixed = fixed_question(stored)  # other approved fixes (sho, single letters) may apply; the articles one never
+    assert "se3er el litre ma3 arkhas" in fixed and "litre el ma3" not in fixed
 
 
 def test_an_answer_example_gets_the_same_question_fix_and_nothing_else():
@@ -492,3 +493,90 @@ def test_the_replies_keep_their_double_letters():
     assert new["messages"][1]["content"] == reply
     assert new["messages"][0]["content"].endswith(f"Question: {single_letters(question)}\nReply:")
     assert "ma7alet" in single_letters(question)
+
+
+# Gold replies left out and impossible chat history (the pre-mortem audit, 2026-11-22).
+from research.dataset.fixes import history_problem, wrong_gold  # noqa: E402
+
+NO_DATE = "SELECT currency, SUM(line_total) AS total_spent FROM purchases WHERE item_name = 'cheese'"
+
+
+def test_a_period_with_no_date_and_visits_to_a_bill_are_left_out():
+    assert wrong_gold("how much did I spend on President cheese this month", NO_DATE) == "a period with no date"
+    assert wrong_gold("how much did I spend on cheese", NO_DATE) is None
+    assert wrong_gold("how much on cheese this month", NO_DATE + " AND receipt_date >= date_trunc('month', CURRENT_DATE)") is None
+    visits = "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = '{}'"
+    assert wrong_gold("kam marra re7et 3a Touch?", visits.format("Touch")) == "visits to a bill"
+    assert wrong_gold("kam marra re7et 3a Spinneys?", visits.format("Spinneys")) is None
+
+
+def test_an_earlier_turn_the_app_could_never_send_is_found():
+    names = UserNames(items=["bread"], vendors=["Spinneys", "Pharmacie Mazloum", "Pharmacie Nassar"], categories=["Dining"])
+    rent = Exchange("How much rent did I pay this year?", "SELECT SUM(amount) FROM category_spending WHERE category = 'Rent'")
+    assert history_problem((rent,), names) == "an earlier category not listed"
+    both = Exchange("aymta rehet 3al pharmacie?", "SELECT MAX(receipt_date) FROM receipts WHERE vendor IN "
+                    "('Pharmacie Mazloum', 'Pharmacie Nassar')")  # fmt: skip
+    assert history_problem((both,), names) == "an earlier pharmacy turn adding two up"
+    fine = Exchange("aday sarafet bi Spinneys?", "SELECT 1 FROM receipts WHERE vendor = 'Spinneys'")
+    assert history_problem((fine,), names) is None
+
+
+def test_the_mix_has_no_left_out_gold_and_no_impossible_history():
+    for split in ("train", "validation"):
+        for line in (mix.DATA_DIR / "mix" / f"{split}.jsonl").read_text(encoding="utf-8").splitlines():
+            row = json.loads(line)
+            if row["labels"]["kind"] == "answer":
+                continue
+            parts = read_prompt(row["messages"][0]["content"])
+            assert wrong_gold(parts.question, row["messages"][1]["content"]) is None, parts.question
+            assert not parts.history or history_problem(parts.history, parts.names) is None, parts.question
+
+
+def test_a_row_given_impossible_history_goes_back_to_its_version_without_it():
+    # old_example's lists (NAMES) hold no "Rent" category
+    stored = old_example(NOT_GIVEN, "aday sarafet bi Spinneys?", "SELECT 1 FROM receipts WHERE vendor = 'Spinneys'", ())
+    rent = Exchange("rent?", "SELECT 1 FROM category_spending WHERE category = 'Rent'")
+    with_history = old_example(NOT_GIVEN, "aday sarafet bi Spinneys?", "SELECT 1 FROM receipts WHERE vendor = 'Spinneys'", (rent,))
+    assert mix._without_bad_history(with_history, stored) is stored
+    assert mix._without_bad_history(with_history, with_history) is None  # a stored chat: left out
+    assert mix._without_bad_history(stored, stored) is stored
+
+
+# Her everyday spellings (2026-11-22): sho and mish in about a third of the questions; "bs" is not hers.
+from research.dataset.fixes import her_spellings  # noqa: E402
+
+
+def test_sho_and_mish_each_take_about_a_third_of_their_questions_and_running_again_changes_nothing():
+    questions = [f"shu sarafet {i}? msh kam marra" for i in range(600)]
+    fixed = [her_spellings(q) for q in questions]
+    sho = sum(f.startswith("sho ") for f in fixed) / len(fixed)
+    mish = sum(" mish kam" in f for f in fixed) / len(fixed)
+    assert 0.25 < sho < 0.42 and 0.25 < mish < 0.42
+    assert all(fixed_question(fixed_question(q)) == fixed_question(q) for q in questions[:200])
+
+
+def test_bas_is_never_written_bs_and_a_capital_stays():
+    assert not any(" bs " in her_spellings(f"aday sarafet bas {i} hal shaher") for i in range(300))
+    capital = next(her_spellings(f"Shu {i}") for i in range(100) if her_spellings(f"Shu {i}") != f"Shu {i}")
+    assert capital.startswith("Sho ")
+
+
+def test_in_the_mix_sho_and_mish_are_no_longer_missing():
+    counts = {"sho": 0, "shu": 0, "mish": 0}
+    for line in (mix.DATA_DIR / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines():
+        row = json.loads(line)
+        if row["labels"]["kind"] != "answer":
+            q = re.findall(r"^Question: (.*)$", row["messages"][0]["content"], re.M)[-1]
+            for w in counts:
+                counts[w] += bool(re.search(rf"(?<!\w){w}(?!\w)", q, re.IGNORECASE))
+    assert counts["sho"] > 250 and counts["mish"] > 40 and counts["shu"] > counts["sho"]
+
+
+def test_the_mix_drops_a_wrong_gold_row_and_keeps_a_good_one():
+    bad = old_example(NOT_GIVEN, "how much did I spend on cheese this month", NO_DATE)
+    good = old_example(NOT_GIVEN, "how much did I spend on cheese", NO_DATE)
+    assert mix._wrong_gold(bad) and not mix._wrong_gold(good)
+
+
+def test_the_question_fix_writes_her_spellings_too():
+    assert any(fixed_question(f"shu sarafet {i}?").startswith("sho ") for i in range(30))

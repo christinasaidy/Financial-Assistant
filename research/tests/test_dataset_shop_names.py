@@ -58,6 +58,7 @@ def test_an_ask_back_only_shop_is_always_swapped_in_the_question_and_the_reply()
 
 def test_a_swapped_shop_changes_in_the_list_the_question_and_the_sql_together(monkeypatch):
     monkeypatch.setattr(shop_names, "SWAP_SHARE", 1.0)
+    monkeypatch.setattr(shop_names, "LOWER_SHARE", 0.0)  # lower case has its own test
     sql = f"SELECT SUM(total) AS total_spent FROM receipts WHERE vendor = {t.quoted('Spinneys')}"
     new = shop_names.Swapper("train").swapped(_row("adesh sarafet total 3a spinis hal shaher?", sql), 0)
     made_up = new["labels"]["shop_swap"]["Spinneys"]
@@ -69,6 +70,7 @@ def test_a_swapped_shop_changes_in_the_list_the_question_and_the_sql_together(mo
 
 def test_the_shop_total_is_swapped_only_where_it_is_written_as_the_shop(monkeypatch):
     monkeypatch.setattr(shop_names, "SWAP_SHARE", 1.0)
+    monkeypatch.setattr(shop_names, "LOWER_SHARE", 0.0)  # lower case has its own test
     sql = f"SELECT SUM(total) AS total_spent FROM receipts WHERE vendor = {t.quoted('Total')}"
     new = shop_names.Swapper("train").swapped(_row("total masroufe 3and Total hal shaher?", sql), 0)
     made_up = new["labels"]["shop_swap"]["Total"]
@@ -150,14 +152,19 @@ def test_the_real_mix_is_the_batch_mix_with_only_shops_swapped_and_lists_padded(
     for row in real:
         labels = dict(row["labels"])
         mapping, padded = labels.pop("shop_swap"), labels.pop("padded")
+        if mapping:
+            labels.pop("lower_case")
         parts = read_prompt(row["messages"][0]["content"])
         if mapping:
             assert not any(t.quoted(shop) in row["messages"][1]["content"] for shop in mapping)
             continue
         vendors = [v for v in parts.names.vendors if v not in made_up]
         assert len(parts.names.vendors) - len(vendors) == padded
+        question = parts.question
+        for name in labels.pop("lower_case"):
+            question = re.sub(rf"(?<![\w']){re.escape(name.lower())}(?![\w'])", lambda _, n=name: n, question)
         names = UserNames(items=parts.names.items, vendors=vendors, categories=parts.names.categories)
-        prompt = build_prompt(parts.question, names, parts.today, parts.history, gender=gender_of(labels["user"]))
+        prompt = build_prompt(question, names, parts.today, parts.history, gender=gender_of(labels["user"]))
         restored = {**row, "messages": [{**row["messages"][0], "content": prompt}, row["messages"][1]], "labels": labels}
         assert json.dumps(restored, ensure_ascii=False) in plain
         kept += 1
@@ -184,3 +191,34 @@ def test_an_ask_back_only_shop_is_swapped_every_time_not_only_in_the_30_percent(
     swapper = shop_names.Swapper("train")
     row = _row("kam marra akalet 3and macdo hal shaher?", "CLARIFY: ma la2ayt fatoura mn McDonald's hal shaher")
     assert all("McDonald's" in swapper.swapped(row, i)["labels"]["shop_swap"] for i in range(40))
+
+
+def test_no_held_out_name_appears_anywhere_in_training():
+    from research.dataset import deciding
+
+    assert "Fadi" not in shop_names.FIRST_NAMES and "Fadi" in deciding.LANDLORD
+    held = ({w for s in shop_names.HELD_OUT[0] for w in s.split("-")} - shop_names.PARTICLES) | shop_names.HELD_OUT[1]
+    for split in ("train", "validation"):
+        for row in _mix_rows(split):
+            text = row["messages"][0]["content"].split("Today:")[-1] + " " + row["messages"][1]["content"]
+            assert not any(re.search(rf"(?<!\w){re.escape(w)}(?!\w)", text) for w in held), row["labels"].get("spec")
+
+
+
+def test_a_quarter_of_questions_type_a_listed_shop_in_lower_case_and_the_sql_keeps_its_name(monkeypatch):
+    monkeypatch.setattr(shop_names, "SWAP_SHARE", 0.0)
+    swapper = shop_names.Swapper("train")
+    sql = "SELECT 1 FROM receipts WHERE vendor = 'Spinneys'"
+    rows = [swapper.swapped(_row("aday sarafet 3and Spinneys?", sql), i) for i in range(400)]
+    lowered = [r for r in rows if r["labels"]["lower_case"]]
+    assert 0.18 < len(lowered) / len(rows) < 0.32
+    for r in lowered:
+        assert read_prompt(r["messages"][0]["content"]).question == "aday sarafet 3and spinneys?"
+        assert r["messages"][1]["content"] == sql and "Spinneys" in read_prompt(r["messages"][0]["content"]).names.vendors
+
+
+def test_a_shop_name_that_is_also_a_word_is_never_lower_cased(monkeypatch):
+    monkeypatch.setattr(shop_names, "SWAP_SHARE", 0.0)
+    monkeypatch.setattr(shop_names, "LOWER_SHARE", 1.0)
+    row = _row("total masroufe 3and Total?", "SELECT 1 FROM receipts WHERE vendor = 'Total'")
+    assert read_prompt(shop_names.Swapper("train").swapped(row, 0)["messages"][0]["content"]).question == "total masroufe 3and Total?"
