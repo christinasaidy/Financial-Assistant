@@ -14,7 +14,7 @@ from datetime import date
 
 from app.domain.assistant.prompt import GENDER_LINES, INSTRUCTIONS, Exchange, UserNames, build_prompt
 
-from research.dataset.fixes import fixed_question, fixed_reply
+from research.dataset.fixes import fixed_question, fixed_reply, pharmacy_reply
 from research.dataset.genders import for_gender, question_for_gender
 from research.dataset.users import gender_of
 
@@ -35,7 +35,11 @@ CHANGED_RULES = ((
     '- "The shop I went to most" counts visits, COUNT(DISTINCT receipt_id) per vendor, most first; "the shop I spent\n'
     "  most at\" adds up money. Bills and subscriptions are not visits: leave out category = 'Utilities' and the\n"
     "  user's Netflix, Shahid, Anghami or Spotify, e.g. FROM category_spending WHERE category <> 'Utilities' AND\n"
-    "  vendor NOT IN ('Anghami')."),
+    "  vendor NOT IN ('Anghami')."), (
+    "  A pharmacy (pharmacie): vendor IN the user's shops whose name says Pharmacie.",  # her pharmacy rulings, 2026-11-22
+    '  A pharmacy (pharmacie): "saydaliyet X" / "Pharmacie X" is that one shop; "el saydaliyet", "pharmacies" or "a\n'
+    '  pharmacy" is every shop whose name says Pharmacie (vendor IN them); "el saydaliye" / "the pharmacy" with no\n'
+    '  name: CLARIFY which, naming them, when the user has more than one, otherwise that one.'),
 )  # fmt: skip
 
 
@@ -144,6 +148,8 @@ def rerender(example: dict) -> dict:
 
     rebuilt = copy.deepcopy(example)
     rebuilt["messages"][0]["content"] = prompt
-    rebuilt["messages"][1]["content"] = for_gender(fixed_reply(old_reply, parts.names.vendors), gender, parts.question)
+    reply = pharmacy_reply(fixed_reply(old_reply, parts.names.vendors), parts.question, parts.names.vendors,
+                           english=labels.get("language") == "english")  # "the pharmacy" with two: ask which (2026-11-22)
+    rebuilt["messages"][1]["content"] = for_gender(reply, gender, parts.question)
     rebuilt["labels"]["gender"] = gender.value
     return rebuilt

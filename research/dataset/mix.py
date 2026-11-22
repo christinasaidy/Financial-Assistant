@@ -48,7 +48,8 @@ SOURCES = ("{split}.jsonl", "batch2/{split}.jsonl", "batch2/extras_{split}.jsonl
            "batch5/kinds_more_{split}.jsonl",  # part 4: her added lines and the end of the month (2026-11-22)
            "batch5/months_{split}.jsonl",  # named months that already passed this year (2026-11-22)
            "batch5/shortcuts_{split}.jsonl",  # ekher marra / 3adatan with other meanings than a price (2026-11-22)
-           "batch5/until_now_{split}.jsonl")  # her "la hadit hala2" (2026-11-22)
+           "batch5/until_now_{split}.jsonl",  # her "la hadit hala2" (2026-11-22)
+           "batch5/pharmacies_{split}.jsonl")  # "the pharmacy" when the user has two (2026-11-22)
 # Part 2 rebuilds every stored small-talk example (R1-R5) with a reply of its kind, so the stored ones are left out.
 SMALLTALK_SOURCE = "batch5/smalltalk_{split}.jsonl"
 SMALLTALK_TEMPLATES = frozenset({"R1", "R2", "R3", "R4", "R5"})

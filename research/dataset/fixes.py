@@ -120,3 +120,27 @@ def fixed_reply(reply: str, vendors=()) -> str:
     """The gold reply with every approved fix applied (`vendors`: the user's, as the prompt lists them); any other
     reply is returned as it is."""
     return _top_visited(_price_change(_VISITS_PER_MONTH.sub(_WITH_VISITS, reply, count=1)), vendors)
+
+
+# - "The pharmacy" when the user has two (her ruling, 2026-11-22): a stored question about "el saydaliye / pharmacie /
+#   the pharmacy" with no name, from a user with more than one pharmacy, added them all up; it now asks which,
+#   naming them (genders.PHARMACIES gives the woman's and neutral forms). "a / any pharmacy", the plural
+#   ("saydaliyet" alone, "pharmacies") and a named one ("saydaliyet Mazloum", "Pharmacie Nassar") are left as they are.
+_ONE_PHARMACY = re.compile(r"(?<![\w-])(saydaliye|saydalie|pharmacie|pharmacy)(?!\w)", re.IGNORECASE)
+_ANY = re.compile(r"(?<!\w)(a|any)\s+$", re.IGNORECASE)
+
+
+def pharmacy_reply(reply: str, question: str, vendors=(), english: bool = False) -> str:
+    pharmacies = sorted(v for v in vendors if v.startswith("Pharmacie"))
+    if len(pharmacies) < 2 or not reply.startswith("SELECT"):
+        return reply
+    if f"vendor IN ({', '.join(map(_quoted, pharmacies))})" not in reply:
+        return reply
+    found = _ONE_PHARMACY.search(question)
+    if not found or _ANY.search(question[: found.start()]):
+        return reply
+    names = {w.lower() for p in pharmacies for w in p.split()[1:]}
+    if any(re.search(rf"(?<!\w){re.escape(n)}(?!\w)", question, re.IGNORECASE) for n in names):
+        return reply
+    a, b = pharmacies[:2] if len(pharmacies) == 2 else (", ".join(pharmacies[:-1]), pharmacies[-1])
+    return f"CLARIFY: {a} or {b}?" if english else f"CLARIFY: azdak {a} aw {b}?"

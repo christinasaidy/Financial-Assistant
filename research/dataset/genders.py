@@ -211,6 +211,9 @@ PRICES = {
                    "CLARIFY: ma ba3ref el as3ar bi kel {x}, bas fiye 2aren el {y} bel fwatir. shu bel zabt?"),
 }  # fmt: skip
 
+# "The pharmacy" when the user has two (her forms, 2026-11-22): which one, by the printed names ({x}, {y}).
+PHARMACIES = Forms("CLARIFY: azdak {x} aw {y}?", "CLARIFY: azdik {x} aw {y}?", "CLARIFY: {x} aw {y}?")
+
 # Words that address a man. A reply holding one must have its forms above.
 MASCULINE_WORDS = ("fik", "baddak", "azdak", "2asdak", "elak", "se3dak", "bse3dak", "jewbak", "masroufak", "masrufak",
                    "masarifak", "fawatirak", "jebto", "enta")  # fmt: skip
@@ -221,7 +224,8 @@ def _pattern(template: str) -> re.Pattern:
     return re.compile("^" + re.escape(template).replace(r"\{x\}", "(?P<x>.+?)").replace(r"\{y\}", "(?P<y>.+?)") + "$")
 
 
-_ALL_FORMS = (*FORMS, *SMALLTALK.values(), *(forms for group in DECIDING.values() for forms in group), *PRICES.values())
+_ALL_FORMS = (*FORMS, *SMALLTALK.values(), *(forms for group in DECIDING.values() for forms in group), *PRICES.values(),
+              PHARMACIES)  # fmt: skip
 _PATTERNS = tuple((_pattern(forms.man), forms) for forms in _ALL_FORMS)
 
 

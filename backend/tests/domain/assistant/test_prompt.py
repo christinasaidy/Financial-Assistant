@@ -302,7 +302,8 @@ def test_the_prompt_states_the_batch4_conventions():  # approved 2026-11-16, wor
     assert '  Reply CLARIFY for "the beginning of the month" (bi awal el shaher).\n' in prompt
     assert ('  "How often do I go to <shop>" with no period is visits per month: the last 3 complete months\' visits '
             "divided by 3.\n") in prompt  # fmt: skip
-    assert "  A pharmacy (pharmacie): vendor IN the user's shops whose name says Pharmacie.\n" in prompt
+    # The pharmacy line, reworded by her rulings of 2026-11-22 (test_the_pharmacy_rule_asks_which_when_the_user_has_two)
+    assert '  A pharmacy (pharmacie): "saydaliyet X" / "Pharmacie X" is that one shop;' in prompt
     assert '- "When was the last time I bought X / went to <shop>": the latest date, MAX(receipt_date).\n' in prompt
     assert ('- "When did I go to <shop> / buy X" in a period: list the dates (receipt_date, vendor), by date.\n'
             in prompt)  # fmt: skip
@@ -344,3 +345,11 @@ def test_the_rules_say_last_time_and_usually_are_not_always_a_price():
     usually = prompt.index('- "Usually / on average" (3adatan, m3adal, bel 3ade) is not always a price')
     assert last_receipt < last_time < usually < prompt.index("Today:")
     assert '"What I\n  usually buy" (aam jib, 3am jibon) is the items on the most receipts' in prompt
+
+
+def test_the_pharmacy_rule_asks_which_when_the_user_has_two():
+    """Her rulings (2026-11-22): "saydaliyet X" is one shop, "el saydaliyet" all of them, "el saydaliye" with two asks."""
+    prompt = build_prompt("aday sarafet bel saydaliye?", NAMES, TODAY, gender=Gender.NOT_GIVEN)
+    assert '"saydaliyet X" / "Pharmacie X" is that one shop' in prompt
+    assert '"el saydaliye" / "the pharmacy" with no\n  name: CLARIFY which, naming them, when the user has more than one' in prompt
+    assert "vendor IN the user's shops whose name says Pharmacie." not in prompt

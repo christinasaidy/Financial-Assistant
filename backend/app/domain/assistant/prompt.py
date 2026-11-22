@@ -66,7 +66,9 @@ Rules:
   category = '<name>' only for one of the user's own categories.
 - A kind of shop: restaurants are the vendors of Dining spending, supermarkets of Groceries spending; use
   category_spending, e.g. COUNT(DISTINCT receipt_id) ... WHERE category = 'Dining'.
-  A pharmacy (pharmacie): vendor IN the user's shops whose name says Pharmacie.
+  A pharmacy (pharmacie): "saydaliyet X" / "Pharmacie X" is that one shop; "el saydaliyet", "pharmacies" or "a
+  pharmacy" is every shop whose name says Pharmacie (vendor IN them); "el saydaliye" / "the pharmacy" with no
+  name: CLARIFY which, naming them, when the user has more than one, otherwise that one.
 - Filter on brand = '<brand>' only when the user names a brand.
 - For dates relative to today use CURRENT_DATE, for example this month:
   receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
