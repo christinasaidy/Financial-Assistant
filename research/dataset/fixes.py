@@ -9,6 +9,7 @@ turns), so the model never sees the old shape next to the new one.
   (approved by Christina on 2026-11-19). The per-month figure stays, as the prompt's rule asks.
 """
 
+import hashlib
 import re
 
 from research.dataset import batch1_cleanup
@@ -81,12 +82,38 @@ QUESTION_RULES = (batch1_cleanup.sarfet, batch1_cleanup.kam_money, batch1_cleanu
                   batch1_cleanup.period)  # batch 1's order
 
 
+# - Double letters (approved by Christina on 2026-11-22: "lessen their count if they are the overwhelming majority"):
+#   words written doubled in 80% or more of the Arabizi questions (10+ uses) are written single in about half of
+#   the questions (a hash of the question picks which; all its listed words change together, so running the fix
+#   again changes nothing). 3eddele, 2elle, kallafne, tammouz and adday were already mixed
+#   and stay; French and English words (moyenne, dollar) keep their spelling; replies are not changed (her choice).
+SINGLE_LETTERS = {"baddi": "badi", "7abbe": "7abe", "ykallefne": "ykalefne", "ayyar": "ayar", "marraat": "marat",
+                  "ayyam": "ayam", "3edde": "3ede", "t2elle": "t2ele", "addeh": "adeh", "ma7allet": "ma7alet",
+                  "besse": "bese", "7abbet": "7abet", "miyye": "miye", "7ommos": "7omos", "hommos": "homos",
+                  "yalla": "yala"}  # fmt: skip
+_DOUBLED = re.compile(r"(?<!\w)(" + "|".join(map(re.escape, SINGLE_LETTERS)) + r")(?!\w)", re.IGNORECASE)
+
+
+def _single(found: re.Match) -> str:
+    word = SINGLE_LETTERS[found.group(1).lower()]
+    return word.capitalize() if found.group(1)[0].isupper() else word
+
+
+def single_letters(question: str) -> str:
+    """The question with its listed doubled words single, in about half of the questions."""
+    if not _DOUBLED.search(question):
+        return question
+    if int(hashlib.sha256(question.lower().encode("utf-8")).hexdigest(), 16) % 2:
+        return question
+    return _DOUBLED.sub(_single, question)
+
+
 def fixed_question(question: str) -> str:
     for rule in QUESTION_RULES:
         question = rule(question)
     for word, fixed in QUESTION_WORDS:
         question = word.sub(fixed, question)
-    return question
+    return single_letters(question)
 
 
 def fixed_reply(reply: str, vendors=()) -> str:

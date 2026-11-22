@@ -439,3 +439,56 @@ def test_baskawit_in_a_reply_becomes_baskot():  # her ruling 2026-11-16
     reply = "CLARIFY: ma edert le2e fatoura 3an 3elke, 2asdak baskawit?"
     assert for_gender(reply, Gender.WOMAN, "adde sarafet 3al 3elke?") == (
         "CLARIFY: ma edert le2e fatoura 3an 3elke, 2asdik baskot?")
+
+
+# Double letters (approved 2026-11-22): her listed words single in about half of the questions.
+from research.dataset.fixes import SINGLE_LETTERS, single_letters  # noqa: E402
+
+
+def test_the_listed_words_and_their_single_forms_are_hers():
+    assert SINGLE_LETTERS == {"baddi": "badi", "7abbe": "7abe", "ykallefne": "ykalefne", "ayyar": "ayar",
+                              "marraat": "marat", "ayyam": "ayam", "3edde": "3ede", "t2elle": "t2ele", "addeh": "adeh",
+                              "ma7allet": "ma7alet", "besse": "bese", "7abbet": "7abet", "miyye": "miye",
+                              "7ommos": "7omos", "hommos": "homos", "yalla": "yala"}  # fmt: skip
+
+
+def test_a_question_has_all_its_listed_words_single_or_none_and_the_fix_is_stable():
+    questions = [f"{d} w kamen {d2} hal shaher" for d in SINGLE_LETTERS for d2 in ("ayyam", "marraat")]
+    changed = 0
+    for q in questions:
+        once = fixed_question(q)
+        assert fixed_question(once) == once
+        if once != q:
+            changed += 1
+            assert not any(re.search(rf"(?<!\w){d}(?!\w)", once) for d in SINGLE_LETTERS), once
+    assert 0 < changed < len(questions)
+
+
+def test_only_whole_words_change_and_a_capital_stays_single():
+    found = next(q for q in (f"Baddi a3ref {n} hal shaher" for n in range(100)) if single_letters(q) != q)
+    assert single_letters(found).startswith("Badi a3ref")
+    assert single_letters("baddiyye w addehs") == "baddiyye w addehs"
+
+
+def test_in_the_mix_each_listed_word_is_single_in_about_half_its_questions():
+    seen, doubled, single = set(), 0, 0
+    for line in (mix.DATA_DIR / "mix" / "train.jsonl").read_text(encoding="utf-8").splitlines():
+        row = json.loads(line)
+        if row["labels"]["language"] == "english":
+            continue
+        for q in re.findall(r"^Question: (.*)$", row["messages"][0]["content"], re.M):
+            if q not in seen:
+                seen.add(q)
+                words = re.findall(r"[a-z0-9']+", q.lower())
+                doubled += sum(w in SINGLE_LETTERS for w in words)
+                single += sum(w in SINGLE_LETTERS.values() for w in words)
+    assert 0.4 < single / (single + doubled) < 0.6
+
+
+def test_the_replies_keep_their_double_letters():
+    reply = "REPLY: Fiye jeweb 3an el fwatir: el majmou3, el categories, el ma7allet w el as3ar."  # her neutral form
+    question = next(q for q in (f"shu el ma7allet li reht 3layon {n}?" for n in range(100)) if single_letters(q) != q)
+    new = rerender(old_example(NOT_GIVEN, question, reply, ()))
+    assert new["messages"][1]["content"] == reply
+    assert new["messages"][0]["content"].endswith(f"Question: {single_letters(question)}\nReply:")
+    assert "ma7alet" in single_letters(question)
