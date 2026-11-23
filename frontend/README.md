@@ -85,7 +85,7 @@ frontend/
     (auth)/sign-in.tsx         sign in (features/auth/ui/SignInScreen)
     (auth)/sign-up.tsx         create account (features/auth/ui/SignUpScreen)
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
-    (tabs)/index.tsx           Home placeholder (TODO home)
+    (tabs)/index.tsx           Home (features/home/ui/HomeScreen)
     (tabs)/receipts|scan|budgets|assistant.tsx   placeholders
   src/
     container.ts               composition root
