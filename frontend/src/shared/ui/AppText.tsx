@@ -5,9 +5,14 @@ import { defaultTextColor, inkOnHighlight, textStyles, useTheme, type ColorToken
 /** A theme colour token, or 'on-highlight': ink #1c1d21 on the yellow swipe, in both themes (D038). */
 export type TextColor = ColorToken | 'on-highlight';
 
-/** Layout only. Type and colour come from `variant` and `color`, so screens cannot drift from DESIGN.md. */
+/**
+ * Layout only. Type and colour come from `variant` and `color`, so screens cannot drift from DESIGN.md.
+ * `textTransform` is here only for capitals a mockup puts on a style that has none (Home's budget state,
+ * "NEAR LIMIT · 89%", is meta in capitals); text is still written in normal case (D012).
+ */
 export type AppTextLayoutStyle = Pick<
   TextStyle,
+  | 'textTransform'
   | 'textAlign'
   | 'flex'
   | 'flexGrow'
