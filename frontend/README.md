@@ -82,8 +82,8 @@ frontend/
   app/                         Expo Router routes only
     _layout.tsx                fonts, splash, SessionProvider, status bar, who sees which routes
     index.tsx                  launch route: LaunchScreen while the session is checked, then redirects
-    (auth)/sign-in.tsx         placeholder (TODO auth)
-    (auth)/sign-up.tsx         placeholder (TODO auth)
+    (auth)/sign-in.tsx         sign in (features/auth/ui/SignInScreen)
+    (auth)/sign-up.tsx         create account (features/auth/ui/SignUpScreen)
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
     (tabs)/index.tsx           Home placeholder (TODO home)
     (tabs)/receipts|scan|budgets|assistant.tsx   placeholders
@@ -156,6 +156,13 @@ approved mockup, and should be decided with Christina and recorded in DECISIONS.
 - **Fill-in field** (D040): the 40 px value row, the 4 px caption gap and the 12 px gap before SHOW come from the
   sign-in mockup. Error text style and place are not decided (built as a `sentence` in `limit-reached` under the
   line); placeholder colour (`ink-2`), focus look and whether the line changes colour on error are not decided.
+- **Sign in and create account** (D040, D041): the mockups' off-scale gaps are rounded to the 4 px scale: 24 px
+  between fields (mockup 20), 32 px above the first field and above the button (mockup 28 on create account,
+  and the space Forgot password? left on sign in). The top is the safe area plus 48 px (sign in) or 32 px (create
+  account), close to the mockups' 112 and 96 px from the top of the screen. The password hint is `meta` 4 px
+  under the line (mockup 6 px) and gives way to the error. Messages about the whole form (wrong password, no
+  connection) sit 24 px above the button in the field-error style. Gender: 8 px between the caption and the
+  options and between options, unchosen labels `ink-2`. None of these is in DESIGN.md yet.
 - **Tab bar**: 4 px between icon and label (the mockup's Scan tab uses 2 px, which is off the 4 px scale) and
   4 px padding inside the yellow swipe. At very large text sizes the labels shrink to fit one line
   (ASSISTANT barely fits a fifth of the screen); not decided.
