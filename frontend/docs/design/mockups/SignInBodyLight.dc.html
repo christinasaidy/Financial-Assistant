@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fatourati sign in content, light</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:"DV Mono";src:url("/_blob/e396e385764609b0f58a9a036801e51e") format("truetype");font-weight:400}
+@font-face{font-family:"DV Mono";src:url("/_blob/31af3f953c56c5ac4650a6174f9ff560") format("truetype");font-weight:700}
+@font-face{font-family:"DV Sans";src:url("/_blob/427875e59b15102f2d3a9477d66124a7") format("truetype");font-weight:400}
+@font-face{font-family:"DV Sans";src:url("/_blob/775de8ac226d45c7bf7bc9b4b2ee9a1d") format("truetype");font-weight:700}
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; color: #1c1d21; font-family: 'DV Mono', ui-monospace, monospace;">
+
+<form style="padding: 112px 20px 0; display: flex; flex-direction: column;">
+<img src="/_blob/d2554d856e390fbb5635f7fe568bd28a" alt="Fatourati" style="width: 284px; height: 59px; margin-left: -12px; display: block; background: #f5e54a; clip-path: polygon(0 8%, 100% 0, 99% 94%, 1% 100%);">
+
+<h1 style="margin: 32px 0 0; font-size: 22px; line-height: 26px; font-weight: 700; text-transform: uppercase;">Sign in</h1>
+<p style="margin: 8px 0 0; font-family: 'DV Sans', system-ui, sans-serif; font-size: 15px; line-height: 22px; color: #575a60;">Welcome back. Your receipts are where you left them.</p>
+
+<div style="margin-top: 32px; display: flex; flex-direction: column; gap: 4px;">
+<label for="si-email-l" style="font-size: 12px; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #575a60;">Email</label>
+<input id="si-email-l" type="email" placeholder="name@example.com" style="height: 40px; padding: 0; border: 0; border-bottom: 1px solid #1c1d21; border-radius: 0; background: transparent; color: #1c1d21; font-family: 'DV Mono', ui-monospace, monospace; font-size: 15px; outline-offset: 4px;">
+</div>
+
+<div style="margin-top: 20px; display: flex; flex-direction: column; gap: 4px;">
+<label for="si-pass-l" style="font-size: 12px; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase; color: #575a60;">Password</label>
+<div style="display: flex; align-items: flex-end; border-bottom: 1px solid #1c1d21;">
+<input id="si-pass-l" type="password" style="flex: 1; min-width: 0; height: 40px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #1c1d21; font-family: 'DV Mono', ui-monospace, monospace; font-size: 15px; outline-offset: 4px;">
+<button type="button" style="height: 40px; padding: 0 0 0 12px; border: 0; background: transparent; color: #2443a8; font-family: 'DV Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">Show</button>
+</div>
+</div>
+
+<a href="#" style="align-self: flex-start; margin-top: 12px; padding: 14px 0; margin-bottom: -14px; color: #2443a8; text-decoration: none; font-size: 12px; line-height: 16px; letter-spacing: 0.08em; text-transform: uppercase;">Forgot password?</a>
+
+<button type="submit" style="margin-top: 28px; height: 48px; border: 0; border-radius: 0; background: #2443a8; color: #f3f4f1; font-family: 'DV Mono', ui-monospace, monospace; font-size: 16px; font-weight: 700; text-transform: uppercase;">Sign in</button>
+
+<div aria-hidden="true" style="margin-top: 24px; display: flex; align-items: center; gap: 12px; color: #575a60; font-size: 12px; line-height: 16px; text-transform: uppercase; letter-spacing: 0.08em;">
+<div style="flex: 1; height: 1px; background-image: repeating-linear-gradient(to right, #c3c6c2 0 4px, transparent 4px 7px);"></div><span>or</span><div style="flex: 1; height: 1px; background-image: repeating-linear-gradient(to right, #c3c6c2 0 4px, transparent 4px 7px);"></div>
+</div>
+
+<button type="button" style="margin-top: 24px; height: 48px; border: 1px solid #1c1d21; border-radius: 0; background: transparent; color: #1c1d21; font-family: 'DV Mono', ui-monospace, monospace; font-size: 16px; font-weight: 700; text-transform: uppercase;">Continue with Apple</button>
+</form>
+
+<p style="position: absolute; left: 20px; right: 20px; bottom: 50px; margin: 0; text-align: center; font-family: 'DV Sans', system-ui, sans-serif; font-size: 15px; line-height: 22px; color: #575a60;">New to Fatourati? <a href="#" style="color: #2443a8; text-decoration: none; font-family: 'DV Mono', ui-monospace, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 11px 0;">Create an account</a></p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

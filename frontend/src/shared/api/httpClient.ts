@@ -1,0 +1,143 @@
+/**
+ * A small fetch wrapper for the Fatourati backend: JSON in and out, the bearer token on every signed-in
+ * request, and one error type for anything that is not a 2xx.
+ *
+ * It knows nothing about features. The composition root (src/container.ts) gives it two callbacks:
+ * `getToken` (the current access token, if any) and `onUnauthorized` (called when the backend rejects the
+ * token, so the session can be cleared).
+ */
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export type RequestOptions = {
+  method?: HttpMethod;
+  /** Sent as JSON. FormData is sent as is (receipt uploads). */
+  body?: unknown;
+  /** Query string values; undefined values are left out. */
+  query?: Record<string, string | number | boolean | undefined>;
+  /**
+   * 'session' (default): send the signed-in user's token, and treat a 401 as an expired session.
+   * 'none': send no token (sign in, create account); a 401 is just an error for the caller.
+   * A string: send exactly this token (checking a saved token before it becomes the session).
+   */
+  auth?: 'session' | 'none' | string;
+  signal?: AbortSignal;
+};
+
+/** The backend answered with a status outside 2xx. `detail` is the backend's message, ready to show. */
+export class ApiError extends Error {
+  readonly status: number;
+  readonly detail: string;
+  readonly body: unknown;
+
+  constructor(status: number, detail: string, body: unknown) {
+    super(`HTTP ${status}: ${detail}`);
+    this.name = 'ApiError';
+    this.status = status;
+    this.detail = detail;
+    this.body = body;
+  }
+}
+
+/** The backend could not be reached at all (no Wi-Fi, wrong EXPO_PUBLIC_API_URL, server stopped). */
+export class NetworkError extends Error {
+  constructor(cause: unknown) {
+    super(`Could not reach the server: ${cause instanceof Error ? cause.message : String(cause)}`);
+    this.name = 'NetworkError';
+  }
+}
+
+export type HttpClientConfig = {
+  /** A function so that a missing EXPO_PUBLIC_API_URL fails the request, not the app's start. */
+  baseUrl: string | (() => string);
+  getToken: () => string | null;
+  onUnauthorized: () => void;
+  fetchFn?: typeof fetch;
+};
+
+export type HttpClient = {
+  request<T>(path: string, options?: RequestOptions): Promise<T>;
+};
+
+/**
+ * FastAPI sends `{"detail": "..."}` for domain errors and `{"detail": [{"msg": ...}, ...]}` for request
+ * validation errors (422). Both become one readable sentence.
+ */
+export function detailFrom(body: unknown, status: number): string {
+  if (body && typeof body === 'object' && 'detail' in body) {
+    const detail = (body as { detail: unknown }).detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map((item) => (item && typeof item === 'object' && 'msg' in item ? String(item.msg) : null))
+        .filter((message): message is string => Boolean(message));
+      if (messages.length > 0) return messages.join('. ');
+    }
+  }
+  return `The request failed (${status})`;
+}
+
+function buildUrl(baseUrl: string, path: string, query: RequestOptions['query']): string {
+  const base = baseUrl.replace(/\/+$/, '');
+  const route = path.startsWith('/') ? path : `/${path}`;
+  const params = Object.entries(query ?? {})
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+  return `${base}${route}${params.length > 0 ? `?${params.join('&')}` : ''}`;
+}
+
+export function createHttpClient(config: HttpClientConfig): HttpClient {
+  const fetchFn = config.fetchFn ?? fetch;
+
+  return {
+    async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+      const { method = 'GET', body, query, auth = 'session', signal } = options;
+      const headers: Record<string, string> = { Accept: 'application/json' };
+
+      const token = auth === 'session' ? config.getToken() : auth === 'none' ? null : auth;
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      let payload: BodyInit | undefined;
+      if (body instanceof FormData) {
+        payload = body;
+      } else if (body !== undefined) {
+        headers['Content-Type'] = 'application/json';
+        payload = JSON.stringify(body);
+      }
+
+      let response: Response;
+      try {
+        const baseUrl = typeof config.baseUrl === 'function' ? config.baseUrl() : config.baseUrl;
+        response = await fetchFn(buildUrl(baseUrl, path, query), { method, headers, body: payload, signal });
+      } catch (error) {
+        throw new NetworkError(error);
+      }
+
+      const text = await response.text();
+      let parsed: unknown = undefined;
+      if (text.length > 0) {
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          parsed = text;
+        }
+      }
+
+      if (!response.ok) {
+        // Only a rejected session token means the session is over. A 401 from sign in means a wrong password.
+        if (response.status === 401 && auth === 'session' && token) config.onUnauthorized();
+        throw new ApiError(response.status, detailFrom(parsed, response.status), parsed);
+      }
+      return parsed as T;
+    },
+  };
+}
+
+/** EXPO_PUBLIC_API_URL from .env (see .env.example). Read with dot notation so Expo inlines it. */
+export function apiBaseUrl(): string {
+  const url = process.env.EXPO_PUBLIC_API_URL;
+  if (!url) {
+    throw new Error('EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env and put your laptop LAN IP in it.');
+  }
+  return url;
+}

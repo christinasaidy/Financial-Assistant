@@ -513,6 +513,62 @@ considered, so the reasoning can be explained later.
     (D027). Contrast 7.8 : 1 light, 8.5 : 1 dark. One main button per screen.
   - Helper sentences are DejaVu Sans (they are sentences, D006), grey (`ink-2`) where they only explain.
 
+## D038: The brand colour is highlighter yellow, on the wordmark
+
+- **Status:** Accepted, 2026-11-23. Chosen by Christina from the Home canvas ("Yellow A, highlighted wordmark").
+- **Context:** Christina found the screens dull and wanted a pop of colour tied to Fatourati itself, not to the data.
+- **Options considered:** highlighter yellow on the total; an end-of-roll pink stripe; yellow on the wordmark
+  (A); a yellow top band (B).
+- **Decision:** Highlighter yellow, `highlight` #f5e54a (light) / `highlight-dark` #e8d84a (dark), drawn as a
+  flat swipe with slightly uneven edges **behind the wordmark**, and behind the selected tab's label (it replaces
+  D033's 2 px ink bar). Text on yellow is always ink #1c1d21, in both themes (13.0 : 1 and 11.5 : 1). Nowhere else.
+- **Consequences:** Pen blue keeps meaning "you can tap this" (D018); yellow means "Fatourati". The app icon
+  should use the same yellow (not designed yet).
+
+## D039: Paper by screen: yellow launch, lightly creased everywhere else
+
+- **Status:** Accepted, 2026-11-23. Chosen by Christina from the canvas (launch "Yellow", sign in and Home "Lightly
+  creased"). She rejected the heavily crumpled experiment for every screen.
+- **Decision:**
+  - **Launch screen:** a full page of yellow paper (`highlight` #f5e54a with the fine grain) and the large wordmark
+    in ink, centred. Same in dark mode (no dark version).
+  - **Sign in, create account, Home:** "lightly creased" paper: the light paper becomes milky **#f7f8f6** (was
+    #f3f4f1), with a fine grain (`assets/paper/grain-light.png`, 256 px tile) and soft crease shading
+    (`assets/paper/wrinkle-light.png`, stretched once over the screen). Dark mode keeps paper-dark **#17181b**
+    with `grain-dark.png` and `wrinkle-dark.png`.
+  - The textures are images, not gradients (D007 stands).
+- **Consequences:** Contrast on #f7f8f6 is slightly higher than before (ink 15.8, ink-2 6.5, pen blue 8.1,
+  near-limit 5.6, limit-reached 6.3). Dark paper stays #17181b because the dark "limit reached" red (#e0524f) has no
+  margin (4.6 : 1; on a lighter #1a1b1e it would be 4.5). The crease shadows are faint (at most 7% ink) and only
+  darken the paper, so light-mode contrast does not drop.
+
+## D040: Sign in and create account
+
+- **Status:** Accepted, 2026-11-23 (design from the canvas; Apple and password reset left out by Christina).
+- **Decision:**
+  - Layout from the mockups: large highlighted wordmark, the screen title (SIGN IN / CREATE ACCOUNT), one grey
+    sentence, the fields, the main button (D037), a link to the other screen at the bottom.
+  - **Fields are fill-in lines**, like "Signature: ____" on a receipt: a section-label caption above, a single 1 px
+    ink line under the value, no box, square everything. Value text in receipt-line style. Password has a
+    pen-blue SHOW / HIDE.
+  - **Not built yet:** "Continue with Apple" and "Forgot password?" (the backend supports neither). They come back
+    as their own features.
+- **Consequences:** The "or" divider and the outlined secondary button wait for Apple sign-in.
+
+## D041: Accounts have a first name and a gender
+
+- **Status:** Accepted, 2026-11-23. Asked for by Christina.
+- **Decision:**
+  - Sign-up asks for **first name** (required; Home greets with it, D036) and **gender**: Female, Male, or Prefer
+    not to say (required choice; "Prefer not to say" is a real answer).
+  - Gender control: three equal square options in one row under a GENDER caption, 48 px tall, 1 px `rule` border,
+    labels in section-label style (capitals, may wrap to two lines); the chosen one has a 2 px pen-blue border and
+    pen-blue label (it is something the user changes, D018).
+  - Backend: `users` gain `first_name` and `gender` (`female` | `male` | `prefer_not_to_say`); register takes them,
+    `/auth/me` and login return them.
+- **Consequences:** Existing accounts have no name or gender until they set them (no profile screen yet). The
+  assistant could use gender to address the user correctly in Arabizi; that is a separate change.
+
 ---
 
 ## Open (not decided)
