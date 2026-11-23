@@ -11,6 +11,7 @@ from app.infrastructure.database.feedback_repository import SqlFeedbackRepositor
 from app.infrastructure.database.message_repository import SqlMessageRepository
 from app.infrastructure.database.notification_repository import SqlNotificationRepository
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
+from app.infrastructure.database.turn_repository import SqlTurnRepository
 from app.infrastructure.database.vendor_repository import SqlVendorRepository
 
 
@@ -26,6 +27,7 @@ class SqlUnitOfWork:
         self.conversations = SqlConversationRepository(conn)
         self.messages = SqlMessageRepository(conn)
         self.feedback = SqlFeedbackRepository(conn)
+        self.turns = SqlTurnRepository(conn)
 
 
 class SqlUnitOfWorkFactory:

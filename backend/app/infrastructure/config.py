@@ -33,8 +33,10 @@ class Settings(BaseSettings):
     # The assistant's language model, through the OpenAI-compatible chat API (assistant phase 3). The defaults use
     # Gemini's OpenAI-compatible endpoint with GEMINI_API_KEY. For the fine-tuned model on RunPod, point the URL at
     # vLLM and set the SQL model to the LoRA adapter's name and the answer model to the base model's.
+    # These settings are the Beta mode's (the SQL workflow; conversations from before the modes are Beta too).
     assistant_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai/"
-    assistant_api_key: str | None = None  # falls back to gemini_api_key
+    # Kept as it was: without it, GEMINI_API_KEY is used (the development setup). Never used for Standard.
+    assistant_api_key: str | None = None
     assistant_sql_model: str = "gemini-3.5-flash-lite"
     assistant_answer_model: str = "gemini-3.5-flash-lite"
     # Whether the model may think before answering. Empty sends nothing (the model's own default; Gemini needs this);
@@ -47,6 +49,20 @@ class Settings(BaseSettings):
     assistant_history_characters: int = 6000
     # "Today" for questions such as "this month", as a date in this time zone.
     assistant_time_zone: str = "Asia/Beirut"
+    # A turn (answering one question) still running after this long is given up as abandoned, so the conversation
+    # can be asked again after a crash or restart. Above Beta's worst case of four model calls of up to 2 x 60 s.
+    assistant_turn_timeout_seconds: float = 900
+
+    # The Standard mode: Anthropic's API with its own key. Off unless STANDARD_ASSISTANT_ENABLED is true AND a key
+    # and a model are set, so no paid call is ever made by accident. Without it, Standard conversations are
+    # answered "not available" and Beta is unaffected; neither mode ever falls back to the other.
+    standard_assistant_enabled: bool = False
+    anthropic_api_key: str | None = None
+    standard_assistant_model: str | None = None
+
+    @property
+    def standard_assistant_configured(self) -> bool:
+        return bool(self.standard_assistant_enabled and self.anthropic_api_key and self.standard_assistant_model)
 
     @field_validator("assistant_thinking", mode="before")
     @classmethod

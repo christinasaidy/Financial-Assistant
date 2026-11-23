@@ -53,3 +53,33 @@ class MessageNotFound(DomainError):
 
 class CannotRateQuestion(DomainError):
     default_message = "Only the assistant's answers can be rated"
+
+
+class InvalidIdempotencyKey(DomainError):
+    default_message = "The Idempotency-Key is not valid"
+
+
+class AssistantModeConflict(DomainError):
+    """A question for a conversation that was started in the other mode. A conversation never switches models; to
+    use the other mode, start a new conversation."""
+
+    default_message = "This conversation uses the other assistant mode; start a new conversation to switch"
+
+
+class TurnInProgress(DomainError):
+    """The conversation is still answering an earlier question (or the same request is already being answered).
+    Nothing new is saved; try again once that answer is in."""
+
+    default_message = "The assistant is still answering a question in this conversation"
+
+
+class IdempotencyKeyReused(DomainError):
+    """The key was already used for a different question, or for a request that failed: send a new key."""
+
+    default_message = "This Idempotency-Key was already used for another request"
+
+
+class TurnSuperseded(DomainError):
+    """Answering took so long that the turn was given up as abandoned; its late answer is not saved."""
+
+    default_message = "This answer took too long and was not saved; ask again"

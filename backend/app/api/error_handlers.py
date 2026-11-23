@@ -2,11 +2,16 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.domain.assistant.errors import (
+    AssistantModeConflict,
     CannotRateQuestion,
     ConversationNotFound,
+    IdempotencyKeyReused,
+    InvalidIdempotencyKey,
     InvalidQuestion,
     MessageNotFound,
     QueryFailed,
+    TurnInProgress,
+    TurnSuperseded,
     UnsafeQuery,
 )
 from app.domain.budgets.errors import BudgetNotFound, InvalidBudget
@@ -47,6 +52,9 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (CategoryAlreadyExists, status.HTTP_409_CONFLICT),
     (DuplicateReceipt, status.HTTP_409_CONFLICT),
     (InvalidStateTransition, status.HTTP_409_CONFLICT),
+    (AssistantModeConflict, status.HTTP_409_CONFLICT),
+    (TurnInProgress, status.HTTP_409_CONFLICT),
+    (TurnSuperseded, status.HTTP_409_CONFLICT),
     (FileTooLarge, 413),
     (UnsupportedFileType, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE),
     (InvalidEmail, 422),
@@ -60,6 +68,8 @@ _ERROR_STATUS: list[tuple[type[DomainError], int]] = [
     (InvalidMonth, 422),
     (InvalidQuestion, 422),
     (CannotRateQuestion, 422),
+    (InvalidIdempotencyKey, 422),
+    (IdempotencyKeyReused, 422),
     (UnsafeQuery, 422),
     (QueryFailed, 422),
 ]

@@ -8,35 +8,53 @@ from app.application.assistant.dtos import (
     AskResult,
     ConversationView,
     MessageView,
+    ModeStatus,
     QueryResult,
     QuestionOutcome,
     SavedQuestion,
     SourceReceipt,
+    TurnRequest,
+    WorkflowAnswer,
 )
-from app.application.assistant.interfaces import AssistantModel, QueryRules, ReadOnlyQueryRunner, SqlGuard
+from app.application.assistant.interfaces import (
+    AssistantModel,
+    QueryRules,
+    ReadOnlyQueryRunner,
+    SqlGuard,
+    StandardAssistant,
+)
 from app.application.shared.unit_of_work import UnitOfWork, UnitOfWorkFactory
 from app.domain.assistant import answer as answers
 from app.domain.assistant.answer import ReplyForm
 from app.domain.assistant.conversation import (
+    DEFAULT_MODE,
     AnswerDetails,
     AnswerKind,
+    AssistantMode,
     Attempt,
     Conversation,
     Message,
     MessageRole,
     Rating,
     Step,
+    Turn,
+    TurnStatus,
+    clean_idempotency_key,
     clean_question,
     title_from,
 )
 from app.domain.assistant.errors import (
+    AssistantModeConflict,
     CannotRateQuestion,
     ConversationNotFound,
+    IdempotencyKeyReused,
     MessageNotFound,
     ModelFailed,
     ModelUnavailable,
     QueryFailed,
     QueryRejected,
+    TurnInProgress,
+    TurnSuperseded,
     UnsafeQuery,
     UnusableReply,
 )
@@ -61,13 +79,18 @@ VENDOR_NAMES_LIMIT = 100
 ATTEMPTS_PER_STEP = 2  # the first try and one repair
 DEFAULT_HISTORY_EXCHANGES = 6
 DEFAULT_HISTORY_CHARACTERS = 6000
+# A turn still running after this long is taken to be abandoned (its worker stopped or hung) and given up, so the
+# conversation can be asked again. Above the Beta workflow's worst case: four model calls, each up to twice 60 s.
+DEFAULT_TURN_TIMEOUT_SECONDS = 900.0
 
 
 class AssistantService:
     """Answers spending questions and keeps the conversations they belong to.
 
-    The question flow (`ask`, phase 3) is built on `save_question`, `run_query` and `save_answer`; the rest is
-    what the conversation screens need.
+    `ask` answers a question in its conversation's mode: Beta (the fine-tuned model's SQL workflow, below) or
+    Standard (a separate workflow, injected). Both share the conversations, the turn rules and the saved answers.
+    `save_question` and `save_answer` save one message each, for tests and tools; the rest is what the
+    conversation screens need.
     """
 
     def __init__(
@@ -80,7 +103,15 @@ class AssistantService:
         today: Callable[[], date] = date.today,
         history_exchanges: int = DEFAULT_HISTORY_EXCHANGES,
         history_characters: int = DEFAULT_HISTORY_CHARACTERS,
+        *,
+        standard: StandardAssistant | None = None,
+        beta_available: bool = True,
+        turn_timeout_seconds: float = DEFAULT_TURN_TIMEOUT_SECONDS,
     ) -> None:
+        """The positional arguments are the Beta workflow's (the research evaluation builds the service with them
+        alone). `standard` is the Standard workflow, None when it is not configured: its conversations are then
+        answered "not available", exactly as Beta's are without a model; neither mode ever answers for the other.
+        `beta_available` only says whether Beta's model is configured, for `modes()`."""
         self._uow = uow
         self._guard = guard
         self._runner = runner
@@ -89,25 +120,132 @@ class AssistantService:
         self._today = today
         self._history_exchanges = history_exchanges
         self._history_characters = history_characters
+        self._standard = standard
+        self._beta_available = beta_available
+        self._turn_timeout = turn_timeout_seconds
 
     # --- answering a question (decisions approved by the user on 2026-11-03) ---
 
-    def ask(self, user_id: int, conversation_id: int | None, question: str) -> AskResult:
+    def ask(
+        self,
+        user_id: int,
+        conversation_id: int | None,
+        question: str,
+        *,
+        mode: AssistantMode | None = None,
+        idempotency_key: str | None = None,
+    ) -> AskResult:
         """Answer a question and save both, in a new conversation if no id is given.
 
-        The question is saved first, on its own, so it is kept even if answering fails. Then: the model writes SQL
-        (or asks, refuses or replies), the guard and the answering rules check it, it runs as the read-only role,
-        the model writes the answer from the result and every number in it is checked against that result. Each
-        model step gets one second attempt, told what was wrong with the first."""
-        saved = self.save_question(user_id, conversation_id, question)
+        A new conversation is answered in `mode` (the original Beta workflow when it is not given). A conversation
+        keeps its mode: `mode` may be left out for it, and a different one is refused before anything is saved or
+        any model is called. The question is answered in a turn: saved first, on its own, so it is kept even if
+        answering fails; at most one turn of a conversation runs at a time (TurnInProgress otherwise, with nothing
+        saved). With an `idempotency_key`, a repeated request returns the first one's saved answer instead of
+        answering again. No database transaction is open while a model is answering.
+
+        Beta: the model writes SQL (or asks, refuses or replies), the guard and the answering rules check it, it runs
+        as the read-only role, the model writes the answer from the result and every number in it is checked against
+        that result. Each model step gets one second attempt, told what was wrong with the first."""
         question = clean_question(question)
+        key = clean_idempotency_key(idempotency_key)
+        turn, replay = self._start_turn(user_id, conversation_id, question, mode, key)
+        if replay is not None:
+            return replay
+        try:
+            answer = self._run_turn(user_id, turn)
+        except Exception as exc:
+            self._fail_turn(user_id, turn.id, type(exc).__name__)
+            raise
+        return self._finish_turn(user_id, turn, answer)
+
+    def modes(self) -> list[ModeStatus]:
+        """Which modes are configured on this server (no provider is called to find out)."""
+        standard_models = (self._standard.model,) if self._standard is not None else ()
+        beta_models = tuple(dict.fromkeys((self._model.sql_model, self._model.answer_model)))
+        return [
+            ModeStatus(AssistantMode.STANDARD, self._standard is not None, standard_models),
+            ModeStatus(AssistantMode.BETA, self._beta_available, beta_models),
+        ]
+
+    # --- one turn: start, run, finish ---
+
+    def _start_turn(
+        self, user_id: int, conversation_id: int | None, question: str, mode: AssistantMode | None, key: str | None
+    ) -> tuple[Turn, AskResult | None]:
+        """Save the question and claim the conversation's turn, or return the earlier answer to a repeated request.
+        Raises (with nothing saved) for another user's conversation, a mode conflict or a turn still running."""
+        with self._uow(user_id) as work:  # on its own, so it stays done: give up a turn whose worker stopped
+            earlier = work.turns.find_by_key(key) if key is not None else None
+            target = earlier.conversation_id if earlier is not None else conversation_id
+            if target is not None:
+                work.turns.give_up_abandoned(target, self._turn_timeout)
+
         with self._uow(user_id) as work:
-            history = recent_exchanges(
-                work.messages.list_for(saved.conversation_id), self._history_exchanges, self._history_characters
-            )
+            if key is not None:
+                earlier = work.turns.find_by_key(key)
+                if earlier is not None:
+                    return earlier, self._replay(work, earlier, conversation_id, question, mode)
+            if conversation_id is None:
+                chosen = mode or DEFAULT_MODE
+                conversation_id = work.conversations.create(title_from(question), chosen)
+            else:
+                saved_mode = work.conversations.mode_of(conversation_id)
+                if saved_mode is None:
+                    raise ConversationNotFound
+                if mode is not None and mode is not saved_mode:
+                    raise AssistantModeConflict
+                chosen = saved_mode
+            message = work.messages.add(conversation_id, MessageRole.USER, question)
+            turn_id = work.turns.start(conversation_id, message.id, chosen, key)
+            if turn_id is None:  # raising rolls back the question (and a conversation made just now)
+                raise TurnInProgress
+        turn = Turn(turn_id, conversation_id, message.id, question, chosen, TurnStatus.RUNNING, idempotency_key=key)
+        return turn, None
+
+    def _replay(
+        self, work: UnitOfWork, earlier: Turn, conversation_id: int | None, question: str, mode: AssistantMode | None
+    ) -> AskResult:
+        same = earlier.question == question and conversation_id in (None, earlier.conversation_id)
+        if not same or (mode is not None and mode is not earlier.mode):
+            raise IdempotencyKeyReused
+        if earlier.status is TurnStatus.RUNNING:
+            raise TurnInProgress
+        if earlier.status is TurnStatus.FAILED or earlier.answer_message_id is None:
+            raise IdempotencyKeyReused("That request failed without an answer; ask again with a new Idempotency-Key")
+        message = work.messages.get(earlier.answer_message_id)
+        if message is None:
+            raise ConversationNotFound
+        return AskResult(earlier.conversation_id, self._view(work, message), earlier.mode)
+
+    def _run_turn(self, user_id: int, turn: Turn) -> WorkflowAnswer:
+        with self._uow(user_id) as work:
+            messages = work.messages.list_for(turn.conversation_id)
             waiting = work.receipts.count_with_status(ReceiptStatus.NEEDS_REVIEW)
-        content, details = self._answer(user_id, question, history, waiting)
-        return AskResult(saved.conversation_id, self.save_answer(user_id, saved.conversation_id, content, details))
+        if turn.mode is AssistantMode.BETA:
+            history = recent_exchanges(messages, self._history_exchanges, self._history_characters)
+            content, details = self._answer(user_id, turn.question, history, waiting)
+            return WorkflowAnswer(content, details)
+        if self._standard is None:
+            return WorkflowAnswer(answers.NOT_AVAILABLE, AnswerDetails(AnswerKind.ERROR))
+        before = tuple(message for message in messages if message.id != turn.question_message_id)
+        return self._standard.answer(TurnRequest(user_id, turn.conversation_id, turn.id, turn.question, before, waiting))
+
+    def _finish_turn(self, user_id: int, turn: Turn, answer: WorkflowAnswer) -> AskResult:
+        with self._uow(user_id) as work:
+            if not work.conversations.hold(turn.conversation_id):  # deleted while answering: never recreated
+                raise ConversationNotFound
+            message = work.messages.add(turn.conversation_id, MessageRole.ASSISTANT, answer.content, answer.details)
+            if not work.turns.complete(turn.id, message.id, answer.execution):
+                raise TurnSuperseded  # given up as abandoned meanwhile; this rolls the late answer back
+            return AskResult(turn.conversation_id, self._view(work, message), turn.mode)
+
+    def _fail_turn(self, user_id: int, turn_id: int, problem: str) -> None:
+        try:
+            with self._uow(user_id) as work:
+                work.turns.fail(turn_id, problem)
+        except Exception:  # the original error matters more; the turn is given up later as abandoned
+            logger.exception("Could not mark turn %s as failed", turn_id)
 
     def run_question(self, user_id: int, question: str, history: Sequence[Exchange] = ()) -> QuestionOutcome:
         """The SQL step on its own: the model turns the question into SQL (or asks, refuses or replies), the guard
@@ -289,12 +427,14 @@ class AssistantService:
 
     # --- saving a question and its answer (used by the question flow) ---
 
-    def save_question(self, user_id: int, conversation_id: int | None, question: str) -> SavedQuestion:
-        """Save a question. Without a conversation id, it starts a new conversation named after it."""
+    def save_question(
+        self, user_id: int, conversation_id: int | None, question: str, mode: AssistantMode = DEFAULT_MODE
+    ) -> SavedQuestion:
+        """Save a question. Without a conversation id, it starts a new conversation named after it, in `mode`."""
         question = clean_question(question)
         with self._uow(user_id) as work:
             if conversation_id is None:
-                conversation_id = work.conversations.create(title_from(question))
+                conversation_id = work.conversations.create(title_from(question), mode)
             elif not work.conversations.exists(conversation_id):
                 raise ConversationNotFound
             message = work.messages.add(conversation_id, MessageRole.USER, question)

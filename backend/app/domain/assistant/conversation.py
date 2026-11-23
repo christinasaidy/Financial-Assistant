@@ -8,13 +8,19 @@
 - Since the question flow (phase 3, 2026-11-03), the details also keep every attempt the model made and, for an
   answer shown as a table, its columns and rows (so a reopened chat can draw it again).
 - One rating (up or down) per assistant answer, which can be changed or removed. Questions cannot be rated.
+- Since the two assistant modes (2026-11-23), each conversation keeps the mode it was started in (`standard` or
+  `beta`), and every question it is asked is answered in that mode: a conversation never switches models half way.
+  Conversations from before then are `beta`, the SQL workflow they were answered with; the models that actually
+  answered them (Gemini, during development) stay in each answer's attempts.
+- Each question is answered in one turn: started when the question is saved, then completed (its answer saved) or
+  failed. At most one turn of a conversation runs at a time.
 """
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 
-from app.domain.assistant.errors import InvalidQuestion
+from app.domain.assistant.errors import InvalidIdempotencyKey, InvalidQuestion
 
 TITLE_LENGTH = 60
 MAX_QUESTION_LENGTH = 1000
@@ -23,6 +29,25 @@ MAX_QUESTION_LENGTH = 1000
 class MessageRole(StrEnum):
     USER = "user"
     ASSISTANT = "assistant"
+
+
+class AssistantMode(StrEnum):
+    """Which assistant answers a conversation. The same conversations, data rules and safety checks serve both;
+    the models, prompts and workflows are separate."""
+
+    STANDARD = "standard"  # a hosted model (Anthropic's Claude Sonnet) that calls the app's read-only tools
+    BETA = "beta"  # the fine-tuned model's workflow: question -> SQL -> checks -> answer (the original assistant)
+
+
+# What a new conversation is answered with when the client does not say. The original workflow, so a client written
+# before the modes never starts a paid hosted-model conversation without choosing it.
+DEFAULT_MODE = AssistantMode.BETA
+
+
+class TurnStatus(StrEnum):
+    RUNNING = "running"  # the question is saved and being answered
+    COMPLETED = "completed"  # its answer is saved
+    FAILED = "failed"  # answering stopped without an answer (a crash, or abandoned after a restart)
 
 
 class AnswerKind(StrEnum):
@@ -94,6 +119,35 @@ class Conversation:
     last_message_at: datetime
     message_count: int
     messages: tuple[Message, ...] = field(default=())
+    mode: AssistantMode = DEFAULT_MODE
+
+
+@dataclass(frozen=True)
+class Turn:
+    """Answering one question: from the moment it is saved until its answer is saved, or answering fails."""
+
+    id: int
+    conversation_id: int
+    question_message_id: int
+    question: str  # the question's text, so a repeated request can be checked against it
+    mode: AssistantMode
+    status: TurnStatus
+    answer_message_id: int | None = None
+    idempotency_key: str | None = None
+    problem: str | None = None  # why it failed
+
+
+MAX_IDEMPOTENCY_KEY_LENGTH = 200
+
+
+def clean_idempotency_key(raw: str | None) -> str | None:
+    """A client's key for one ask, so a retried request is answered once. None when no key was sent."""
+    if raw is None:
+        return None
+    key = raw.strip()
+    if not key or len(key) > MAX_IDEMPOTENCY_KEY_LENGTH or not key.isprintable():
+        raise InvalidIdempotencyKey(f"An Idempotency-Key must be 1 to {MAX_IDEMPOTENCY_KEY_LENGTH} printable characters")
+    return key
 
 
 def clean_question(raw: str) -> str:

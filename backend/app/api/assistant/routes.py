@@ -3,13 +3,13 @@
 from datetime import datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Header, Response, status
 from pydantic import BaseModel
 
 from app.api.container import Container
 from app.api.dependencies import get_container, get_current_user_id
 from app.application.assistant.dtos import MessageView
-from app.domain.assistant.conversation import Conversation, Rating
+from app.domain.assistant.conversation import AssistantMode, Conversation, Rating
 
 router = APIRouter(prefix="/assistant", tags=["assistant"])
 
@@ -20,6 +20,7 @@ class ConversationOut(BaseModel):
     created_at: datetime
     last_message_at: datetime
     message_count: int
+    assistant_mode: str  # "standard" or "beta": every answer in the conversation comes from this mode
 
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "ConversationOut":
@@ -29,6 +30,7 @@ class ConversationOut(BaseModel):
             created_at=conversation.created_at,
             last_message_at=conversation.last_message_at,
             message_count=conversation.message_count,
+            assistant_mode=conversation.mode.value,
         )
 
 
@@ -50,6 +52,8 @@ class MessageOut(BaseModel):
     # Only when the answer is shown as a table (no sentence passed the number check): the result, as text.
     columns: list[str] | None = None
     rows: list[list[str | None]] | None = None
+    # Answers: the models that were called for it, as saved (so an old Gemini answer is never shown as another's).
+    models: list[str] = []
 
     @classmethod
     def from_view(cls, message: MessageView) -> "MessageOut":
@@ -66,6 +70,7 @@ class MessageOut(BaseModel):
             understood=message.understood,
             columns=list(details.columns) if details and details.columns is not None else None,
             rows=[list(row) for row in details.rows] if details and details.rows is not None else None,
+            models=list(dict.fromkeys(attempt.model for attempt in details.attempts)) if details else [],
         )
 
 
@@ -80,19 +85,50 @@ class RatingIn(BaseModel):
 class AskIn(BaseModel):
     question: str
     conversation_id: int | None = None  # leave out to start a new conversation
+    # For a new conversation: which assistant answers it ("beta" when left out, the original workflow). For an
+    # existing one it may be left out; a different mode than the conversation's is refused (409).
+    assistant_mode: Literal["standard", "beta"] | None = None
 
 
 class AnswerOut(MessageOut):
     conversation_id: int  # the new conversation's id when none was given, for the follow-up questions
+    assistant_mode: str  # the mode that answered: the conversation's
+
+
+class ModeOut(BaseModel):
+    mode: str
+    available: bool  # configured on this server (a key and a model); not a live check of the provider
+    models: list[str]
 
 
 @router.post("/ask", response_model=AnswerOut)
 def ask(
-    body: AskIn, user_id: int = Depends(get_current_user_id), container: Container = Depends(get_container)
+    body: AskIn,
+    user_id: int = Depends(get_current_user_id),
+    container: Container = Depends(get_container),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> AnswerOut:
-    """Answer a question and return the saved answer. Waits for the answer (a few seconds); no streaming."""
-    result = container.assistant.ask(user_id, body.conversation_id, body.question)
-    return AnswerOut(**MessageOut.from_view(result.answer).model_dump(), conversation_id=result.conversation_id)
+    """Answer a question and return the saved answer. Waits for the answer; no streaming.
+
+    Send a new `Idempotency-Key` header (any unique string, e.g. a UUID) with each question: if the request is
+    retried with the same key, the first answer is returned instead of answering twice. 409 while the conversation
+    is still answering an earlier question; nothing is saved then."""
+    mode = AssistantMode(body.assistant_mode) if body.assistant_mode else None
+    result = container.assistant.ask(
+        user_id, body.conversation_id, body.question, mode=mode, idempotency_key=idempotency_key
+    )
+    return AnswerOut(
+        **MessageOut.from_view(result.answer).model_dump(),
+        conversation_id=result.conversation_id,
+        assistant_mode=result.mode.value,
+    )
+
+
+@router.get("/modes", response_model=list[ModeOut])
+def list_modes(_: int = Depends(get_current_user_id), container: Container = Depends(get_container)) -> list[ModeOut]:
+    """The assistant modes and whether each is set up on this server, for the mode picker."""
+    modes = container.assistant.modes()
+    return [ModeOut(mode=m.mode.value, available=m.available, models=list(m.models)) for m in modes]
 
 
 @router.get("/conversations", response_model=list[ConversationOut])

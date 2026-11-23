@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from app.api.app import create_app
 from app.api.container import Container
 from app.application.assistant.assistant_service import AssistantService
-from app.application.assistant.interfaces import AssistantModel
+from app.application.assistant.interfaces import AssistantModel, StandardAssistant
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.budgets.budget_status import BudgetStatusCalculator
@@ -45,8 +45,12 @@ def build_container(
     storage: FileStorage | None = None,
     today: Callable[[], date] | None = None,
     assistant_model: AssistantModel | None = None,
+    standard_assistant: StandardAssistant | None = None,
 ) -> Container:
-    """Wire the real implementations. Tests pass their own extractor, storage, language model and today's date."""
+    """Wire the real implementations. Tests pass their own extractor, storage, language models and today's date.
+
+    The two assistant modes are wired independently: a missing Beta model or a missing Standard key leaves only
+    that mode unavailable, and the rest of the app works either way."""
     if not settings.jwt_secret:
         raise RuntimeError("JWT_SECRET is not set (see backend/.env.example)")
 
@@ -74,6 +78,8 @@ def build_container(
             if api_key
             else UnavailableAssistantModel()
         )
+    beta_available = not isinstance(assistant_model, UnavailableAssistantModel)
+    # The Standard workflow is built in its own phase (2); until then it is unavailable unless a test injects one.
     # The assistant's "today" is Beirut's date (the server's clock may be elsewhere); a test's date wins.
     time_zone = ZoneInfo(settings.assistant_time_zone)
     assistant_today = today or (lambda: datetime.now(time_zone).date())
@@ -109,6 +115,9 @@ def build_container(
             assistant_today,
             settings.assistant_history_exchanges,
             settings.assistant_history_characters,
+            standard=standard_assistant,
+            beta_available=beta_available,
+            turn_timeout_seconds=settings.assistant_turn_timeout_seconds,
         ),
     )
 
