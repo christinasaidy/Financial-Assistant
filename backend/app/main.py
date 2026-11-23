@@ -13,7 +13,9 @@ from fastapi import FastAPI
 from app.api.app import create_app
 from app.api.container import Container
 from app.application.assistant.assistant_service import AssistantService
-from app.application.assistant.interfaces import AssistantModel, StandardAssistant
+from app.application.assistant.interfaces import AssistantModel, StandardAssistant, StandardChatModel
+from app.application.assistant.standard_tools import StandardTools
+from app.application.assistant.standard_workflow import StandardLimits, StandardWorkflow
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.budgets.budget_status import BudgetStatusCalculator
@@ -30,6 +32,7 @@ from app.infrastructure.database.unit_of_work import SqlUnitOfWorkFactory
 from app.infrastructure.database.user_repository import SqlUserRepository
 from app.infrastructure.extraction.gemini_receipt_extractor import GeminiReceiptExtractor
 from app.infrastructure.extraction.unavailable_receipt_extractor import UnavailableReceiptExtractor
+from app.infrastructure.language_model.anthropic_chat_model import AnthropicChatModel
 from app.infrastructure.language_model.openai_compatible_assistant_model import OpenAiCompatibleAssistantModel
 from app.infrastructure.language_model.unavailable_assistant_model import UnavailableAssistantModel
 from app.infrastructure.security.password_hasher import Argon2PasswordHasher
@@ -46,8 +49,11 @@ def build_container(
     today: Callable[[], date] | None = None,
     assistant_model: AssistantModel | None = None,
     standard_assistant: StandardAssistant | None = None,
+    standard_model: StandardChatModel | None = None,
 ) -> Container:
-    """Wire the real implementations. Tests pass their own extractor, storage, language models and today's date.
+    """Wire the real implementations. Tests pass their own extractor, storage, language models and today's date:
+    `standard_assistant` replaces the whole Standard workflow, `standard_model` only its model (the real workflow
+    and tools then run around it).
 
     The two assistant modes are wired independently: a missing Beta model or a missing Standard key leaves only
     that mode unavailable, and the rest of the app works either way."""
@@ -79,7 +85,6 @@ def build_container(
             else UnavailableAssistantModel()
         )
     beta_available = not isinstance(assistant_model, UnavailableAssistantModel)
-    # The Standard workflow is built in its own phase (2); until then it is unavailable unless a test injects one.
     # The assistant's "today" is Beirut's date (the server's clock may be elsewhere); a test's date wins.
     time_zone = ZoneInfo(settings.assistant_time_zone)
     assistant_today = today or (lambda: datetime.now(time_zone).date())
@@ -93,6 +98,33 @@ def build_container(
         else UnavailableQueryRunner()
     )
     alerts = BudgetAlerts(budget_status)
+    receipts = ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd, alerts, today)
+    spending = SpendingService(uow, settings.default_lbp_per_usd)
+    budgets = BudgetService(uow, budget_status, alerts)
+    guard, rules = SqlGlotGuard(), SqlGlotQueryRules()
+
+    # Standard: only when switched on with a key and a model (no paid call is ever made by accident). Its tools use
+    # the same services, guard, rules and read-only role as the rest of the app.
+    closers: list[Callable[[], None]] = []
+    if standard_assistant is None and standard_model is None and settings.standard_assistant_configured:
+        chat = AnthropicChatModel(
+            settings.anthropic_api_key,
+            settings.standard_assistant_model,
+            max_output_tokens=settings.standard_assistant_max_output_tokens,
+            effort=settings.standard_assistant_effort,
+            timeout=settings.standard_assistant_timeout_seconds,
+            max_retries=settings.standard_assistant_max_retries,
+        )
+        closers.append(chat.close)
+        standard_model = chat
+    if standard_assistant is None and standard_model is not None:
+        tools = StandardTools(uow, guard, rules, query_runner, spending, budgets, receipts)
+        limits = StandardLimits(
+            max_tool_rounds=settings.standard_assistant_max_tool_rounds,
+            max_tool_calls=settings.standard_assistant_max_tool_calls,
+            deadline_seconds=settings.standard_assistant_deadline_seconds,
+        )
+        standard_assistant = StandardWorkflow(standard_model, tools, assistant_today, limits)
 
     return Container(
         auth=AuthService(
@@ -101,16 +133,16 @@ def build_container(
             tokens=JwtTokenService(settings.jwt_secret, settings.jwt_expire_minutes),
             files=storage,
         ),
-        receipts=ReceiptService(uow, storage, extractor, settings.default_lbp_per_usd, alerts, today),
+        receipts=receipts,
         categories=CategoryService(uow),
-        spending=SpendingService(uow, settings.default_lbp_per_usd),
-        budgets=BudgetService(uow, budget_status, alerts),
+        spending=spending,
+        budgets=budgets,
         notifications=NotificationService(uow),
         assistant=AssistantService(
             uow,
-            SqlGlotGuard(),
+            guard,
             query_runner,
-            SqlGlotQueryRules(),
+            rules,
             assistant_model,
             assistant_today,
             settings.assistant_history_exchanges,
@@ -119,6 +151,7 @@ def build_container(
             beta_available=beta_available,
             turn_timeout_seconds=settings.assistant_turn_timeout_seconds,
         ),
+        closers=tuple(closers),
     )
 
 

@@ -3,7 +3,15 @@
 import threading
 from datetime import UTC, datetime
 
-from app.application.assistant.dtos import TurnRequest, WorkflowAnswer
+from app.application.assistant.dtos import (
+    ChatRequest,
+    ChatResponse,
+    ModelUsage,
+    TextPart,
+    ToolCall,
+    TurnRequest,
+    WorkflowAnswer,
+)
 from app.application.auth.interfaces import StoredCredentials
 from app.application.receipts.interfaces import StoredFile
 from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Step
@@ -153,3 +161,34 @@ class FakeStandardAssistant:
             raise self.fail
         attempt = Attempt(Step.ANSWER, self.model, self.reply)
         return WorkflowAnswer(self.reply, AnswerDetails(AnswerKind.REPLY, attempts=(attempt,)), {"fake": True})
+
+
+class ScriptedChatModel:
+    """Stands in for the Standard mode's hosted model: returns the scripted responses in order (a ModelFailed in the
+    script is raised instead) and records every request it was sent."""
+
+    model = "fake-sonnet"
+
+    def __init__(self, *script) -> None:
+        self.script = list(script)
+        self.requests: list[ChatRequest] = []
+
+    def respond(self, request: ChatRequest) -> ChatResponse:
+        self.requests.append(request)
+        if not self.script:
+            raise AssertionError("the model was called more often than the test expected")
+        step = self.script.pop(0)
+        if isinstance(step, Exception):
+            raise step
+        return step
+
+
+def says(text: str, usage: ModelUsage | None = ModelUsage(10, 5, 0, 0)) -> ChatResponse:
+    """A finished model reply."""
+    return ChatResponse((TextPart(text),), "end_turn", "fake-sonnet", usage, "req_text", ("provider", text))
+
+
+def calls(*tool_calls: tuple[str, str, dict], usage: ModelUsage | None = ModelUsage(10, 5, 0, 0)) -> ChatResponse:
+    """A model reply asking for tools: (id, name, input) each."""
+    parts = tuple(ToolCall(call_id, name, args) for call_id, name, args in tool_calls)
+    return ChatResponse(parts, "tool_use", "fake-sonnet", usage, "req_tools", ("provider", tool_calls))

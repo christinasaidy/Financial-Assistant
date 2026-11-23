@@ -9,6 +9,7 @@ from app.infrastructure.database.connection import user_scoped_connection
 from app.infrastructure.database.conversation_repository import SqlConversationRepository
 from app.infrastructure.database.feedback_repository import SqlFeedbackRepository
 from app.infrastructure.database.message_repository import SqlMessageRepository
+from app.infrastructure.database.name_repository import SqlNameRepository
 from app.infrastructure.database.notification_repository import SqlNotificationRepository
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
 from app.infrastructure.database.turn_repository import SqlTurnRepository
@@ -28,6 +29,7 @@ class SqlUnitOfWork:
         self.messages = SqlMessageRepository(conn)
         self.feedback = SqlFeedbackRepository(conn)
         self.turns = SqlTurnRepository(conn)
+        self.names = SqlNameRepository(conn)
 
 
 class SqlUnitOfWorkFactory:

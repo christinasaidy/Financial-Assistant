@@ -58,7 +58,15 @@ class Settings(BaseSettings):
     # answered "not available" and Beta is unaffected; neither mode ever falls back to the other.
     standard_assistant_enabled: bool = False
     anthropic_api_key: str | None = None
-    standard_assistant_model: str | None = None
+    standard_assistant_model: str | None = None  # claude-sonnet-5-5 (checked in Anthropic's model list 2026-11-23)
+    # Limits approved by the owner on 2026-11-23. Output tokens include the model's thinking.
+    standard_assistant_max_output_tokens: int = 2048
+    standard_assistant_max_tool_rounds: int = 4
+    standard_assistant_max_tool_calls: int = 8
+    standard_assistant_timeout_seconds: float = 60  # each model call; the SDK retries it at most once more
+    standard_assistant_max_retries: int = 1
+    standard_assistant_deadline_seconds: float = 240  # no new model call starts after this much of a question
+    standard_assistant_effort: str = "medium"  # low | medium | high | xhigh | max (the model's default is high)
 
     @property
     def standard_assistant_configured(self) -> bool:

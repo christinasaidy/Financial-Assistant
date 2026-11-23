@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from datetime import date
 from typing import Protocol
 
-from app.application.assistant.dtos import QueryResult, TurnRequest, WorkflowAnswer
+from app.application.assistant.dtos import ChatRequest, ChatResponse, QueryResult, TurnRequest, WorkflowAnswer
 from app.domain.assistant.conversation import (
     DEFAULT_MODE,
     AnswerDetails,
@@ -12,6 +13,7 @@ from app.domain.assistant.conversation import (
     Rating,
     Turn,
 )
+from app.domain.assistant.names import KnownName, NameKind
 from app.domain.assistant.prompt import UserNames
 
 
@@ -48,6 +50,11 @@ class QueryRules(Protocol):
         """A query for the receipt_ids the result is based on, or None when it cannot be worked out reliably
         (a UNION, a WITH, or a subquery in FROM)."""
 
+    def named_literals(self, sql: str) -> dict[str, set[str]]:
+        """The names the SQL compares item_name, vendor and category with, as {"items": ..., "vendors": ...,
+        "categories": ...}, so they can be checked against the user's data before `prepare`. Raises QueryRejected
+        if the SQL does not parse."""
+
 
 class ReadOnlyQueryRunner(Protocol):
     def run(self, user_id: int, sql: str) -> QueryResult:
@@ -76,6 +83,25 @@ class StandardAssistant(Protocol):
     model: str  # the configured model, shown by GET /assistant/modes
 
     def answer(self, request: TurnRequest) -> WorkflowAnswer: ...
+
+
+class StandardChatModel(Protocol):
+    """The Standard mode's hosted model, called with native messages and tools. Raises ModelFailed when no usable
+    response comes back (after the adapter's own bounded retries)."""
+
+    model: str  # the configured model id
+
+    def respond(self, request: ChatRequest) -> ChatResponse: ...
+
+
+class NameRepository(Protocol):
+    """The user's own vendor, item and category names, from all their confirmed receipts (no cap)."""
+
+    def existing(self, kind: NameKind, names: Sequence[str]) -> set[str]:
+        """Those of `names` that the user has, spelled exactly as given."""
+
+    def inventory(self, kind: NameKind, limit: int) -> list[KnownName]:
+        """Every name of that kind, most recently used first, at most `limit`."""
 
 
 class ConversationRepository(Protocol):

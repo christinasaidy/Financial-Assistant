@@ -89,6 +89,85 @@ class WorkflowAnswer:
     execution: dict | None = None  # internal record of how it was answered, kept on the turn; never sent to clients
 
 
+# --- the Standard workflow's conversation with its model, in the app's own terms (no provider types) ---
+
+
+@dataclass(frozen=True)
+class ToolSpec:
+    """A tool the model may call: its name, what it is for, and the JSON schema of its input."""
+
+    name: str
+    description: str
+    input_schema: dict
+
+
+@dataclass(frozen=True)
+class TextPart:
+    text: str
+
+
+@dataclass(frozen=True)
+class ToolCall:
+    """The model asking for a tool. `id` pairs it with its result."""
+
+    id: str
+    name: str
+    input: dict
+
+
+@dataclass(frozen=True)
+class ToolResult:
+    call_id: str  # the ToolCall's id
+    content: str  # JSON text
+    is_error: bool = False
+
+
+@dataclass(frozen=True)
+class ChatMessage:
+    """One message of the model conversation. `provider_content` is a model reply exactly as the provider returned
+    it (with its thinking blocks); the adapter sends that back unchanged instead of rebuilding it from `parts`."""
+
+    role: str  # "user" or "assistant"
+    parts: tuple[TextPart | ToolCall | ToolResult, ...]
+    provider_content: object | None = None
+
+
+@dataclass(frozen=True)
+class ChatRequest:
+    system: str
+    tools: tuple[ToolSpec, ...]
+    messages: tuple[ChatMessage, ...]
+    allow_tools: bool = True  # False: the model must answer now, without calling a tool
+
+
+@dataclass(frozen=True)
+class ModelUsage:
+    """Tokens one call used, as the provider reported them. None means not reported (unknown), never zero."""
+
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    cache_creation_input_tokens: int | None = None
+    cache_read_input_tokens: int | None = None
+
+
+@dataclass(frozen=True)
+class ChatResponse:
+    parts: tuple[TextPart | ToolCall, ...]
+    stop_reason: str | None  # the provider's own value: end_turn, tool_use, max_tokens, refusal, ...
+    model: str  # the model that actually answered
+    usage: ModelUsage | None = None
+    request_id: str | None = None
+    provider_content: object | None = None  # to send back with the next request (see ChatMessage)
+
+    @property
+    def text(self) -> str:
+        return "".join(part.text for part in self.parts if isinstance(part, TextPart)).strip()
+
+    @property
+    def tool_calls(self) -> tuple[ToolCall, ...]:
+        return tuple(part for part in self.parts if isinstance(part, ToolCall))
+
+
 @dataclass(frozen=True)
 class ModeStatus:
     """Whether a mode is set up on this server. `available` means configured (a key and a model), not that the

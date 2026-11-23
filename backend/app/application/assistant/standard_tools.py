@@ -1,0 +1,429 @@
+"""The Standard mode's tools: read-only operations its model may ask for (2026-11-23).
+
+A tool is a typed backend operation: its input is checked here against its schema, it runs as the signed-in user
+(the user id comes from the request, never from the model: no tool has a user field, and unknown fields are
+refused), it reuses the services the screens use, and its output is bounded. Nothing here writes user data.
+
+- query_receipts: one SELECT over the three assistant views, through the same safety layers as Beta (the guard, the
+  answering rules, the read-only role and its limits). One difference: the names it filters on are checked against
+  ALL the user's confirmed receipts, not the 100 newest vendors the Beta prompt lists (a model-written name is never
+  trusted: only a name found in the user's own data is let through).
+- find_names: the user's exact spelling of a vendor, item or category, or similar names to ask about.
+- get_receipt: one receipt and its lines.
+- get_spending_summary: a month's totals by currency and category (SpendingService, as the Home screen shows them).
+- get_budgets: a month's budgets and how much of each is used (BudgetService, as the Budgets screen shows them).
+
+Results are JSON text for the model. Amounts stay exact (Decimal written as text), never rounded here.
+"""
+
+import json
+import logging
+import time
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, field
+from datetime import date
+from decimal import Decimal
+
+from app.application.assistant.dtos import QueryResult, ToolCall, ToolSpec
+from app.application.assistant.interfaces import QueryRules, ReadOnlyQueryRunner, SqlGuard
+from app.application.budgets.budget_service import BudgetService
+from app.application.receipts.receipt_service import ReceiptService
+from app.application.shared.unit_of_work import UnitOfWorkFactory
+from app.application.spending.spending_service import SpendingService
+from app.domain.assistant import answer as answers
+from app.domain.assistant.errors import QueryFailed, QueryRejected, UnsafeQuery
+from app.domain.assistant.names import KnownName, MatchStatus, NameKind, match_name
+from app.domain.assistant.prompt import UserNames
+from app.domain.receipts.errors import ReceiptNotFound
+from app.domain.shared.currency import Currency
+
+logger = logging.getLogger(__name__)
+
+TOOLS_VERSION = "standard-tools-2026-11-23.1"  # saved with every Standard answer, like the prompt's version
+MAX_RESULT_ROWS = 50  # rows of a query result shown to the model (the runner itself keeps at most 200)
+MAX_RESULT_CHARACTERS = 12_000
+MAX_RECEIPT_LINES = 100
+INVENTORY_LIMIT = 5_000  # names looked through by find_names; a user with more is told the search was partial
+MAX_NAME_LENGTH = 200
+MAX_SQL_LENGTH = 4_000
+_KINDS = {"items": NameKind.ITEM, "vendors": NameKind.VENDOR, "categories": NameKind.CATEGORY}
+
+
+@dataclass(frozen=True)
+class ToolContext:
+    """What every tool call of one question shares."""
+
+    today: date  # one date for the whole turn: the context the model was given and every query's CURRENT_DATE
+    asked: str  # the user's earlier questions and this one, for the date rules
+
+
+@dataclass(frozen=True)
+class ToolOutcome:
+    content: str  # JSON text for the model
+    is_error: bool
+    evidence: tuple[object, ...] = ()  # values the answer may quote (numbers are taken from them)
+    receipt_ids: tuple[int, ...] = ()  # receipts the result is based on, when they can be listed
+    sources_listed: bool | None = None  # None: not a data tool; False: data whose receipts cannot be listed
+    record: dict = field(default_factory=dict)  # for the turn's execution record (never shown to the user)
+
+
+def _schema(properties: dict, required: Sequence[str]) -> dict:
+    return {"type": "object", "properties": properties, "required": list(required), "additionalProperties": False}
+
+
+_YEAR = {"type": "integer", "description": "The year, e.g. 2026"}
+_MONTH = {"type": "integer", "description": "The month number, 1 to 12"}
+
+SPECS = (
+    ToolSpec(
+        "query_receipts",
+        "Run one read-only PostgreSQL SELECT over the user's confirmed receipts: the views receipts, purchases and "
+        "category_spending described in your instructions. For totals, comparisons, rankings, lists and purchase "
+        "history. Names must be the user's exact spellings. Returns columns, rows (at most 50 shown), whether the "
+        "result was truncated, and the receipts it is based on when they can be worked out.",
+        _schema({"sql": {"type": "string", "description": "One SELECT statement"}}, ["sql"]),
+    ),
+    ToolSpec(
+        "find_names",
+        "Find the user's exact spelling of a shop (vendor), item or category among all their confirmed receipts. "
+        "Returns status found (with the exact name), ambiguous, suggestions (similar names to ask the user about; "
+        "never treat one as found) or not_found.",
+        _schema(
+            {
+                "kind": {"type": "string", "enum": [kind.value for kind in NameKind]},
+                "name": {"type": "string", "description": "The name as the user wrote it"},
+            },
+            ["kind", "name"],
+        ),
+    ),
+    ToolSpec(
+        "get_receipt",
+        "Get one of the user's receipts by its receipt_id: shop, date, currency, total, rate and every line.",
+        _schema({"receipt_id": {"type": "integer"}}, ["receipt_id"]),
+    ),
+    ToolSpec(
+        "get_spending_summary",
+        "A month's confirmed spending: the total in each currency used, everything converted into one currency, "
+        "and the split by category, exactly as the app's Home screen shows it.",
+        _schema(
+            {"year": _YEAR, "month": _MONTH, "currency": {"type": "string", "enum": [c.value for c in Currency],
+                                                          "description": "The currency to convert everything into"}},
+            ["year", "month", "currency"],
+        ),  # fmt: skip
+    ),
+    ToolSpec(
+        "get_budgets",
+        "The user's budgets for a month: each category's limit, how much is spent and left, its state, and for "
+        "the current month the pace (where spending ends up at this rate).",
+        _schema({"year": _YEAR, "month": _MONTH}, ["year", "month"]),
+    ),
+)
+
+
+class StandardTools:
+    """Runs the tools the Standard model asks for. Built once per process; holds no per-request state."""
+
+    specs = SPECS
+
+    def __init__(
+        self,
+        uow: UnitOfWorkFactory,
+        guard: SqlGuard,
+        rules: QueryRules,
+        runner: ReadOnlyQueryRunner,
+        spending: SpendingService,
+        budgets: BudgetService,
+        receipts: ReceiptService,
+        clock: Callable[[], float] = time.perf_counter,
+    ) -> None:
+        self._uow = uow
+        self._guard = guard
+        self._rules = rules
+        self._runner = runner
+        self._spending = spending
+        self._budgets = budgets
+        self._receipts = receipts
+        self._clock = clock
+        self._handlers = {
+            "query_receipts": self._query_receipts,
+            "find_names": self._find_names,
+            "get_receipt": self._get_receipt,
+            "get_spending_summary": self._get_spending_summary,
+            "get_budgets": self._get_budgets,
+        }
+        self._schemas = {spec.name: spec.input_schema for spec in SPECS}
+
+    def run(self, user_id: int, call: ToolCall, context: ToolContext) -> ToolOutcome:
+        """Run one call as `user_id`. An unknown tool or invalid input is refused without running anything; a
+        refusal or failure comes back as an error result the model can read, never as an exception."""
+        started = self._clock()
+        record: dict = {"name": call.name, "input": _bounded_input(call.input)}
+        handler = self._handlers.get(call.name)
+        if handler is None:
+            problem: str | None = f"There is no tool called {call.name!r}"
+        else:
+            problem = _invalid(self._schemas[call.name], call.input)
+        if problem is not None:
+            outcome = _error(problem, sources_listed=None)
+        else:
+            try:
+                outcome = handler(user_id, call.input, context)
+            except (UnsafeQuery, QueryRejected, QueryFailed) as exc:
+                outcome = _error(str(exc), sources_listed=False)
+            except Exception as exc:  # a bug or the database down: the model is told, the turn goes on
+                logger.exception("Standard tool %s failed", call.name)
+                outcome = _error("The tool failed; this could not be checked", sources_listed=False,
+                                 record={"exception": type(exc).__name__})  # fmt: skip
+        record |= {"ok": not outcome.is_error, "duration_ms": round((self._clock() - started) * 1000)}
+        record |= outcome.record
+        if outcome.is_error:
+            record["problem"] = json.loads(outcome.content)["error"]
+        return ToolOutcome(outcome.content, outcome.is_error, outcome.evidence, outcome.receipt_ids,
+                           outcome.sources_listed, record)  # fmt: skip
+
+    # --- the tools ---
+
+    def _query_receipts(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        sql = args["sql"].strip()
+        if not sql or len(sql) > MAX_SQL_LENGTH:
+            return _error(f"The SQL must be 1 to {MAX_SQL_LENGTH} characters", sources_listed=False)
+        sql = self._guard.check(sql)
+        literals = self._rules.named_literals(sql)
+        with self._uow(user_id) as work:
+            found = {kind: work.names.existing(_KINDS[kind], sorted(names)) for kind, names in literals.items()}
+        unknown = {kind: sorted(literals[kind] - found[kind]) for kind in literals if literals[kind] - found[kind]}
+        if unknown:
+            listed = "; ".join(f"{kind}: {', '.join(repr(name) for name in names)}" for kind, names in unknown.items())
+            return _error(
+                f"Not the user's exact spelling ({listed}). Use find_names, or ask the user which they mean",
+                sources_listed=False,
+            )
+        names = UserNames(items=sorted(found["items"]), vendors=sorted(found["vendors"]),
+                          categories=sorted(found["categories"]))  # fmt: skip
+        sql = self._rules.prepare(sql, names, context.today)  # loose matches, the clock, CURRENT_DATE -> the date
+        self._rules.check_dates(sql, context.asked, context.today)
+        result = self._runner.run(user_id, self._guard.check(sql))
+        receipt_ids = self._sources(user_id, sql)
+        shown, cut = _shown_rows(result)
+        payload = {
+            "columns": result.columns,
+            "rows": [[_json_value(value) for value in row] for row in shown],
+            "row_count": len(result.rows),
+            "truncated": result.truncated or cut,
+        }
+        if result.truncated:
+            payload["note"] = "More rows matched than the limit allows: this is only part of the result"
+        elif cut:
+            payload["note"] = f"Only the first {len(shown)} of {len(result.rows)} rows are shown"
+        if answers.is_empty_result(result.rows):
+            payload["note"] = "No confirmed receipt matched"
+        totals = answers.column_totals(result.columns, shown)
+        evidence = (*answers.result_numbers(shown), *totals.values(), Decimal(len(result.rows)),
+                    *([Decimal(len(receipt_ids))] if receipt_ids is not None else []))  # fmt: skip
+        record = {"sql": sql, "rows": len(result.rows), "truncated": payload["truncated"],
+                  "receipts": None if receipt_ids is None else len(receipt_ids)}  # fmt: skip
+        return ToolOutcome(_json(payload), False, evidence, receipt_ids or (), receipt_ids is not None, record)
+
+    def _sources(self, user_id: int, sql: str) -> tuple[int, ...] | None:
+        query = self._rules.sources_query(sql)
+        if query is None:
+            return None
+        try:
+            result = self._runner.run(user_id, self._guard.check(query))
+        except (UnsafeQuery, QueryFailed) as exc:
+            logger.warning("The source receipts of a Standard query could not be found: %s", exc)
+            return None
+        if result.truncated:  # a capped list is not every source: say they cannot be listed rather than undercount
+            return None
+        return tuple(int(row[0]) for row in result.rows if row[0] is not None)
+
+    def _find_names(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        kind = NameKind(args["kind"])
+        name = args["name"].strip()
+        if not name or len(name) > MAX_NAME_LENGTH:
+            return _error(f"The name must be 1 to {MAX_NAME_LENGTH} characters", sources_listed=None)
+        with self._uow(user_id) as work:
+            known = work.names.inventory(kind, INVENTORY_LIMIT + 1)
+        partial = len(known) > INVENTORY_LIMIT
+        match = match_name(name, known[:INVENTORY_LIMIT])
+        payload: dict = {"status": match.status.value, "names": [_known(entry) for entry in match.names]}
+        notes = {
+            MatchStatus.FOUND: "This is the user's exact spelling: use it in queries",
+            MatchStatus.AMBIGUOUS: "More than one name has this spelling: ask the user which they mean",
+            MatchStatus.SUGGESTIONS: "No name has this spelling. These are only similar names, not confirmed: ask "
+            "the user which one they mean, if any",
+            MatchStatus.NOT_FOUND: "No name with this or a similar spelling among the user's confirmed receipts. "
+            "That does not prove they never bought there: it may be spelled differently or not confirmed yet",
+        }
+        payload["note"] = notes[match.status]
+        if partial:
+            payload["partial"] = f"Only the {INVENTORY_LIMIT} most recently used names were searched"
+        record = {"status": match.status.value, "names": len(match.names), "partial": partial}
+        return ToolOutcome(_json(payload), False, (), (), None, record)
+
+    def _get_receipt(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        receipt_id = args["receipt_id"]
+        if receipt_id < 1:
+            return _error("receipt_id must be a positive number", sources_listed=False)
+        try:
+            receipt = self._receipts.get(user_id, receipt_id).receipt
+        except ReceiptNotFound:  # another user's receipt is "not found" too: row-level security hides it
+            return _error("The user has no receipt with that id", sources_listed=False)
+        with self._uow(user_id) as work:
+            categories = {category.id: category.name for category in work.categories.list_all()}
+        lines = receipt.lines[:MAX_RECEIPT_LINES]
+        payload = {
+            "receipt_id": receipt.id,
+            "status": receipt.status.value,  # only a confirmed receipt counts in totals
+            "vendor": receipt.vendor_name,
+            "receipt_date": _json_value(receipt.receipt_date),
+            "currency": _json_value(receipt.currency),
+            "total": _json_value(receipt.total),
+            "lbp_per_usd": _json_value(receipt.lbp_per_usd),
+            "category": categories.get(receipt.primary_category_id) if receipt.primary_category_id else None,
+            "lines": [
+                {
+                    "item": line.description,
+                    "item_name": line.normalized_name,
+                    "brand": line.brand,
+                    "quantity": _json_value(line.quantity),
+                    "unit_price": _json_value(line.unit_price),
+                    "line_total": _json_value(line.line_total),
+                    "size": None if line.size_amount is None else f"{_json_value(line.size_amount)} {line.size_unit}",
+                    "category": categories.get(line.category_id) if line.category_id else None,
+                }
+                for line in lines
+            ],
+        }
+        if len(receipt.lines) > len(lines):
+            payload["note"] = f"Only the first {len(lines)} of {len(receipt.lines)} lines are shown"
+        return ToolOutcome(_json(payload), False, (payload,), (receipt.id,), True, {"receipt_id": receipt.id})
+
+    def _get_spending_summary(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        problem = _check_month(args["year"], args["month"])
+        if problem:
+            return _error(problem, sources_listed=False)
+        summary = self._spending.monthly_summary(user_id, args["year"], args["month"], Currency(args["currency"]))
+
+        def part(entry) -> dict:
+            return {
+                "currency": entry.currency.value,
+                "total": _json_value(entry.total),
+                "receipt_count": entry.receipt_count,
+                "categories": [{"name": c.name, "amount": _json_value(c.amount)} for c in entry.categories],
+                "tax_discounts_and_rounding": _json_value(entry.adjustments),
+            }
+
+        payload = {
+            "month": _json_value(summary.month),
+            "combined": part(summary.combined),
+            "by_currency": [part(entry) for entry in summary.by_currency],
+            "receipts_awaiting_review": summary.awaiting_review,
+            "converted_at_current_rate": summary.converted_at_current_rate,
+            "current_lbp_per_usd": _json_value(summary.current_lbp_per_usd),
+        }
+        # The summary has no list of receipts, so its sources cannot be listed (never invented).
+        return ToolOutcome(_json(payload), False, (payload,), (), False, {"month": payload["month"]})
+
+    def _get_budgets(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        problem = _check_month(args["year"], args["month"])
+        if problem:
+            return _error(problem, sources_listed=None)
+        statuses = self._budgets.list_for_month(user_id, args["year"], args["month"])
+        payload = {
+            "budgets": [
+                {
+                    "category": status.category_name,
+                    "currency": status.currency.value,
+                    "limit": _json_value(status.limit_amount),
+                    "spent": _json_value(status.spent),
+                    "remaining": _json_value(status.remaining),
+                    "percent_used": _json_value(status.percent_used),
+                    "state": status.state.value,
+                    "pace": None if status.pace is None else {
+                        "projected": _json_value(status.pace.projected),
+                        "projected_over": status.pace.projected_over,
+                        "low_confidence": status.pace.low_confidence,
+                    },
+                }
+                for status in statuses
+            ]
+        }  # fmt: skip
+        if not statuses:
+            payload["note"] = "The user has no budget for this month"
+        return ToolOutcome(_json(payload), False, (payload,), (), False, {"budgets": len(statuses)})
+
+
+# --- helpers ---
+
+
+def _error(problem: str, *, sources_listed: bool | None, record: dict | None = None) -> ToolOutcome:
+    return ToolOutcome(_json({"error": problem}), True, (), (), sources_listed, record or {})
+
+
+def _invalid(schema: dict, value: object) -> str | None:
+    """Why `value` does not fit the tool's schema, or None. Only the features the schemas above use."""
+    if not isinstance(value, dict):
+        return "The input must be an object"
+    properties = schema["properties"]
+    extra = sorted(set(value) - set(properties))
+    if extra:
+        return f"Unknown input field(s): {', '.join(extra)}"
+    missing = [name for name in schema["required"] if name not in value]
+    if missing:
+        return f"Missing input field(s): {', '.join(missing)}"
+    for name, rule in properties.items():
+        if name not in value:
+            continue
+        item = value[name]
+        if rule["type"] == "string" and not isinstance(item, str):
+            return f"{name} must be text"
+        if rule["type"] == "integer" and (not isinstance(item, int) or isinstance(item, bool)):
+            return f"{name} must be a whole number"
+        if "enum" in rule and item not in rule["enum"]:
+            return f"{name} must be one of: {', '.join(rule['enum'])}"
+    return None
+
+
+def _check_month(year: int, month: int) -> str | None:
+    if not 2000 <= year <= 2100:
+        return "year must be between 2000 and 2100"
+    if not 1 <= month <= 12:
+        return "month must be 1 to 12"
+    return None
+
+
+def _shown_rows(result: QueryResult) -> tuple[list[tuple], bool]:
+    """The rows sent to the model: at most MAX_RESULT_ROWS and MAX_RESULT_CHARACTERS. True if some were left out."""
+    shown: list[tuple] = []
+    size = 0
+    for row in result.rows[:MAX_RESULT_ROWS]:
+        size += len(_json([_json_value(value) for value in row]))
+        if size > MAX_RESULT_CHARACTERS and shown:
+            break
+        shown.append(row)
+    return shown, len(shown) < len(result.rows)
+
+
+def _known(entry: KnownName) -> dict:
+    return {"name": entry.name, "receipts": entry.receipts, "last_used": _json_value(entry.last_used)}
+
+
+def _json_value(value: object) -> object:
+    if value is None or isinstance(value, (bool, int, str)):
+        return value
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)
+
+
+def _json(payload: object) -> str:
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def _bounded_input(value: object, limit: int = 2_000) -> object:
+    """The model's input as saved in the execution record: kept whole unless it is very long."""
+    text = _json(value)
+    return value if len(text) <= limit else {"truncated": text[:limit]}

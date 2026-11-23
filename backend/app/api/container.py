@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from app.application.assistant.assistant_service import AssistantService
@@ -20,3 +21,5 @@ class Container:
     budgets: BudgetService
     notifications: NotificationService
     assistant: AssistantService
+    # Called when the app shuts down, e.g. to close the Standard model's HTTP client.
+    closers: tuple[Callable[[], None], ...] = ()

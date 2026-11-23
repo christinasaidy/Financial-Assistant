@@ -11,6 +11,7 @@ from app.application.assistant.interfaces import (
     ConversationRepository,
     FeedbackRepository,
     MessageRepository,
+    NameRepository,
     TurnRepository,
 )
 from app.application.budgets.interfaces import BudgetRepository
@@ -29,6 +30,7 @@ class UnitOfWork(Protocol):
     messages: MessageRepository
     feedback: FeedbackRepository
     turns: TurnRepository
+    names: NameRepository
 
 
 class UnitOfWorkFactory(Protocol):
