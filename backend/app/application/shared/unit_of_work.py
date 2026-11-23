@@ -15,6 +15,7 @@ from app.application.assistant.interfaces import (
     NameRepository,
     ProfileRepository,
     TurnRepository,
+    UsageRepository,
 )
 from app.application.budgets.interfaces import BudgetRepository
 from app.application.categories.interfaces import CategoryRepository
@@ -35,6 +36,7 @@ class UnitOfWork(Protocol):
     names: NameRepository
     memories: MemoryRepository
     profile: ProfileRepository
+    usage: UsageRepository
 
 
 class UnitOfWorkFactory(Protocol):

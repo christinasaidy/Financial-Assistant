@@ -178,3 +178,10 @@ def test_an_unknown_effort_or_cache_lifetime_is_refused_at_startup():
         AnthropicChatModel(KEY, "claude-sonnet-5-5", effort="extreme")
     with pytest.raises(ValueError):
         AnthropicChatModel(KEY, "claude-sonnet-5-5", cache_ttl="1d")
+
+
+def test_cache_writes_are_read_by_lifetime_when_reported():
+    usage = {"input_tokens": 4, "output_tokens": 30, "cache_creation_input_tokens": 43139, "cache_read_input_tokens": 0,
+             "cache_creation": {"ephemeral_5m_input_tokens": 139, "ephemeral_1h_input_tokens": 43000}}
+    reported = _model(Server(_message([{"type": "text", "text": "Hi"}], usage=usage))).respond(_ask()).usage
+    assert (reported.cache_write_5m_tokens, reported.cache_write_1h_tokens) == (139, 43000)

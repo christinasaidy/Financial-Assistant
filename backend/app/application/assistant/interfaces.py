@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from datetime import date
+from decimal import Decimal
 from typing import Protocol
 
 from app.application.assistant.dtos import ChatRequest, ChatResponse, QueryResult, TurnRequest, WorkflowAnswer
@@ -16,6 +17,7 @@ from app.domain.assistant.conversation import (
 from app.domain.assistant.memory import Memory, MemoryKind
 from app.domain.assistant.names import KnownName, NameKind
 from app.domain.assistant.prompt import UserNames
+from app.domain.assistant.usage import TurnUsage
 from app.domain.users.user import Gender
 
 
@@ -139,6 +141,25 @@ class MemoryRepository(Protocol):
         """None if there is no such memory. A new `target_name` replaces the target and its vendor id."""
 
     def delete(self, memory_id: int) -> bool: ...
+
+
+class UsageRepository(Protocol):
+    """One record per question asked, kept when its conversation is deleted. The user's own records only, except
+    the app-wide Standard total, which comes as two numbers."""
+
+    def lock_standard_starts(self) -> None:
+        """Make other Standard question starts wait until this transaction ends."""
+
+    def reserve(self, turn_id: int, mode: AssistantMode) -> None: ...
+
+    def finish(self, turn_id: int, outcome: str, usage: TurnUsage | None) -> None:
+        """Only once: a record already finished is left as it is."""
+
+    def count_since(self, mode: AssistantMode, period: str, time_zone: str) -> int:
+        """The user's questions in `mode` since the start of today ("day") or this month ("month") in the zone."""
+
+    def standard_month_spending(self, time_zone: str) -> tuple[Decimal, int]:
+        """Every user's Standard spending this month: the known estimates, and how many have no estimate yet."""
 
 
 class ProfileRepository(Protocol):

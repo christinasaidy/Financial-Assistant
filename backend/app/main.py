@@ -18,6 +18,7 @@ from app.application.assistant.memory_service import MemoryService
 from app.application.assistant.standard_skills import BUDGETS, PRICE_COMPARISONS
 from app.application.assistant.standard_tools import StandardTools
 from app.application.assistant.standard_workflow import StandardLimits, StandardWorkflow
+from app.domain.assistant.usage import Pricing, StandardQuota
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.budgets.budget_status import BudgetStatusCalculator
@@ -142,7 +143,7 @@ def build_container(
         )
         standard_assistant = StandardWorkflow(standard_model, tools, assistant_today, limits,
                                               skills=(PRICE_COMPARISONS, BUDGETS, pack.skill),
-                                              arabizi_words=pack.words)  # fmt: skip
+                                              arabizi_words=pack.words, pricing=_pricing(settings))  # fmt: skip
 
     return Container(
         auth=AuthService(
@@ -169,9 +170,25 @@ def build_container(
             standard=standard_assistant,
             beta_available=beta_available,
             turn_timeout_seconds=settings.assistant_turn_timeout_seconds,
+            standard_quota=StandardQuota(
+                settings.standard_assistant_daily_questions_per_user or None,
+                settings.standard_assistant_monthly_cap_dollars,
+                settings.standard_assistant_question_reserve_dollars,
+                settings.assistant_time_zone,
+            ),
         ),
         closers=tuple(closers),
     )
+
+
+def _pricing(settings: Settings) -> Pricing | None:
+    """The configured Standard prices, or None (no estimates) if any is missing."""
+    prices = (settings.standard_price_input_per_mtok, settings.standard_price_output_per_mtok,
+              settings.standard_price_cache_write_5m_per_mtok, settings.standard_price_cache_write_1h_per_mtok,
+              settings.standard_price_cache_read_per_mtok)  # fmt: skip
+    if any(price is None for price in prices):
+        return None
+    return Pricing(settings.standard_pricing_version, *prices)
 
 
 def build_app(settings: Settings | None = None) -> FastAPI:

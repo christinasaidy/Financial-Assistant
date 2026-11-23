@@ -32,6 +32,7 @@ from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.main import build_container
 from tests.fakes import FakeAssistantModel, FakeReceiptExtractor
+from tests.integration.conftest import forget_usage_by_email
 
 TODAY = date(2026, 11, 3)
 THIS_MONTH = "receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'"  # noqa: E501
@@ -109,6 +110,8 @@ def sign_in(client, engine):
         return {"Authorization": f"Bearer {result['access_token']}"}, result["user"]["id"]
 
     yield _sign_in
+    for email in emails:
+        forget_usage_by_email(engine, email)
     with engine.begin() as conn:
         for email in emails:
             conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})
@@ -596,6 +599,7 @@ def test_without_a_model_the_assistant_is_not_available(settings, tmp_path, sign
         answer = ask(client, {"Authorization": f"Bearer {token}"}, "How much did I spend?")
         assert (answer["kind"], answer["content"]) == ("error", answers.NOT_AVAILABLE)
     finally:
+        forget_usage_by_email(engine, email)
         with engine.begin() as conn:
             conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})
 

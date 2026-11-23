@@ -14,6 +14,7 @@ from app.application.assistant.dtos import (
     SavedQuestion,
     SourceReceipt,
     TurnRequest,
+    UsageView,
     WorkflowAnswer,
 )
 from app.application.assistant.interfaces import (
@@ -48,6 +49,7 @@ from app.domain.assistant.errors import (
     AssistantModeConflict,
     CannotRateQuestion,
     ConversationNotFound,
+    DailyLimitReached,
     IdempotencyKeyReused,
     MessageNotFound,
     ModelFailed,
@@ -70,6 +72,7 @@ from app.domain.assistant.prompt import (
     recent_exchanges,
     repair_prompt,
 )
+from app.domain.assistant.usage import StandardQuota, TurnUsage, over_cap
 from app.domain.receipts.normalization import MAX_NAME_WORDS, names_for_prompt
 from app.domain.receipts.status import ReceiptStatus
 
@@ -83,6 +86,7 @@ DEFAULT_HISTORY_CHARACTERS = 6000
 # A turn still running after this long is taken to be abandoned (its worker stopped or hung) and given up, so the
 # conversation can be asked again. Above the Beta workflow's worst case: four model calls, each up to twice 60 s.
 DEFAULT_TURN_TIMEOUT_SECONDS = 900.0
+DEFAULT_TIME_ZONE = "Asia/Beirut"  # whose days and months the usage counts are in, without a quota
 
 
 class AssistantService:
@@ -108,11 +112,13 @@ class AssistantService:
         standard: StandardAssistant | None = None,
         beta_available: bool = True,
         turn_timeout_seconds: float = DEFAULT_TURN_TIMEOUT_SECONDS,
+        standard_quota: StandardQuota | None = None,
     ) -> None:
         """The positional arguments are the Beta workflow's (the research evaluation builds the service with them
         alone). `standard` is the Standard workflow, None when it is not configured: its conversations are then
         answered "not available", exactly as Beta's are without a model; neither mode ever answers for the other.
-        `beta_available` only says whether Beta's model is configured, for `modes()`."""
+        `beta_available` only says whether Beta's model is configured, for `modes()`. `standard_quota` holds the
+        Standard limits (None: no limits)."""
         self._uow = uow
         self._guard = guard
         self._runner = runner
@@ -124,6 +130,7 @@ class AssistantService:
         self._standard = standard
         self._beta_available = beta_available
         self._turn_timeout = turn_timeout_seconds
+        self._quota = standard_quota
 
     # --- answering a question (decisions approved by the user on 2026-11-03) ---
 
@@ -150,32 +157,63 @@ class AssistantService:
         that result. Each model step gets one second attempt, told what was wrong with the first."""
         question = clean_question(question)
         key = clean_idempotency_key(idempotency_key)
-        turn, replay = self._start_turn(user_id, conversation_id, question, mode, key)
+        turn, replay, capped = self._start_turn(user_id, conversation_id, question, mode, key)
         if replay is not None:
             return replay
         try:
-            answer = self._run_turn(user_id, turn)
+            answer = _capped_answer() if capped else self._run_turn(user_id, turn)
         except Exception as exc:
             self._fail_turn(user_id, turn.id, type(exc).__name__)
             raise
+        self._record_usage(user_id, turn.id, answer)
         return self._finish_turn(user_id, turn, answer)
 
-    def modes(self) -> list[ModeStatus]:
-        """Which modes are configured on this server (no provider is called to find out)."""
+    def modes(self, user_id: int | None = None) -> list[ModeStatus]:
+        """Which modes are configured on this server (no provider is called to find out). For a user, Standard is
+        also unavailable once they reached today's limit or the app reached this month's cap."""
         standard_models = (self._standard.model,) if self._standard is not None else ()
         beta_models = tuple(dict.fromkeys((self._model.sql_model, self._model.answer_model)))
+        reason = None if self._standard is not None else "not_configured"
+        if reason is None and user_id is not None and self._quota is not None:
+            with self._uow(user_id) as work:
+                reason = self._limit_reached(work)
         return [
-            ModeStatus(AssistantMode.STANDARD, self._standard is not None, standard_models),
-            ModeStatus(AssistantMode.BETA, self._beta_available, beta_models),
-        ]
+            ModeStatus(AssistantMode.STANDARD, reason is None, standard_models, reason),
+            ModeStatus(AssistantMode.BETA, self._beta_available, beta_models,
+                       None if self._beta_available else "not_configured"),
+        ]  # fmt: skip
+
+    def usage(self, user_id: int) -> UsageView:
+        """The user's own question counts (kept when conversations are deleted), and today's Standard questions left."""
+        zone = self._quota.time_zone if self._quota else DEFAULT_TIME_ZONE
+        with self._uow(user_id) as work:
+            today = {mode: work.usage.count_since(mode, "day", zone) for mode in AssistantMode}
+            month = {mode: work.usage.count_since(mode, "month", zone) for mode in AssistantMode}
+        limit = self._quota.daily_questions_per_user if self._quota else None
+        left = None if limit is None else max(limit - today[AssistantMode.STANDARD], 0)
+        return UsageView(today, month, limit, left)
+
+    def _limit_reached(self, work: UnitOfWork) -> str | None:
+        """Why one more Standard question may not be asked now ("daily_limit" or "monthly_cap"), or None."""
+        quota = self._quota
+        limit = quota.daily_questions_per_user
+        if limit is not None and work.usage.count_since(AssistantMode.STANDARD, "day", quota.time_zone) >= limit:
+            return "daily_limit"
+        spent, unpriced = work.usage.standard_month_spending(quota.time_zone)
+        return "monthly_cap" if over_cap(spent, unpriced, quota) else None
 
     # --- one turn: start, run, finish ---
 
     def _start_turn(
         self, user_id: int, conversation_id: int | None, question: str, mode: AssistantMode | None, key: str | None
-    ) -> tuple[Turn, AskResult | None]:
-        """Save the question and claim the conversation's turn, or return the earlier answer to a repeated request.
-        Raises (with nothing saved) for another user's conversation, a mode conflict or a turn still running."""
+    ) -> tuple[Turn, AskResult | None, bool]:
+        """Save the question, claim the conversation's turn and reserve its usage, or return the earlier answer to a
+        repeated request. Raises (with nothing saved) for another user's conversation, a mode conflict, a turn still
+        running, or a user past today's Standard limit. The last value says the app's monthly Standard cap is reached:
+        the question is then answered "not available" without calling the model.
+
+        A Standard start holds the app-wide start lock until its transaction ends: the limits are checked and the
+        question reserved while no other Standard question can start, so two at once cannot both slip under a limit."""
         with self._uow(user_id) as work:  # on its own, so it stays done: give up a turn whose worker stopped
             earlier = work.turns.find_by_key(key) if key is not None else None
             target = earlier.conversation_id if earlier is not None else conversation_id
@@ -186,7 +224,7 @@ class AssistantService:
             if key is not None:
                 earlier = work.turns.find_by_key(key)
                 if earlier is not None:
-                    return earlier, self._replay(work, earlier, conversation_id, question, mode)
+                    return earlier, self._replay(work, earlier, conversation_id, question, mode), False
             if conversation_id is None:
                 chosen = mode or DEFAULT_MODE
                 conversation_id = work.conversations.create(title_from(question), chosen)
@@ -197,12 +235,20 @@ class AssistantService:
                 if mode is not None and mode is not saved_mode:
                     raise AssistantModeConflict
                 chosen = saved_mode
+            capped = False
+            if chosen is AssistantMode.STANDARD and self._standard is not None and self._quota is not None:
+                work.usage.lock_standard_starts()
+                reason = self._limit_reached(work)
+                if reason == "daily_limit":  # raising rolls back the conversation made just now, if any
+                    raise DailyLimitReached
+                capped = reason == "monthly_cap"
             message = work.messages.add(conversation_id, MessageRole.USER, question)
             turn_id = work.turns.start(conversation_id, message.id, chosen, key)
             if turn_id is None:  # raising rolls back the question (and a conversation made just now)
                 raise TurnInProgress
+            work.usage.reserve(turn_id, chosen)
         turn = Turn(turn_id, conversation_id, message.id, question, chosen, TurnStatus.RUNNING, idempotency_key=key)
-        return turn, None
+        return turn, None, capped
 
     def _replay(
         self, work: UnitOfWork, earlier: Turn, conversation_id: int | None, question: str, mode: AssistantMode | None
@@ -230,7 +276,12 @@ class AssistantService:
         if turn.mode is AssistantMode.BETA:
             history = recent_exchanges(messages, self._history_exchanges, self._history_characters)
             content, details = self._answer(user_id, turn.question, history, waiting)
-            return WorkflowAnswer(content, details)
+            models = sorted({attempt.model for attempt in details.attempts})
+            execution = {"workflow": "beta", "models": models, "outcome": details.kind.value,
+                         "model_calls": len(details.attempts), "duration_ms": details.duration_ms}  # fmt: skip
+            # Beta's model reports no tokens: they stay unknown, never 0.
+            usage = TurnUsage(len(details.attempts), None, None, None, None, None, None)
+            return WorkflowAnswer(content, details, execution, usage)
         if self._standard is None:
             return WorkflowAnswer(answers.NOT_AVAILABLE, AnswerDetails(AnswerKind.ERROR))
         before = tuple(message for message in messages if message.id != turn.question_message_id)
@@ -251,8 +302,20 @@ class AssistantService:
         try:
             with self._uow(user_id) as work:
                 work.turns.fail(turn_id, problem)
+                work.usage.finish(turn_id, f"failed: {problem}", None)  # its cost stays unknown: counted as reserved
         except Exception:  # the original error matters more; the turn is given up later as abandoned
             logger.exception("Could not mark turn %s as failed", turn_id)
+
+    def _record_usage(self, user_id: int, turn_id: int, answer: WorkflowAnswer) -> None:
+        """On its own, before the answer is saved: the tokens were spent even if the answer is then not saved (its
+        conversation deleted meanwhile, or the turn given up). Best effort: an unrecorded question stays counted at
+        the reserve."""
+        outcome = (answer.execution or {}).get("outcome") or answer.details.kind.value
+        try:
+            with self._uow(user_id) as work:
+                work.usage.finish(turn_id, str(outcome), answer.usage)
+        except Exception:
+            logger.exception("Could not record the usage of turn %s", turn_id)
 
     def run_question(self, user_id: int, question: str, history: Sequence[Exchange] = ()) -> QuestionOutcome:
         """The SQL step on its own: the model turns the question into SQL (or asks, refuses or replies), the guard
@@ -515,3 +578,10 @@ class AssistantService:
             rating=message.rating,
             understood=understood,
         )
+
+
+def _capped_answer() -> WorkflowAnswer:
+    """The app reached this month's Standard cap: "not available", with no model called (and nothing spent)."""
+    execution = {"workflow": "standard", "outcome": "monthly_cap", "calls": [], "tools": []}
+    usage = TurnUsage(0, 0, 0, 0, 0, Decimal(0), "no-model-call")
+    return WorkflowAnswer(answers.NOT_AVAILABLE, AnswerDetails(AnswerKind.ERROR), execution, usage)

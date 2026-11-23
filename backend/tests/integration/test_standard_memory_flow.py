@@ -19,6 +19,7 @@ from app.infrastructure.config import Settings
 from app.infrastructure.skills import arabizi_pack
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.main import build_container
+from tests.integration.conftest import forget_usage_by_email
 from tests.fakes import FakeAssistantModel, FakeReceiptExtractor, ScriptedChatModel, calls, says
 
 TODAY = date(2026, 11, 23)
@@ -59,6 +60,8 @@ def sign_in(engine):
         return {"Authorization": f"Bearer {result['access_token']}"}, result["user"]["id"]
 
     yield _sign_in
+    for email in emails:
+        forget_usage_by_email(engine, email)
     with engine.begin() as conn:
         for email in emails:
             conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})

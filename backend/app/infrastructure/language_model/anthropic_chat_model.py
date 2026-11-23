@@ -125,6 +125,7 @@ def _response(message) -> ChatResponse:
                                   {"input": block.input}))  # fmt: skip
         # thinking and redacted_thinking blocks are not shown; they go back in provider_content
     usage = getattr(message, "usage", None)
+    writes = getattr(usage, "cache_creation", None)
     return ChatResponse(
         parts=tuple(parts),
         stop_reason=message.stop_reason,
@@ -134,6 +135,8 @@ def _response(message) -> ChatResponse:
             output_tokens=getattr(usage, "output_tokens", None),
             cache_creation_input_tokens=getattr(usage, "cache_creation_input_tokens", None),
             cache_read_input_tokens=getattr(usage, "cache_read_input_tokens", None),
+            cache_write_5m_tokens=getattr(writes, "ephemeral_5m_input_tokens", None),
+            cache_write_1h_tokens=getattr(writes, "ephemeral_1h_input_tokens", None),
         ),
         request_id=getattr(message, "_request_id", None),
         provider_content=list(message.content or []),

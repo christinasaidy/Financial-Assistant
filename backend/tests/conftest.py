@@ -7,3 +7,6 @@ def _no_paid_standard_calls(monkeypatch):
     Standard injects a fake model or workflow into build_container instead."""
     monkeypatch.setenv("STANDARD_ASSISTANT_ENABLED", "false")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    # The monthly cap counts every Standard question on the database this month, other test runs' included, so
+    # ordinary tests run without it; the cap's own tests set one relative to the database's current spending.
+    monkeypatch.setenv("STANDARD_ASSISTANT_MONTHLY_CAP_DOLLARS", "")

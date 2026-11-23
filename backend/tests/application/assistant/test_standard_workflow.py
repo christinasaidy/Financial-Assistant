@@ -241,3 +241,20 @@ def test_sources_are_incomplete_when_a_data_result_cannot_list_its_receipts():
     answer = _workflow(model, StubTools(summary)).answer(_request())
     assert answer.details.kind is AnswerKind.ANSWER
     assert answer.execution["sources_complete"] is False
+
+
+def test_each_answer_carries_its_estimated_cost_with_the_pricing_version():
+    from app.domain.assistant.usage import Pricing
+
+    prices = Pricing("test-prices", Decimal("2"), Decimal("10"), Decimal("2.5"), Decimal("4"), Decimal("0.1"))
+    ticks = iter(range(10_000))
+    model = ScriptedChatModel(calls(("t", "query_receipts", SUM_SQL), usage=ModelUsage(100, 20, 0, 0)),
+                              says("You spent $42.50.", usage=ModelUsage(50, 10, 0, 0)))  # fmt: skip
+    workflow = StandardWorkflow(model, StubTools(), lambda: TODAY, clock=lambda: next(ticks) * 0.001, pricing=prices)
+    answer = workflow.answer(_request())
+    assert (answer.usage.model_calls, answer.usage.input_tokens, answer.usage.output_tokens) == (2, 150, 30)
+    assert answer.usage.dollars == Decimal("0.000600")  # (150 * 2 + 30 * 10) per million
+    assert answer.execution["cost"] == {"dollars": "0.000600", "pricing_version": "test-prices"}
+
+    failed = StandardWorkflow(ScriptedChatModel(ModelFailed("timeout")), StubTools(), lambda: TODAY, pricing=prices)
+    assert failed.answer(_request()).usage.dollars is None  # a failed call may have cost something: unknown

@@ -95,3 +95,8 @@ class MemoryNotFound(DomainError):
 
 class TooManyMemories(DomainError):
     default_message = "There are too many saved memories: forget one first"
+
+class DailyLimitReached(DomainError):
+    """The user has asked as many Standard questions today as a user may. Nothing is saved; Beta still works."""
+
+    default_message = "You have reached today's limit of Standard questions; try again tomorrow"

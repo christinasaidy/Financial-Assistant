@@ -99,6 +99,21 @@ class ModeOut(BaseModel):
     mode: str
     available: bool  # configured on this server (a key and a model); not a live check of the provider
     models: list[str]
+    reason: str | None = None  # when unavailable: not_configured, daily_limit (this user) or monthly_cap (the app)
+
+
+class UsageCountsOut(BaseModel):
+    standard: int
+    beta: int
+
+
+class UsageOut(BaseModel):
+    """The signed-in user's own questions; never anyone else's, and no tokens or costs."""
+
+    today: UsageCountsOut
+    this_month: UsageCountsOut
+    standard_daily_limit: int | None
+    standard_left_today: int | None
 
 
 @router.post("/ask", response_model=AnswerOut)
@@ -125,10 +140,23 @@ def ask(
 
 
 @router.get("/modes", response_model=list[ModeOut])
-def list_modes(_: int = Depends(get_current_user_id), container: Container = Depends(get_container)) -> list[ModeOut]:
-    """The assistant modes and whether each is set up on this server, for the mode picker."""
-    modes = container.assistant.modes()
-    return [ModeOut(mode=m.mode.value, available=m.available, models=list(m.models)) for m in modes]
+def list_modes(
+    user_id: int = Depends(get_current_user_id), container: Container = Depends(get_container)
+) -> list[ModeOut]:
+    """The assistant modes and whether each can answer this user now, for the mode picker."""
+    modes = container.assistant.modes(user_id)
+    return [ModeOut(mode=m.mode.value, available=m.available, models=list(m.models), reason=m.reason) for m in modes]
+
+
+@router.get("/usage", response_model=UsageOut)
+def my_usage(user_id: int = Depends(get_current_user_id), container: Container = Depends(get_container)) -> UsageOut:
+    usage = container.assistant.usage(user_id)
+
+    def counts(by_mode) -> UsageCountsOut:
+        return UsageCountsOut(standard=by_mode[AssistantMode.STANDARD], beta=by_mode[AssistantMode.BETA])
+
+    return UsageOut(today=counts(usage.today), this_month=counts(usage.this_month),
+                    standard_daily_limit=usage.standard_daily_limit, standard_left_today=usage.standard_left_today)
 
 
 @router.get("/conversations", response_model=list[ConversationOut])

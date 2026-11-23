@@ -14,6 +14,7 @@ from app.domain.assistant.conversation import (
     Rating,
 )
 from app.domain.assistant.memory import Memory
+from app.domain.assistant.usage import TurnUsage
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,7 @@ class WorkflowAnswer:
     content: str  # what the user is shown
     details: AnswerDetails  # saved with the answer, as for every assistant message
     execution: dict | None = None  # internal record of how it was answered, kept on the turn; never sent to clients
+    usage: TurnUsage | None = None  # tokens and estimated cost; None: not known (Beta's model reports none)
 
 
 # --- the Standard workflow's conversation with its model, in the app's own terms (no provider types) ---
@@ -153,6 +155,8 @@ class ModelUsage:
     output_tokens: int | None = None
     cache_creation_input_tokens: int | None = None
     cache_read_input_tokens: int | None = None
+    cache_write_5m_tokens: int | None = None  # the cache writes by lifetime, when reported
+    cache_write_1h_tokens: int | None = None
 
 
 @dataclass(frozen=True)
@@ -181,3 +185,14 @@ class ModeStatus:
     mode: AssistantMode
     available: bool
     models: tuple[str, ...]
+    reason: str | None = None  # why it is unavailable: not_configured, daily_limit or monthly_cap
+
+
+@dataclass(frozen=True)
+class UsageView:
+    """A user's own questions per mode (all of them, also in conversations deleted since)."""
+
+    today: dict[AssistantMode, int]
+    this_month: dict[AssistantMode, int]
+    standard_daily_limit: int | None  # None: no limit
+    standard_left_today: int | None

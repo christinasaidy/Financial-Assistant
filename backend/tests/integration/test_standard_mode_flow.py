@@ -32,6 +32,7 @@ from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.main import build_container
+from tests.integration.conftest import forget_usage_by_email
 from tests.fakes import FakeAssistantModel, FakeReceiptExtractor, ScriptedChatModel, calls, says
 
 TODAY = date(2026, 11, 23)
@@ -74,6 +75,8 @@ def sign_in(engine):
         return {"Authorization": f"Bearer {result['access_token']}"}, result["user"]["id"]
 
     yield _sign_in
+    for email in emails:
+        forget_usage_by_email(engine, email)
     with engine.begin() as conn:
         for email in emails:
             conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})
@@ -203,7 +206,7 @@ def test_the_modes_endpoint_shows_the_standard_model(make_client, sign_in):
     client, _ = make_client(ScriptedChatModel())
     headers, _ = sign_in(client)
     modes = {m["mode"]: m for m in client.get("/assistant/modes", headers=headers).json()}
-    assert modes["standard"] == {"mode": "standard", "available": True, "models": ["fake-sonnet"]}
+    assert modes["standard"] == {"mode": "standard", "available": True, "models": ["fake-sonnet"], "reason": None}
 
 
 # --- AC-07: isolation ---

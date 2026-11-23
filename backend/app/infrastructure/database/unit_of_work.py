@@ -14,6 +14,7 @@ from app.infrastructure.database.name_repository import SqlNameRepository
 from app.infrastructure.database.notification_repository import SqlNotificationRepository
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
 from app.infrastructure.database.turn_repository import SqlTurnRepository
+from app.infrastructure.database.usage_repository import SqlUsageRepository
 from app.infrastructure.database.vendor_repository import SqlVendorRepository
 
 
@@ -33,6 +34,7 @@ class SqlUnitOfWork:
         self.names = SqlNameRepository(conn)
         self.memories = SqlMemoryRepository(conn)
         self.profile = SqlProfileRepository(conn)
+        self.usage = SqlUsageRepository(conn)
 
 
 class SqlUnitOfWorkFactory:

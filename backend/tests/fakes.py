@@ -1,6 +1,7 @@
 """In-memory stand-ins for the interfaces, so services and the API can be tested without a database."""
 
 import threading
+from decimal import Decimal
 from datetime import UTC, datetime
 
 from app.application.assistant.dtos import (
@@ -15,6 +16,7 @@ from app.application.assistant.dtos import (
 from app.application.auth.interfaces import StoredCredentials
 from app.application.receipts.interfaces import StoredFile
 from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Step
+from app.domain.assistant.usage import TurnUsage
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered
@@ -160,7 +162,9 @@ class FakeStandardAssistant:
         if self.fail is not None:
             raise self.fail
         attempt = Attempt(Step.ANSWER, self.model, self.reply)
-        return WorkflowAnswer(self.reply, AnswerDetails(AnswerKind.REPLY, attempts=(attempt,)), {"fake": True})
+        details = AnswerDetails(AnswerKind.REPLY, attempts=(attempt,))
+        usage = TurnUsage(1, 0, 0, 0, 0, Decimal(0), "fake")  # a fake costs nothing, and says so
+        return WorkflowAnswer(self.reply, details, {"fake": True, "outcome": "answered"}, usage)
 
 
 class ScriptedChatModel:

@@ -49,6 +49,7 @@ from app.domain.assistant.arabizi import ArabiziWords
 from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Message, MessageRole, Step
 from app.domain.assistant.errors import ModelFailed, UnusableReply
 from app.domain.assistant.prompt import WEEKDAYS
+from app.domain.assistant.usage import CallTokens, Pricing, turn_usage
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,7 @@ class StandardWorkflow:
         *,
         skills: Sequence[Skill] = (),
         arabizi_words: ArabiziWords | None = None,
+        pricing: Pricing | None = None,
     ) -> None:
         """`skills` are added to the fixed instructions once, here; `arabizi_words` (from the owner's pack) are what
         every answer is checked against."""
@@ -103,6 +105,7 @@ class StandardWorkflow:
         self._system = instructions(SYSTEM_PROMPT, skills) if skills else SYSTEM_PROMPT
         self._skills = {skill.name: skill.version for skill in skills}
         self._arabizi = arabizi_words
+        self._pricing = pricing  # None: no cost estimate (unknown, not 0)
 
     def answer(self, request: TurnRequest) -> WorkflowAnswer:
         run = _Run(self._clock(), self._today())
@@ -209,6 +212,7 @@ class StandardWorkflow:
         self, run: "_Run", kind: AnswerKind, text: str, outcome: str, problem: str | None = None
     ) -> WorkflowAnswer:
         duration_ms = _ms(self._clock() - run.started)
+        usage = turn_usage([_call_tokens(call) for call in run.calls], self._pricing)
         details = AnswerDetails(kind, receipt_ids=run.receipt_ids(), duration_ms=duration_ms,
                                 attempts=tuple(run.attempts))  # fmt: skip
         execution = {
@@ -227,10 +231,12 @@ class StandardWorkflow:
             "calls": run.calls,
             "tools": run.tools,
             "usage": _total_usage(run.calls),
+            "cost": {"dollars": None if usage.dollars is None else str(usage.dollars),
+                     "pricing_version": usage.pricing_version},
             "sources_complete": run.sources_complete(),
             "duration_ms": duration_ms,
         }
-        return WorkflowAnswer(text, details, execution)
+        return WorkflowAnswer(text, details, execution, usage)
 
 
 class _Run:
@@ -268,6 +274,8 @@ class _Run:
                 "output_tokens": usage.output_tokens,
                 "cache_creation_input_tokens": usage.cache_creation_input_tokens,
                 "cache_read_input_tokens": usage.cache_read_input_tokens,
+                "cache_write_5m_tokens": usage.cache_write_5m_tokens,
+                "cache_write_1h_tokens": usage.cache_write_1h_tokens,
             },
         })  # fmt: skip
 
@@ -333,6 +341,16 @@ def _total_usage(calls: list[dict]) -> dict:
         values = [(call.get("usage") or {}).get(name) for call in calls]
         totals[name] = None if not values or any(v is None for v in values) else sum(values)
     return totals
+
+
+def _call_tokens(call: dict) -> CallTokens | None:
+    """A call's reported tokens; None for a call that reported nothing (it failed, or gave no usage)."""
+    usage = call.get("usage")
+    if usage is None:
+        return None
+    return CallTokens(usage["input_tokens"], usage["output_tokens"], usage["cache_creation_input_tokens"],
+                      usage.get("cache_write_5m_tokens"), usage.get("cache_write_1h_tokens"),
+                      usage["cache_read_input_tokens"])  # fmt: skip
 
 
 def _ms(seconds: float) -> int:
