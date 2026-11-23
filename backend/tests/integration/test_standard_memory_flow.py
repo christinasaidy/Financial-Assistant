@@ -282,7 +282,7 @@ def test_the_reply_forms_follow_the_gender_chosen_at_sign_up(make_client, sign_i
     client = make_client(model)
     headers, _ = sign_in(client, gender=gender)
     ask(client, headers, "hi")
-    assert f"Arabizi reply forms: {forms}" in model.requests[0].messages[-1].parts[0].text
+    assert f"only if you reply in Arabizi: {forms}" in model.requests[0].messages[-1].parts[0].text
 
 
 def test_every_standard_answer_carries_the_arabizi_skill_and_records_its_version(make_client, sign_in, as_user):

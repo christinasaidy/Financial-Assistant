@@ -63,7 +63,7 @@ def test_the_memories_and_reply_forms_go_with_the_question_only():
     model = ScriptedChatModel(says("Hi!"))
     _workflow(model).answer(_request(address=Address.WOMAN, memories=[SHORT, ZWZ]))
     context = model.requests[0].messages[-1].parts[0].text
-    assert "Arabizi reply forms: the woman forms." in context
+    assert "Arabizi reply forms, only if you reply in Arabizi: the woman forms." in context
     assert "- memory 3 (preference): Keep your answers short." in context
     assert '- memory 5 (alias): "zwz" means the shop "Zaatar w Zeit"' in context
 

@@ -58,7 +58,8 @@ def test_a_greeting_is_one_call_and_no_tool():
     # today's date goes with the question, never into the cached instructions
     assert "2026-11-23" not in sent.system
     context = ("[Context for this question] Today is Monday 2026-11-23 (Beirut). No receipts are waiting for review. "
-               "Arabizi reply forms: the neutral forms (gender not given).\n[Saved memories] none")  # fmt: skip
+               "Arabizi reply forms, only if you reply in Arabizi: the neutral forms (gender not given).\n"
+               "[Saved memories] none")  # fmt: skip
     assert sent.messages[-1].parts == (TextPart(context), TextPart("hi"))
     assert answer.execution["outcome"] == "answered" and answer.execution["tools"] == []
     assert answer.execution["prompt_version"] == PROMPT_VERSION
@@ -130,6 +131,16 @@ def test_a_number_not_in_the_evidence_is_sent_back_once_with_the_problem():
     assert "85" in fix and "query_receipts" in fix
     first, second = answer.details.attempts
     assert first.problem and "85" in first.problem and second.problem is None
+
+
+def test_a_price_per_100_g_is_a_unit_not_a_figure_but_other_numbers_are_still_checked():
+    """Found in the live test of 2026-11-23: "per 100 g" (the price_comparisons skill's wording) was refused."""
+    laban = ToolOutcome('{"rows": [["Carrefour", "0.30"]]}', False, (Decimal("0.30"),), (4,), True, {})
+    model = ScriptedChatModel(calls(("t", "query_receipts", SUM_SQL)), says("Carrefour: $0.30 per 100 g (100ml too)."))
+    assert _workflow(model, StubTools(laban)).answer(_request()).content == "Carrefour: $0.30 per 100 g (100ml too)."
+    model = ScriptedChatModel(calls(("t", "query_receipts", SUM_SQL)), says("Carrefour: $100 per 100 g."),
+                              says("Carrefour: $0.30 per 100 g."))  # fmt: skip
+    assert _workflow(model, StubTools(laban)).answer(_request()).content == "Carrefour: $0.30 per 100 g."
 
 
 def test_an_answer_that_fails_the_number_check_twice_is_not_shown():

@@ -46,11 +46,14 @@ PRICE_COMPARISONS = Skill(
 
 BUDGETS = Skill(
     "budgets",
-    "budgets-2026-11-23.1",
+    "budgets-2026-11-23.2",
     """Explaining budgets (get_budgets):
 - A budget is a monthly limit for one category, in one currency; it repeats every month until the user changes it.
 - spent counts that category's items only (tax, discounts and rounding are not counted); remaining is negative once
-  the limit is passed; state is ok, near or limit_reached.
+  the limit is passed.
+- state is a field for you, not a word for the user: ok means within the limit, near means close to it,
+  limit_reached means reached or passed. Say that in the reply's own language; never write the values ok, near or
+  limit_reached, and never translate the field name.
 - pace is only for the current month: projected is where spending ends up at this rate. In the first 7 days
   (low_confidence) say it is an early estimate.
 - You can read budgets but not change them: to set or change one, the user uses the Budgets screen.""",

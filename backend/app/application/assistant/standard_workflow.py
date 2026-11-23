@@ -53,6 +53,8 @@ from app.domain.assistant.prompt import WEEKDAYS
 logger = logging.getLogger(__name__)
 
 FINISHED = frozenset({"end_turn", "stop_sequence"})
+# The unit a price comparison is given per (the price_comparisons skill): "100 g", "100ml", "100 grams".
+_UNIT_SIZE = re.compile(r"(?<![\d.,])100\s?(g|gr|grams?|ml)\b", re.IGNORECASE)
 # An answer saying a memory was saved, changed or forgotten (English only: Arabizi wording is not guessed here).
 _MEMORY_CLAIM = re.compile(
     r"\b(i'?ve|i have|i)\s+(saved|stored|remembered|noted|forgotten|deleted|updated)\b|\bi'?ll\s+(remember|forget)\b"
@@ -172,7 +174,8 @@ class StandardWorkflow:
             return ["the answer is empty"]
         found = []
         try:
-            answers.check_numbers(text, [*allowed, *run.evidence_numbers()], "the tool results")
+            figures = _UNIT_SIZE.sub("", text)  # "per 100 g" is how a comparison is put, not a figure from the data
+            answers.check_numbers(figures, [*allowed, *run.evidence_numbers()], "the tool results")
         except UnusableReply as exc:
             found.append(f"{exc} (use only numbers from the tool results; have query_receipts compute any)")
         if self._arabizi is not None:
