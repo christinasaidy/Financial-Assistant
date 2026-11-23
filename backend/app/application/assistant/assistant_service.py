@@ -26,6 +26,7 @@ from app.application.assistant.interfaces import (
 from app.application.shared.unit_of_work import UnitOfWork, UnitOfWorkFactory
 from app.domain.assistant import answer as answers
 from app.domain.assistant.answer import ReplyForm
+from app.domain.assistant.arabizi import address_for
 from app.domain.assistant.conversation import (
     DEFAULT_MODE,
     AnswerDetails,
@@ -219,9 +220,13 @@ class AssistantService:
         return AskResult(earlier.conversation_id, self._view(work, message), earlier.mode)
 
     def _run_turn(self, user_id: int, turn: Turn) -> WorkflowAnswer:
+        standard = turn.mode is AssistantMode.STANDARD and self._standard is not None
         with self._uow(user_id) as work:
             messages = work.messages.list_for(turn.conversation_id)
             waiting = work.receipts.count_with_status(ReceiptStatus.NEEDS_REVIEW)
+            # Standard only: Beta's prompt is its training contract and gets neither memories nor the gender.
+            memories = tuple(work.memories.list_all()) if standard else ()
+            address = address_for(work.profile.gender()) if standard else None
         if turn.mode is AssistantMode.BETA:
             history = recent_exchanges(messages, self._history_exchanges, self._history_characters)
             content, details = self._answer(user_id, turn.question, history, waiting)
@@ -229,7 +234,9 @@ class AssistantService:
         if self._standard is None:
             return WorkflowAnswer(answers.NOT_AVAILABLE, AnswerDetails(AnswerKind.ERROR))
         before = tuple(message for message in messages if message.id != turn.question_message_id)
-        return self._standard.answer(TurnRequest(user_id, turn.conversation_id, turn.id, turn.question, before, waiting))
+        request = TurnRequest(user_id, turn.conversation_id, turn.id, turn.question, before, waiting,
+                              turn.question_message_id, address, memories)  # fmt: skip
+        return self._standard.answer(request)
 
     def _finish_turn(self, user_id: int, turn: Turn, answer: WorkflowAnswer) -> AskResult:
         with self._uow(user_id) as work:

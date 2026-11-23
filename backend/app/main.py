@@ -14,6 +14,8 @@ from app.api.app import create_app
 from app.api.container import Container
 from app.application.assistant.assistant_service import AssistantService
 from app.application.assistant.interfaces import AssistantModel, StandardAssistant, StandardChatModel
+from app.application.assistant.memory_service import MemoryService
+from app.application.assistant.standard_skills import BUDGETS, PRICE_COMPARISONS
 from app.application.assistant.standard_tools import StandardTools
 from app.application.assistant.standard_workflow import StandardLimits, StandardWorkflow
 from app.application.auth.auth_service import AuthService
@@ -36,10 +38,13 @@ from app.infrastructure.language_model.anthropic_chat_model import AnthropicChat
 from app.infrastructure.language_model.openai_compatible_assistant_model import OpenAiCompatibleAssistantModel
 from app.infrastructure.language_model.unavailable_assistant_model import UnavailableAssistantModel
 from app.infrastructure.security.password_hasher import Argon2PasswordHasher
+from app.infrastructure.skills.arabizi_pack import ArabiziPackUnavailable, load_arabizi_pack
 from app.infrastructure.security.token_service import JwtTokenService
 from app.infrastructure.sql.query_rules import SqlGlotQueryRules
 from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
+
+logger = logging.getLogger(__name__)
 
 
 def build_container(
@@ -105,8 +110,18 @@ def build_container(
 
     # Standard: only when switched on with a key and a model (no paid call is ever made by accident). Its tools use
     # the same services, guard, rules and read-only role as the rest of the app.
+    memories = MemoryService(uow)
     closers: list[Callable[[], None]] = []
-    if standard_assistant is None and standard_model is None and settings.standard_assistant_configured:
+    wanted = standard_assistant is None and (standard_model is not None or settings.standard_assistant_configured)
+    # Standard never runs without the owner's Arabizi rulings: a missing, edited or unreviewed pack leaves it
+    # unavailable (handoff section 13A), and the reason is logged.
+    pack = None
+    if wanted:
+        try:
+            pack = load_arabizi_pack()
+        except ArabiziPackUnavailable as exc:
+            logger.error("The Standard assistant is unavailable: %s", exc)
+    if wanted and pack is not None and standard_model is None:
         chat = AnthropicChatModel(
             settings.anthropic_api_key,
             settings.standard_assistant_model,
@@ -114,17 +129,20 @@ def build_container(
             effort=settings.standard_assistant_effort,
             timeout=settings.standard_assistant_timeout_seconds,
             max_retries=settings.standard_assistant_max_retries,
+            cache_ttl=settings.standard_assistant_cache_ttl,
         )
         closers.append(chat.close)
         standard_model = chat
-    if standard_assistant is None and standard_model is not None:
-        tools = StandardTools(uow, guard, rules, query_runner, spending, budgets, receipts)
+    if wanted and pack is not None:
+        tools = StandardTools(uow, guard, rules, query_runner, spending, budgets, receipts, memories=memories)
         limits = StandardLimits(
             max_tool_rounds=settings.standard_assistant_max_tool_rounds,
             max_tool_calls=settings.standard_assistant_max_tool_calls,
             deadline_seconds=settings.standard_assistant_deadline_seconds,
         )
-        standard_assistant = StandardWorkflow(standard_model, tools, assistant_today, limits)
+        standard_assistant = StandardWorkflow(standard_model, tools, assistant_today, limits,
+                                              skills=(PRICE_COMPARISONS, BUDGETS, pack.skill),
+                                              arabizi_words=pack.words)  # fmt: skip
 
     return Container(
         auth=AuthService(
@@ -138,6 +156,7 @@ def build_container(
         spending=spending,
         budgets=budgets,
         notifications=NotificationService(uow),
+        memories=memories,
         assistant=AssistantService(
             uow,
             guard,

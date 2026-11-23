@@ -16,8 +16,10 @@ falls back to the Beta workflow.
 """
 
 import json
+import logging
+import re
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -33,13 +35,30 @@ from app.application.assistant.dtos import (
 )
 from app.application.assistant.interfaces import StandardChatModel
 from app.application.assistant.standard_prompt import PROMPT_VERSION, SYSTEM_PROMPT, turn_context
-from app.application.assistant.standard_tools import TOOLS_VERSION, StandardTools, ToolContext, ToolOutcome
+from app.application.assistant.standard_skills import Skill, instructions
+from app.application.assistant.standard_tools import (
+    TOOLS_VERSION,
+    StandardTools,
+    ToolContext,
+    ToolOutcome,
+    memory_line,
+)
 from app.domain.assistant import answer as answers
+from app.domain.assistant import arabizi
+from app.domain.assistant.arabizi import ArabiziWords
 from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Message, MessageRole, Step
 from app.domain.assistant.errors import ModelFailed, UnusableReply
 from app.domain.assistant.prompt import WEEKDAYS
 
+logger = logging.getLogger(__name__)
+
 FINISHED = frozenset({"end_turn", "stop_sequence"})
+# An answer saying a memory was saved, changed or forgotten (English only: Arabizi wording is not guessed here).
+_MEMORY_CLAIM = re.compile(
+    r"\b(i'?ve|i have|i)\s+(saved|stored|remembered|noted|forgotten|deleted|updated)\b|\bi'?ll\s+(remember|forget)\b"
+    r"|\bi will\s+(remember|forget)\b|^\s*(saved|done, saved|noted)\b|\bsaved\s+(it|that|this)\b",
+    re.IGNORECASE,
+)
 _NO_MORE_TOOLS = (
     "That was the last tool use allowed for this question. Answer now with what the results above show, and say "
     "what you could not check."
@@ -67,18 +86,29 @@ class StandardWorkflow:
         today: Callable[[], date],
         limits: StandardLimits = StandardLimits(),
         clock: Callable[[], float] = time.monotonic,
+        *,
+        skills: Sequence[Skill] = (),
+        arabizi_words: ArabiziWords | None = None,
     ) -> None:
+        """`skills` are added to the fixed instructions once, here; `arabizi_words` (from the owner's pack) are what
+        every answer is checked against."""
         self.model = model.model
         self._chat = model
         self._tools = tools
         self._today = today
         self._limits = limits
         self._clock = clock
+        self._system = instructions(SYSTEM_PROMPT, skills) if skills else SYSTEM_PROMPT
+        self._skills = {skill.name: skill.version for skill in skills}
+        self._arabizi = arabizi_words
 
     def answer(self, request: TurnRequest) -> WorkflowAnswer:
         run = _Run(self._clock(), self._today())
-        context = ToolContext(run.today, "\n".join([*_questions(request.history), request.question]))
-        opening = turn_context(run.today.isoformat(), WEEKDAYS[run.today.weekday()], request.receipts_waiting)
+        context = ToolContext(run.today, "\n".join([*_questions(request.history), request.question]),
+                              request.conversation_id, request.question_message_id)  # fmt: skip
+        opening = turn_context(run.today.isoformat(), WEEKDAYS[run.today.weekday()], request.receipts_waiting,
+                               request.address.value, tuple(memory_line(m) for m in request.memories))  # fmt: skip
+        own_words = [request.question, *(m.content for m in request.history), *(m.text for m in request.memories)]
         messages = [*_history(request.history, self._limits), ChatMessage("user", (TextPart(opening),
                                                                                     TextPart(request.question)))]
         allowed = [*answers.numbers_in(request.question), *answers.date_numbers(run.today),
@@ -90,7 +120,7 @@ class StandardWorkflow:
                 return self._failed(run, "deadline", "The question took too long to answer")
             started = self._clock()
             try:
-                response = self._chat.respond(ChatRequest(SYSTEM_PROMPT, self._tools.specs, tuple(messages),
+                response = self._chat.respond(ChatRequest(self._system, self._tools.specs, tuple(messages),
                                                           allow_tools))  # fmt: skip
             except ModelFailed as exc:
                 run.calls.append({"duration_ms": _ms(self._clock() - started), "problem": str(exc)})
@@ -118,22 +148,41 @@ class StandardWorkflow:
                                             f"Stopped: {response.stop_reason}"))  # fmt: skip
                 return self._failed(run, f"stopped_{response.stop_reason}", "The answer was not finished")
             text = response.text
-            try:
-                if not text:
-                    raise UnusableReply("The answer is empty")
-                answers.check_numbers(text, [*allowed, *run.evidence_numbers()], "the tool results")
-            except UnusableReply as exc:
-                run.attempts.append(Attempt(Step.ANSWER, response.model, text or None, str(exc)))
+            found = self._check(text, run, allowed, own_words, request)
+            if found:
+                problem = "; ".join(found)
+                run.attempts.append(Attempt(Step.ANSWER, response.model, text or None, problem))
+                run.checks.append(problem)
                 if repairs >= self._limits.number_repairs:
-                    return self._failed(run, "unchecked_answer", str(exc))
+                    return self._failed(run, "unchecked_answer", problem)
                 repairs += 1
-                fix = f"{exc}. Answer again using only numbers from the tool results; have query_receipts compute any."
+                fix = f"Your answer was not shown: {problem}. Answer again without these problems."
                 messages += [ChatMessage("assistant", response.parts, response.provider_content),
                              ChatMessage("user", (TextPart(fix),))]  # fmt: skip
                 continue
             run.attempts.append(Attempt(Step.ANSWER, response.model, text))
             kind = AnswerKind.ANSWER if run.used_data else AnswerKind.REPLY
             return self._finish(run, kind, text, "answered", request)
+
+    def _check(
+        self, text: str, run: "_Run", allowed: list[Decimal], own_words: list[str], request: TurnRequest
+    ) -> list[str]:
+        """What is wrong with an answer before it may be shown; empty when nothing is."""
+        if not text:
+            return ["the answer is empty"]
+        found = []
+        try:
+            answers.check_numbers(text, [*allowed, *run.evidence_numbers()], "the tool results")
+        except UnusableReply as exc:
+            found.append(f"{exc} (use only numbers from the tool results; have query_receipts compute any)")
+        if self._arabizi is not None:
+            spelling = arabizi.problems(text, self._arabizi, request.address, [*own_words, *run.contents])
+            if spelling:
+                logger.warning("Standard answer broke the Arabizi rulings: %s", "; ".join(spelling))
+                found += [f"{problem} (follow the lebanese_arabizi skill)" for problem in spelling]
+        if _MEMORY_CLAIM.search(text) and not run.memory_written:
+            found.append("it says a memory was saved, changed or forgotten, but no memory tool succeeded")
+        return found
 
     def _run_tool(self, user_id: int, call, context: ToolContext, run: "_Run") -> ToolResult:
         if run.tool_calls >= self._limits.max_tool_calls:
@@ -163,6 +212,8 @@ class StandardWorkflow:
             "workflow": "standard",
             "prompt_version": PROMPT_VERSION,
             "tools_version": TOOLS_VERSION,
+            "skills": self._skills,  # name -> version, e.g. the Arabizi pack's fingerprint
+            "checks": run.checks,  # problems found in answers that were sent back (never shown)
             "configured_model": self.model,
             "models": sorted({call["model"] for call in run.calls if call.get("model")}),
             "outcome": outcome,
@@ -188,8 +239,18 @@ class _Run:
         self.calls: list[dict] = []
         self.tools: list[dict] = []
         self.attempts: list[Attempt] = []
+        self.checks: list[str] = []
         self.tool_calls = 0
         self._outcomes: list[ToolOutcome] = []
+
+    @property
+    def contents(self) -> list[str]:
+        """Every successful tool result's text: names in it are the data's, never held against an answer."""
+        return [o.content for o in self._outcomes if not o.is_error]
+
+    @property
+    def memory_written(self) -> bool:
+        return any(o.memory_written and not o.is_error for o in self._outcomes)
 
     def record_call(self, response: ChatResponse, seconds: float) -> None:
         usage = response.usage

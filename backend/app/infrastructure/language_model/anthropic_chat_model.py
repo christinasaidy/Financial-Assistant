@@ -11,6 +11,8 @@ Checked against the official documentation on 2026-11-23 (anthropic 2.12.0, pinn
   max_tokens covers thinking and text together) and .../build-with-claude/effort (low ... max; default high);
 - tool_choice "none" works on Sonnet 5.5 (forcing "any"/"tool" is refused), used once the tool limits are reached;
 - caching: https://platform.claude.com/docs/en/build-with-claude/prompt-caching (prefix order tools, system,
+  messages; 5-minute or 1-hour lifetime, a longer one before a shorter one; 1-hour writes cost 2x input,
+  reads 0.05x on Sonnet 5.5;
   messages; 512 tokens minimum on Sonnet 5.5; a top-level cache_control caches up to the last block, and one on the
   system block lets every conversation reuse the fixed instructions and tools; hits are read from usage).
 temperature/top_p/top_k are refused by this model, so none is sent.
@@ -35,6 +37,7 @@ from app.application.assistant.dtos import (
 from app.domain.assistant.errors import ModelFailed
 
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
+CACHE_TTLS = ("5m", "1h")
 
 
 class AnthropicChatModel:
@@ -47,10 +50,14 @@ class AnthropicChatModel:
         effort: str = "medium",
         timeout: float = 60.0,
         max_retries: int = 1,
+        cache_ttl: str = "1h",
         http_client: anthropic.DefaultHttpxClient | None = None,
     ) -> None:
         if effort not in EFFORTS:
             raise ValueError(f"STANDARD_ASSISTANT_EFFORT must be one of {', '.join(EFFORTS)}")
+        if cache_ttl not in CACHE_TTLS:
+            raise ValueError("STANDARD_ASSISTANT_CACHE_TTL must be 5m or 1h")
+        self._cache_ttl = cache_ttl
         self.model = model
         self._max_output_tokens = max_output_tokens
         self._effort = effort
@@ -61,7 +68,10 @@ class AnthropicChatModel:
         params: dict = {
             "model": self.model,
             "max_tokens": self._max_output_tokens,
-            "system": [{"type": "text", "text": request.system, "cache_control": {"type": "ephemeral"}}],
+            # The fixed instructions, skills and tools: the same for every user, kept for an hour by default (each
+            # use refreshes it), so one write serves every question while the app is in use.
+            "system": [{"type": "text", "text": request.system,
+                        "cache_control": {"type": "ephemeral", "ttl": self._cache_ttl}}],
             "tools": [_tool(spec) for spec in request.tools],
             "messages": [_message(message) for message in request.messages],
             "output_config": {"effort": self._effort},

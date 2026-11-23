@@ -71,5 +71,6 @@ def test_no_tool_lets_the_model_choose_the_user():
 def test_the_tool_definitions_are_fixed_and_in_a_fixed_order():
     """They are part of the cached prefix: the same bytes for every request."""
     assert [spec.name for spec in SPECS] == ["query_receipts", "find_names", "get_receipt", "get_spending_summary",
-                                             "get_budgets"]  # fmt: skip
+                                             "get_budgets", "save_memory", "update_memory", "forget_memory",
+                                             "search_memories"]  # fmt: skip
     assert StandardTools.specs is SPECS

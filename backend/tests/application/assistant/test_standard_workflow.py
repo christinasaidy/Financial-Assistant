@@ -57,8 +57,9 @@ def test_a_greeting_is_one_call_and_no_tool():
     assert sent.system == SYSTEM_PROMPT and sent.tools == SPECS and sent.allow_tools
     # today's date goes with the question, never into the cached instructions
     assert "2026-11-23" not in sent.system
-    assert sent.messages[-1].parts == (TextPart("[Context for this question] Today is Monday 2026-11-23 (Beirut). "
-                                                "No receipts are waiting for review."), TextPart("hi"))  # fmt: skip
+    context = ("[Context for this question] Today is Monday 2026-11-23 (Beirut). No receipts are waiting for review. "
+               "Arabizi reply forms: the neutral forms (gender not given).\n[Saved memories] none")  # fmt: skip
+    assert sent.messages[-1].parts == (TextPart(context), TextPart("hi"))
     assert answer.execution["outcome"] == "answered" and answer.execution["tools"] == []
     assert answer.execution["prompt_version"] == PROMPT_VERSION
     assert answer.execution["tools_version"] == TOOLS_VERSION

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.domain.assistant.answer import ModelReply
+from app.domain.assistant.arabizi import Address
 from app.domain.assistant.conversation import (
     DEFAULT_MODE,
     AnswerDetails,
@@ -12,6 +13,7 @@ from app.domain.assistant.conversation import (
     MessageRole,
     Rating,
 )
+from app.domain.assistant.memory import Memory
 
 
 @dataclass(frozen=True)
@@ -80,6 +82,9 @@ class TurnRequest:
     question: str  # already cleaned
     history: tuple[Message, ...]  # the conversation's saved messages before this question, oldest first
     receipts_waiting: int  # receipts waiting for review, which no answer counts yet
+    question_message_id: int | None = None  # the saved question (a memory saved in this turn records it)
+    address: Address = Address.NEUTRAL  # the reply forms, from the gender chosen at sign-up
+    memories: tuple[Memory, ...] = ()  # the user's saved memories (Standard only; never sent to Beta)
 
 
 @dataclass(frozen=True)

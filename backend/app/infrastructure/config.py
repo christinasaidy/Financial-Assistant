@@ -67,6 +67,9 @@ class Settings(BaseSettings):
     standard_assistant_max_retries: int = 1
     standard_assistant_deadline_seconds: float = 240  # no new model call starts after this much of a question
     standard_assistant_effort: str = "medium"  # low | medium | high | xhigh | max (the model's default is high)
+    # How long the provider keeps the fixed instructions (with the Arabizi skill) cached: 5m or 1h (decided
+    # 2026-11-23: every skill is always sent, so one 1-hour write serves every question while the app is in use).
+    standard_assistant_cache_ttl: str = "1h"
 
     @property
     def standard_assistant_configured(self) -> bool:

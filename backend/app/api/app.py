@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.assistant import memory_routes
 from app.api.assistant import routes as assistant_routes
 from app.api.auth import routes as auth_routes
 from app.api.budgets import routes as budget_routes
@@ -32,5 +33,6 @@ def create_app(container: Container) -> FastAPI:
     app.include_router(budget_routes.router)
     app.include_router(notification_routes.router)
     app.include_router(assistant_routes.router)
+    app.include_router(memory_routes.router)
     register_error_handlers(app)
     return app

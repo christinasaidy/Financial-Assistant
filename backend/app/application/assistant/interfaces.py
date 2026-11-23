@@ -13,8 +13,10 @@ from app.domain.assistant.conversation import (
     Rating,
     Turn,
 )
+from app.domain.assistant.memory import Memory, MemoryKind
 from app.domain.assistant.names import KnownName, NameKind
 from app.domain.assistant.prompt import UserNames
+from app.domain.users.user import Gender
 
 
 class SqlGuard(Protocol):
@@ -102,6 +104,46 @@ class NameRepository(Protocol):
 
     def inventory(self, kind: NameKind, limit: int) -> list[KnownName]:
         """Every name of that kind, most recently used first, at most `limit`."""
+
+
+class MemoryRepository(Protocol):
+    def list_all(self) -> list[Memory]:
+        """Oldest first."""
+
+    def count(self) -> int: ...
+
+    def get(self, memory_id: int) -> Memory | None: ...
+
+    def find_preference(self, memory_text: str) -> Memory | None:
+        """The same preference, ignoring case and surrounding spaces."""
+
+    def find_alias(self, alias: str) -> Memory | None:
+        """The alias with this spelling, ignoring case and surrounding spaces."""
+
+    def add(
+        self,
+        kind: MemoryKind,
+        memory_text: str,
+        source_conversation_id: int | None,
+        source_message_id: int | None,
+        alias: str | None = None,
+        target_kind: NameKind | None = None,
+        target_name: str | None = None,
+        vendor_id: int | None = None,
+    ) -> Memory | None:
+        """None (and nothing saved) if the same preference or alias already exists."""
+
+    def update(
+        self, memory_id: int, memory_text: str, target_name: str | None = None, vendor_id: int | None = None
+    ) -> Memory | None:
+        """None if there is no such memory. A new `target_name` replaces the target and its vendor id."""
+
+    def delete(self, memory_id: int) -> bool: ...
+
+
+class ProfileRepository(Protocol):
+    def gender(self) -> Gender | None:
+        """The gender the signed-in user chose at sign-up (None for accounts made before it was asked)."""
 
 
 class ConversationRepository(Protocol):

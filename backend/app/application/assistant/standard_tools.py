@@ -12,6 +12,8 @@ refused), it reuses the services the screens use, and its output is bounded. Not
 - get_receipt: one receipt and its lines.
 - get_spending_summary: a month's totals by currency and category (SpendingService, as the Home screen shows them).
 - get_budgets: a month's budgets and how much of each is used (BudgetService, as the Budgets screen shows them).
+- save_memory, update_memory, forget_memory, search_memories: the user's memories, through MemoryService (the same
+  rules as the memory endpoints). These are the only writes: memories, never receipts, budgets or anything else.
 
 Results are JSON text for the model. Amounts stay exact (Decimal written as text), never rounded here.
 """
@@ -26,12 +28,21 @@ from decimal import Decimal
 
 from app.application.assistant.dtos import QueryResult, ToolCall, ToolSpec
 from app.application.assistant.interfaces import QueryRules, ReadOnlyQueryRunner, SqlGuard
+from app.application.assistant.memory_service import MemoryService, MemorySource
 from app.application.budgets.budget_service import BudgetService
 from app.application.receipts.receipt_service import ReceiptService
 from app.application.shared.unit_of_work import UnitOfWorkFactory
 from app.application.spending.spending_service import SpendingService
 from app.domain.assistant import answer as answers
-from app.domain.assistant.errors import QueryFailed, QueryRejected, UnsafeQuery
+from app.domain.assistant.errors import (
+    InvalidMemory,
+    MemoryNotFound,
+    QueryFailed,
+    QueryRejected,
+    TooManyMemories,
+    UnsafeQuery,
+)
+from app.domain.assistant.memory import Memory, MemoryKind
 from app.domain.assistant.names import KnownName, MatchStatus, NameKind, match_name
 from app.domain.assistant.prompt import UserNames
 from app.domain.receipts.errors import ReceiptNotFound
@@ -39,7 +50,7 @@ from app.domain.shared.currency import Currency
 
 logger = logging.getLogger(__name__)
 
-TOOLS_VERSION = "standard-tools-2026-11-23.1"  # saved with every Standard answer, like the prompt's version
+TOOLS_VERSION = "standard-tools-2026-11-23.2"  # saved with every Standard answer, like the prompt's version
 MAX_RESULT_ROWS = 50  # rows of a query result shown to the model (the runner itself keeps at most 200)
 MAX_RESULT_CHARACTERS = 12_000
 MAX_RECEIPT_LINES = 100
@@ -55,6 +66,8 @@ class ToolContext:
 
     today: date  # one date for the whole turn: the context the model was given and every query's CURRENT_DATE
     asked: str  # the user's earlier questions and this one, for the date rules
+    conversation_id: int | None = None  # where a memory saved now was asked for
+    question_message_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -65,6 +78,7 @@ class ToolOutcome:
     receipt_ids: tuple[int, ...] = ()  # receipts the result is based on, when they can be listed
     sources_listed: bool | None = None  # None: not a data tool; False: data whose receipts cannot be listed
     record: dict = field(default_factory=dict)  # for the turn's execution record (never shown to the user)
+    memory_written: bool = False  # a memory was saved, corrected or forgotten (or already saved as asked)
 
 
 def _schema(properties: dict, required: Sequence[str]) -> dict:
@@ -117,6 +131,40 @@ SPECS = (
         "the current month the pace (where spending ends up at this rate).",
         _schema({"year": _YEAR, "month": _MONTH}, ["year", "month"]),
     ),
+    ToolSpec(
+        "save_memory",
+        "Save something the user explicitly asked you to remember. kind preference: how to answer them (text is the "
+        'preference as a short sentence; alias, target_kind and target_name are ""). kind alias: their own name for '
+        "one of their shops, items or categories (alias is their name; target_kind and target_name the exact name "
+        'from their receipts; text is ""). Never amounts or other figures. Returns the saved memory.',
+        _schema(
+            {
+                "kind": {"type": "string", "enum": [kind.value for kind in MemoryKind]},
+                "text": {"type": "string"},
+                "alias": {"type": "string"},
+                "target_kind": {"type": "string", "enum": [*(kind.value for kind in NameKind), ""]},
+                "target_name": {"type": "string"},
+            },
+            ["kind", "text", "alias", "target_kind", "target_name"],
+        ),
+    ),
+    ToolSpec(
+        "update_memory",
+        'Correct a saved memory by its id: a preference gets a new text (target_name ""), an alias a new '
+        'target_name, the user\'s exact name for it (text "").',
+        _schema({"memory_id": {"type": "integer"}, "text": {"type": "string"}, "target_name": {"type": "string"}},
+                ["memory_id", "text", "target_name"]),  # fmt: skip
+    ),
+    ToolSpec(
+        "forget_memory",
+        "Delete a saved memory by its id, when the user asks you to forget it.",
+        _schema({"memory_id": {"type": "integer"}}, ["memory_id"]),
+    ),
+    ToolSpec(
+        "search_memories",
+        "Search the user's saved memories by words in them; an empty query lists them all (at most 20).",
+        _schema({"query": {"type": "string"}}, ["query"]),
+    ),
 )
 
 
@@ -135,6 +183,8 @@ class StandardTools:
         budgets: BudgetService,
         receipts: ReceiptService,
         clock: Callable[[], float] = time.perf_counter,
+        *,
+        memories: MemoryService | None = None,
     ) -> None:
         self._uow = uow
         self._guard = guard
@@ -144,12 +194,17 @@ class StandardTools:
         self._budgets = budgets
         self._receipts = receipts
         self._clock = clock
+        self._memories = memories
         self._handlers = {
             "query_receipts": self._query_receipts,
             "find_names": self._find_names,
             "get_receipt": self._get_receipt,
             "get_spending_summary": self._get_spending_summary,
             "get_budgets": self._get_budgets,
+            "save_memory": self._save_memory,
+            "update_memory": self._update_memory,
+            "forget_memory": self._forget_memory,
+            "search_memories": self._search_memories,
         }
         self._schemas = {spec.name: spec.input_schema for spec in SPECS}
 
@@ -170,6 +225,8 @@ class StandardTools:
                 outcome = handler(user_id, call.input, context)
             except (UnsafeQuery, QueryRejected, QueryFailed) as exc:
                 outcome = _error(str(exc), sources_listed=False)
+            except (InvalidMemory, MemoryNotFound, TooManyMemories) as exc:
+                outcome = _error(str(exc), sources_listed=None)
             except Exception as exc:  # a bug or the database down: the model is told, the turn goes on
                 logger.exception("Standard tool %s failed", call.name)
                 outcome = _error("The tool failed; this could not be checked", sources_listed=False,
@@ -179,7 +236,7 @@ class StandardTools:
         if outcome.is_error:
             record["problem"] = json.loads(outcome.content)["error"]
         return ToolOutcome(outcome.content, outcome.is_error, outcome.evidence, outcome.receipt_ids,
-                           outcome.sources_listed, record)  # fmt: skip
+                           outcome.sources_listed, record, outcome.memory_written)  # fmt: skip
 
     # --- the tools ---
 
@@ -354,7 +411,64 @@ class StandardTools:
         return ToolOutcome(_json(payload), False, (payload,), (), False, {"budgets": len(statuses)})
 
 
+    # --- memories ---
+
+    def _memory_service(self) -> MemoryService:
+        if self._memories is None:
+            raise MemoryNotFound("Memories are not available")
+        return self._memories
+
+    def _save_memory(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        source = None
+        if context.conversation_id is not None and context.question_message_id is not None:
+            source = MemorySource(context.conversation_id, context.question_message_id)
+        service = self._memory_service()
+        if args["kind"] == MemoryKind.PREFERENCE:
+            if args["alias"] or args["target_kind"] or args["target_name"]:
+                return _error("A preference has only a text: alias, target_kind and target_name must be empty",
+                              sources_listed=None)  # fmt: skip
+            saved = service.save_preference(user_id, args["text"], source)
+        else:
+            if not args["target_kind"]:
+                return _error("An alias needs target_kind: vendor, item or category", sources_listed=None)
+            saved = service.save_alias(user_id, args["alias"], NameKind(args["target_kind"]), args["target_name"],
+                                       source)  # fmt: skip
+        payload = {"saved": saved.created, "memory": _memory(saved.memory)}
+        if not saved.created:
+            payload["note"] = "This was already saved; nothing new was saved"
+        record = {"memory_id": saved.memory.id, "created": saved.created}
+        return ToolOutcome(_json(payload), False, (), (), None, record, memory_written=True)
+
+    def _update_memory(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        memory = self._memory_service().update(user_id, args["memory_id"], args["text"] or None,
+                                               args["target_name"] or None)  # fmt: skip
+        return ToolOutcome(_json({"updated": True, "memory": _memory(memory)}), False, (), (), None,
+                           {"memory_id": memory.id}, memory_written=True)  # fmt: skip
+
+    def _forget_memory(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        self._memory_service().forget(user_id, args["memory_id"])
+        return ToolOutcome(_json({"forgotten": True, "memory_id": args["memory_id"]}), False, (), (), None,
+                           {"memory_id": args["memory_id"]}, memory_written=True)  # fmt: skip
+
+    def _search_memories(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        found = self._memory_service().search(user_id, args["query"])
+        return ToolOutcome(_json({"memories": [_memory(m) for m in found]}), False, (), (), None,
+                           {"found": len(found)})  # fmt: skip
+
+
 # --- helpers ---
+
+
+def memory_line(memory: Memory) -> str:
+    """A memory as the turn's context lists it."""
+    return f"- memory {memory.id} ({memory.kind.value}): {memory.text}"
+
+
+def _memory(memory: Memory) -> dict:
+    found = {"id": memory.id, "kind": memory.kind.value, "text": memory.text}
+    if memory.kind is MemoryKind.ALIAS:
+        found |= {"alias": memory.alias, "target_kind": memory.target_kind.value, "target_name": memory.target_name}
+    return found
 
 
 def _error(problem: str, *, sources_listed: bool | None, record: dict | None = None) -> ToolOutcome:

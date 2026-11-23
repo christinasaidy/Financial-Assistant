@@ -83,3 +83,15 @@ class TurnSuperseded(DomainError):
     """Answering took so long that the turn was given up as abandoned; its late answer is not saved."""
 
     default_message = "This answer took too long and was not saved; ask again"
+
+
+class InvalidMemory(DomainError):
+    default_message = "That cannot be remembered"
+
+
+class MemoryNotFound(DomainError):
+    default_message = "Memory not found"
+
+
+class TooManyMemories(DomainError):
+    default_message = "There are too many saved memories: forget one first"

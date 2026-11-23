@@ -61,7 +61,7 @@ def test_the_request_has_the_instructions_tools_cache_points_and_effort():
     body = server.bodies[0]
     assert body["model"] == "claude-sonnet-5-5"
     assert body["max_tokens"] == 2048
-    cached = {"type": "ephemeral"}
+    cached = {"type": "ephemeral", "ttl": "1h"}  # the fixed part, for an hour; the conversation for 5 minutes
     assert body["system"] == [{"type": "text", "text": "You are the assistant.", "cache_control": cached}]
     assert body["cache_control"] == {"type": "ephemeral"}
     assert body["tools"] == [{"name": "get_budgets", "description": "Budgets for a month", "strict": True,
@@ -173,6 +173,8 @@ def test_one_client_serves_every_request_and_closes():
     model.close()
 
 
-def test_an_unknown_effort_is_refused_at_startup():
+def test_an_unknown_effort_or_cache_lifetime_is_refused_at_startup():
     with pytest.raises(ValueError):
         AnthropicChatModel(KEY, "claude-sonnet-5-5", effort="extreme")
+    with pytest.raises(ValueError):
+        AnthropicChatModel(KEY, "claude-sonnet-5-5", cache_ttl="1d")

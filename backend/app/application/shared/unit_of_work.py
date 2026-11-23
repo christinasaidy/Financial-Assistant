@@ -10,8 +10,10 @@ from typing import Protocol
 from app.application.assistant.interfaces import (
     ConversationRepository,
     FeedbackRepository,
+    MemoryRepository,
     MessageRepository,
     NameRepository,
+    ProfileRepository,
     TurnRepository,
 )
 from app.application.budgets.interfaces import BudgetRepository
@@ -31,6 +33,8 @@ class UnitOfWork(Protocol):
     feedback: FeedbackRepository
     turns: TurnRepository
     names: NameRepository
+    memories: MemoryRepository
+    profile: ProfileRepository
 
 
 class UnitOfWorkFactory(Protocol):

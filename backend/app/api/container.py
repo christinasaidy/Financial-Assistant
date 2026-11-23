@@ -2,6 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from app.application.assistant.assistant_service import AssistantService
+from app.application.assistant.memory_service import MemoryService
 from app.application.auth.auth_service import AuthService
 from app.application.budgets.budget_service import BudgetService
 from app.application.categories.category_service import CategoryService
@@ -21,5 +22,6 @@ class Container:
     budgets: BudgetService
     notifications: NotificationService
     assistant: AssistantService
+    memories: MemoryService | None = None  # the Standard assistant's memories (tests may leave it out)
     # Called when the app shuts down, e.g. to close the Standard model's HTTP client.
     closers: tuple[Callable[[], None], ...] = ()
