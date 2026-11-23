@@ -203,6 +203,17 @@ def test_past_the_monthly_cap_standard_answers_not_available_without_calling_the
     assert ask(client, headers, mode="beta").json()["content"] == "hi"  # Beta keeps working
 
 
+def test_a_question_to_an_unconfigured_standard_costs_nothing_and_takes_no_reserve(make_client, sign_in, engine):
+    client = make_client()  # no Standard model: Standard is not configured
+    headers, user_id = sign_in(client)
+    before = month_spending(engine, user_id)
+    body = ask(client, headers).json()
+    assert (body["kind"], body["content"]) == ("error", answers.NOT_AVAILABLE)
+    (row,) = usage_rows(engine, user_id)
+    assert (row.outcome, row.dollars, row.model_calls) == ("not_configured", Decimal(0), 0)
+    assert month_spending(engine, user_id) == before  # no model call: nothing counted against the cap
+
+
 def test_with_room_under_the_cap_questions_are_answered(make_client, sign_in, engine):
     model = ScriptedChatModel(says("Hi!"))
     probe = make_client(model=model)

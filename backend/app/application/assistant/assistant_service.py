@@ -283,7 +283,7 @@ class AssistantService:
             usage = TurnUsage(len(details.attempts), None, None, None, None, None, None)
             return WorkflowAnswer(content, details, execution, usage)
         if self._standard is None:
-            return WorkflowAnswer(answers.NOT_AVAILABLE, AnswerDetails(AnswerKind.ERROR))
+            return _not_available("not_configured")
         before = tuple(message for message in messages if message.id != turn.question_message_id)
         request = TurnRequest(user_id, turn.conversation_id, turn.id, turn.question, before, waiting,
                               turn.question_message_id, address, memories)  # fmt: skip
@@ -581,7 +581,13 @@ class AssistantService:
 
 
 def _capped_answer() -> WorkflowAnswer:
-    """The app reached this month's Standard cap: "not available", with no model called (and nothing spent)."""
-    execution = {"workflow": "standard", "outcome": "monthly_cap", "calls": [], "tools": []}
+    """The app reached this month's Standard cap."""
+    return _not_available("monthly_cap")
+
+
+def _not_available(outcome: str) -> WorkflowAnswer:
+    """Standard is not available ("monthly_cap", "not_configured"): no model is called, so the question is recorded
+    as costing nothing, never as unknown (which would count at the reserve against the monthly cap)."""
+    execution = {"workflow": "standard", "outcome": outcome, "calls": [], "tools": []}
     usage = TurnUsage(0, 0, 0, 0, 0, Decimal(0), "no-model-call")
     return WorkflowAnswer(answers.NOT_AVAILABLE, AnswerDetails(AnswerKind.ERROR), execution, usage)
