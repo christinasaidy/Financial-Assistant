@@ -80,6 +80,18 @@ class SqlTurnRepository:
             ).rowcount
         )
 
+    def previous_execution(self, conversation_id: int, turn_id: int) -> dict | None:
+        row = self._conn.execute(
+            text(
+                "SELECT status, execution FROM assistant_turns WHERE conversation_id = :conversation AND id < :id "
+                "ORDER BY id DESC LIMIT 1"
+            ),
+            {"conversation": conversation_id, "id": turn_id},
+        ).one_or_none()
+        if row is None or row.status != TurnStatus.COMPLETED.value or not isinstance(row.execution, dict):
+            return None
+        return row.execution
+
 
 def _to_turn(row) -> Turn:
     return Turn(

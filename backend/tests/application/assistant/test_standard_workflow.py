@@ -6,13 +6,22 @@ import json
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
-from app.application.assistant.dtos import ChatResponse, ModelUsage, TextPart, ToolCall, ToolResult, TurnRequest
+from app.application.assistant.dtos import (
+    BudgetProposal,
+    ChatResponse,
+    ModelUsage,
+    TextPart,
+    ToolCall,
+    ToolResult,
+    TurnRequest,
+)
 from app.application.assistant.standard_prompt import PROMPT_VERSION, SYSTEM_PROMPT
 from app.application.assistant.standard_tools import SPECS, TOOLS_VERSION, ToolOutcome
 from app.application.assistant.standard_workflow import StandardLimits, StandardWorkflow
 from app.domain.assistant import answer as answers
 from app.domain.assistant.conversation import AnswerKind, Message, MessageRole
 from app.domain.assistant.errors import ModelFailed
+from app.domain.shared.currency import Currency
 from tests.fakes import ScriptedChatModel, calls, says
 
 TODAY = date(2026, 11, 23)  # a Monday
@@ -258,3 +267,50 @@ def test_each_answer_carries_its_estimated_cost_with_the_pricing_version():
 
     failed = StandardWorkflow(ScriptedChatModel(ModelFailed("timeout")), StubTools(), lambda: TODAY, pricing=prices)
     assert failed.answer(_request()).usage.dollars is None  # a failed call may have cost something: unknown
+
+
+# --- budget changes, confirmed first (2026-11-25) ---
+
+PROPOSAL = BudgetProposal(4, "Groceries", Currency.USD, Decimal("150"), 2026, 11)
+
+
+def _proposed() -> StubTools:
+    payload = {"proposed": {"category": "Groceries", "currency": "USD", "limit": "150", "from_month": "2026-11"}}
+    return StubTools(ToolOutcome(json.dumps(payload), False, (payload,), (), None, {"name": "propose_budget"},
+                                 budget_proposal=PROPOSAL))  # fmt: skip
+
+
+def test_an_answer_asking_to_confirm_a_budget_must_show_its_amount_and_is_saved_as_waiting():
+    model = ScriptedChatModel(calls(("t1", "propose_budget", {})), says("Should I set a budget for Groceries?"),
+                              says("Should I set Groceries to $150 a month from November?"))  # fmt: skip
+    answer = _workflow(model, _proposed()).answer(_request("set groceries to 150 dollars"))
+    assert "without showing its amount (150 USD for 'Groceries')" in model.requests[2].messages[-1].parts[0].text
+    assert answer.content == "Should I set Groceries to $150 a month from November?"
+    assert answer.execution["budget_proposals"] == [PROPOSAL.to_record()]
+
+
+def test_saying_a_budget_is_set_after_only_proposing_it_is_not_shown():
+    model = ScriptedChatModel(calls(("t1", "propose_budget", {})), says("I've set Groceries to $150."),
+                              says("I've set Groceries to $150."))  # fmt: skip
+    answer = _workflow(model, _proposed()).answer(_request("set groceries to 150 dollars"))
+    assert answer.content == answers.FAILURE
+    assert "confirm_budget did not succeed" in answer.execution["problem"]
+    assert answer.execution["budget_proposals"] == []  # an answer never shown asks nothing
+
+
+def test_the_changes_waiting_for_an_answer_are_in_the_question_context():
+    model = ScriptedChatModel(says("Okay."))
+    request = TurnRequest(11, 5, 3, "yes", (), 0, budget_proposals=(PROPOSAL,))
+    _workflow(model).answer(request)
+    context = model.requests[0].messages[-1].parts[0].text
+    assert context.endswith("[Budget changes your previous answer asked the user to confirm]\n"
+                            "- category 'Groceries', USD 150 a month, from 2026-11")  # fmt: skip
+
+
+def test_a_set_budget_may_be_called_updated_without_tripping_the_memory_check():
+    payload = {"set": {"category": "Groceries", "currency": "USD", "limit": "150", "from_month": "2026-11"}}
+    tools = StubTools(ToolOutcome(json.dumps(payload), False, (payload,), (), None, {"name": "confirm_budget"},
+                                  budget_written=True))  # fmt: skip
+    model = ScriptedChatModel(calls(("t1", "confirm_budget", {})), says("I've updated your Groceries budget to $150."))
+    answer = _workflow(model, tools).answer(_request("yes"))
+    assert answer.content == "I've updated your Groceries budget to $150."

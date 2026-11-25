@@ -233,3 +233,7 @@ class TurnRepository(Protocol):
 
     def fail(self, turn_id: int, problem: str) -> bool:
         """False (and nothing changes) if the turn is no longer running or no longer exists."""
+
+    def previous_execution(self, conversation_id: int, turn_id: int) -> dict | None:
+        """The execution record of the conversation's turn just before `turn_id`, if that turn was answered; None
+        when there is none, or it failed (its answer was never shown)."""

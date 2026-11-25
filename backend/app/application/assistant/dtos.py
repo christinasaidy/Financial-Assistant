@@ -1,5 +1,7 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 
 from app.domain.assistant.answer import ModelReply
 from app.domain.assistant.arabizi import Address
@@ -15,6 +17,41 @@ from app.domain.assistant.conversation import (
 )
 from app.domain.assistant.memory import Memory
 from app.domain.assistant.usage import TurnUsage
+from app.domain.shared.currency import Currency
+
+
+@dataclass(frozen=True)
+class BudgetProposal:
+    """A budget change the Standard assistant showed the user and asked them to confirm (2026-11-25). Nothing is
+    set until a later question confirms it with exactly these values (the confirm_budget tool)."""
+
+    category_id: int
+    category: str
+    currency: Currency
+    limit_amount: Decimal
+    year: int
+    month: int  # the amount applies from this month onwards
+
+    def to_record(self) -> dict:
+        return {"category_id": self.category_id, "category": self.category, "currency": self.currency.value,
+                "limit_amount": str(self.limit_amount), "year": self.year, "month": self.month}  # fmt: skip
+
+    @staticmethod
+    def from_record(record: Mapping) -> "BudgetProposal | None":
+        """None for a record that is not a proposal (never trusted to be well formed)."""
+        try:
+            return BudgetProposal(int(record["category_id"]), str(record["category"]), Currency(record["currency"]),
+                                  Decimal(str(record["limit_amount"])), int(record["year"]),
+                                  int(record["month"]))  # fmt: skip
+        except (KeyError, TypeError, ValueError, InvalidOperation):
+            return None
+
+
+def budget_proposals(execution: Mapping | None) -> tuple[BudgetProposal, ...]:
+    """The changes an answer asked the user to confirm, from its saved execution record."""
+    records = (execution or {}).get("budget_proposals") or []
+    found = (BudgetProposal.from_record(record) for record in records if isinstance(record, Mapping))
+    return tuple(proposal for proposal in found if proposal is not None)
 
 
 @dataclass(frozen=True)
@@ -86,6 +123,8 @@ class TurnRequest:
     question_message_id: int | None = None  # the saved question (a memory saved in this turn records it)
     address: Address = Address.NEUTRAL  # the reply forms, from the gender chosen at sign-up
     memories: tuple[Memory, ...] = ()  # the user's saved memories (Standard only; never sent to Beta)
+    # The budget changes the previous answer in this conversation asked the user to confirm: only these can be set.
+    budget_proposals: tuple[BudgetProposal, ...] = ()
 
 
 @dataclass(frozen=True)

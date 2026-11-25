@@ -1,8 +1,8 @@
-"""The Standard mode's tools: read-only operations its model may ask for (2026-11-23).
+"""The Standard mode's tools: the operations its model may ask for (2026-11-23; budgets 2026-11-25).
 
 A tool is a typed backend operation: its input is checked here against its schema, it runs as the signed-in user
 (the user id comes from the request, never from the model: no tool has a user field, and unknown fields are
-refused), it reuses the services the screens use, and its output is bounded. Nothing here writes user data.
+refused), it reuses the services the screens use, and its output is bounded. The only writes are listed below.
 
 - query_receipts: one SELECT over the three assistant views, through the same safety layers as Beta (the guard, the
   answering rules, the read-only role and its limits). One difference: the names it filters on are checked against
@@ -13,23 +13,31 @@ refused), it reuses the services the screens use, and its output is bounded. Not
 - get_spending_summary: a month's totals by currency and category (SpendingService, as the Home screen shows them).
 - get_budgets: a month's budgets and how much of each is used (BudgetService, as the Budgets screen shows them).
 - save_memory, update_memory, forget_memory, search_memories: the user's memories, through MemoryService (the same
-  rules as the memory endpoints). These are the only writes: memories, never receipts, budgets or anything else.
+  rules as the memory endpoints).
+- propose_budget, confirm_budget (2026-11-25): set or change a budget, confirmed first (the owner's decision).
+  propose_budget checks the change and sets nothing; the answer must show its amount. confirm_budget sets it through
+  BudgetService (as the Budgets screen does), and only with exactly the values the previous answer in the same
+  conversation asked the user to confirm: never in the answer that asked, never with other values, never twice.
+  Only from the current month onwards; removing a budget stays on the Budgets screen.
+These are the only writes: memories and budgets, never receipts or anything else.
 
 Results are JSON text for the model. Amounts stay exact (Decimal written as text), never rounded here.
 """
 
 import json
 import logging
+import re
 import time
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date
 from decimal import Decimal
 
-from app.application.assistant.dtos import QueryResult, ToolCall, ToolSpec
+from app.application.assistant.dtos import BudgetProposal, QueryResult, ToolCall, ToolSpec
 from app.application.assistant.interfaces import QueryRules, ReadOnlyQueryRunner, SqlGuard
 from app.application.assistant.memory_service import MemoryService, MemorySource
 from app.application.budgets.budget_service import BudgetService
+from app.application.budgets.dtos import SetBudgetRequest
 from app.application.receipts.receipt_service import ReceiptService
 from app.application.shared.unit_of_work import UnitOfWorkFactory
 from app.application.spending.spending_service import SpendingService
@@ -45,12 +53,15 @@ from app.domain.assistant.errors import (
 from app.domain.assistant.memory import Memory, MemoryKind
 from app.domain.assistant.names import KnownName, MatchStatus, NameKind, match_name
 from app.domain.assistant.prompt import UserNames
+from app.domain.budgets.budget import validate_limit
+from app.domain.budgets.errors import InvalidBudget
 from app.domain.receipts.errors import ReceiptNotFound
 from app.domain.shared.currency import Currency
 
 logger = logging.getLogger(__name__)
 
-TOOLS_VERSION = "standard-tools-2026-11-23.2"  # saved with every Standard answer, like the prompt's version
+TOOLS_VERSION = "standard-tools-2026-11-25.1"  # saved with every Standard answer, like the prompt's version
+_AMOUNT = re.compile(r"\d{1,13}(\.\d{1,2})?")  # a budget amount as the model writes it: digits, no separators
 MAX_RESULT_ROWS = 50  # rows of a query result shown to the model (the runner itself keeps at most 200)
 MAX_RESULT_CHARACTERS = 12_000
 MAX_RECEIPT_LINES = 100
@@ -68,6 +79,7 @@ class ToolContext:
     asked: str  # the user's earlier questions and this one, for the date rules
     conversation_id: int | None = None  # where a memory saved now was asked for
     question_message_id: int | None = None
+    budget_proposals: tuple[BudgetProposal, ...] = ()  # what the previous answer asked to confirm
 
 
 @dataclass(frozen=True)
@@ -79,6 +91,8 @@ class ToolOutcome:
     sources_listed: bool | None = None  # None: not a data tool; False: data whose receipts cannot be listed
     record: dict = field(default_factory=dict)  # for the turn's execution record (never shown to the user)
     memory_written: bool = False  # a memory was saved, corrected or forgotten (or already saved as asked)
+    budget_proposal: BudgetProposal | None = None  # a change this answer asks the user to confirm
+    budget_written: bool = False  # a confirmed budget change was set
 
 
 def _schema(properties: dict, required: Sequence[str]) -> dict:
@@ -130,6 +144,38 @@ SPECS = (
         "The user's budgets for a month: each category's limit, how much is spent and left, its state, and for "
         "the current month the pace (where spending ends up at this rate).",
         _schema({"year": _YEAR, "month": _MONTH}, ["year", "month"]),
+    ),
+    ToolSpec(
+        "propose_budget",
+        "Check a budget the user asked to set or change, and record it for them to confirm. It sets nothing. "
+        "category is the category's exact name; limit_amount is digits only (e.g. 150 or 2500000), in currency; "
+        "the amount applies from year/month onwards, this month or later. Returns the change and the budget it "
+        "replaces. Then show the user the category, amount, currency and month and ask them to confirm.",
+        _schema(
+            {
+                "category": {"type": "string"},
+                "currency": {"type": "string", "enum": [c.value for c in Currency]},
+                "limit_amount": {"type": "string"},
+                "year": _YEAR,
+                "month": _MONTH,
+            },
+            ["category", "currency", "limit_amount", "year", "month"],
+        ),
+    ),
+    ToolSpec(
+        "confirm_budget",
+        "Set a budget change the user has just confirmed: only one your previous answer proposed (listed in the "
+        "question's context), with exactly the same values. Only when their latest message clearly says yes.",
+        _schema(
+            {
+                "category": {"type": "string"},
+                "currency": {"type": "string", "enum": [c.value for c in Currency]},
+                "limit_amount": {"type": "string"},
+                "year": _YEAR,
+                "month": _MONTH,
+            },
+            ["category", "currency", "limit_amount", "year", "month"],
+        ),
     ),
     ToolSpec(
         "save_memory",
@@ -201,6 +247,8 @@ class StandardTools:
             "get_receipt": self._get_receipt,
             "get_spending_summary": self._get_spending_summary,
             "get_budgets": self._get_budgets,
+            "propose_budget": self._propose_budget,
+            "confirm_budget": self._confirm_budget,
             "save_memory": self._save_memory,
             "update_memory": self._update_memory,
             "forget_memory": self._forget_memory,
@@ -225,7 +273,7 @@ class StandardTools:
                 outcome = handler(user_id, call.input, context)
             except (UnsafeQuery, QueryRejected, QueryFailed) as exc:
                 outcome = _error(str(exc), sources_listed=False)
-            except (InvalidMemory, MemoryNotFound, TooManyMemories) as exc:
+            except (InvalidMemory, MemoryNotFound, TooManyMemories, InvalidBudget) as exc:
                 outcome = _error(str(exc), sources_listed=None)
             except Exception as exc:  # a bug or the database down: the model is told, the turn goes on
                 logger.exception("Standard tool %s failed", call.name)
@@ -235,8 +283,7 @@ class StandardTools:
         record |= outcome.record
         if outcome.is_error:
             record["problem"] = json.loads(outcome.content)["error"]
-        return ToolOutcome(outcome.content, outcome.is_error, outcome.evidence, outcome.receipt_ids,
-                           outcome.sources_listed, record, outcome.memory_written)  # fmt: skip
+        return replace(outcome, record=record)
 
     # --- the tools ---
 
@@ -410,6 +457,69 @@ class StandardTools:
             payload["note"] = "The user has no budget for this month"
         return ToolOutcome(_json(payload), False, (payload,), (), False, {"budgets": len(statuses)})
 
+    def _budget_change(self, user_id: int, args: dict, context: ToolContext) -> BudgetProposal | ToolOutcome:
+        """The change asked for, checked (nothing is set here), or the error to give the model."""
+        problem = _check_month(args["year"], args["month"])
+        if problem:
+            return _error(problem, sources_listed=None)
+        if (args["year"], args["month"]) < (context.today.year, context.today.month):
+            return _error("A budget set here starts this month or later; earlier months are changed on the Budgets "
+                          "screen", sources_listed=None)  # fmt: skip
+        amount = args["limit_amount"].strip()
+        if not _AMOUNT.fullmatch(amount):
+            return _error("limit_amount must be digits only (e.g. 150 or 2500000), with at most 2 decimals",
+                          sources_listed=None)  # fmt: skip
+        limit_amount = Decimal(amount)
+        validate_limit(limit_amount)
+        with self._uow(user_id) as work:
+            categories = work.categories.list_all()
+        wanted = args["category"].strip().casefold()
+        found = [category for category in categories if category.name.casefold() == wanted]
+        if len(found) != 1:
+            names = ", ".join(sorted(category.name for category in categories))
+            return _error(f"No category is called {args['category']!r}. The user's categories: {names}. Ask the "
+                          "user which one they mean", sources_listed=None)  # fmt: skip
+        return BudgetProposal(found[0].id, found[0].name, Currency(args["currency"]), limit_amount, args["year"],
+                              args["month"])  # fmt: skip
+
+    def _propose_budget(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        change = self._budget_change(user_id, args, context)
+        if isinstance(change, ToolOutcome):
+            return change
+        current = next((status for status in self._budgets.list_for_month(user_id, change.year, change.month)
+                        if status.category_id == change.category_id), None)  # fmt: skip
+        payload = {
+            "proposed": _proposal(change),
+            "replaces": None if current is None else {"currency": current.currency.value,
+                                                      "limit": _json_value(current.limit_amount)},
+            "note": "Nothing is set yet. Show the user this category, amount, currency and starting month, and ask "
+            "them to confirm. Set it with confirm_budget only after they answer yes, with exactly these values.",
+        }  # fmt: skip
+        return ToolOutcome(_json(payload), False, (payload,), (), None, {"proposal": change.to_record()},
+                           budget_proposal=change)  # fmt: skip
+
+    def _confirm_budget(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:
+        if not context.budget_proposals:
+            return _error("Your previous answer did not ask the user to confirm a budget change. Propose it with "
+                          "propose_budget and ask them first", sources_listed=None)  # fmt: skip
+        change = self._budget_change(user_id, args, context)
+        if isinstance(change, ToolOutcome):
+            return change
+        if change not in context.budget_proposals:  # only what the user was shown and asked about
+            waiting = "; ".join(_describe(p) for p in context.budget_proposals) or "none"
+            return _error("These are not the values the user was asked to confirm in your previous answer (waiting: "
+                          f"{waiting}). Propose the change with propose_budget and ask them first",
+                          sources_listed=None)  # fmt: skip
+        status = self._budgets.set_budget(user_id, SetBudgetRequest(change.category_id, change.year, change.month,
+                                                                     change.currency, change.limit_amount))
+        payload = {
+            "set": _proposal(change),
+            "this_month": {"spent": _json_value(status.spent), "remaining": _json_value(status.remaining),
+                           "state": status.state.value},
+        }  # fmt: skip
+        return ToolOutcome(_json(payload), False, (payload,), (), None, {"set": change.to_record()},
+                           budget_written=True)  # fmt: skip
+
 
     # --- memories ---
 
@@ -462,6 +572,21 @@ class StandardTools:
 def memory_line(memory: Memory) -> str:
     """A memory as the turn's context lists it."""
     return f"- memory {memory.id} ({memory.kind.value}): {memory.text}"
+
+
+def budget_line(proposal: BudgetProposal) -> str:
+    """A change waiting for the user's answer, as the turn's context lists it."""
+    return f"- {_describe(proposal)}"
+
+
+def _describe(proposal: BudgetProposal) -> str:
+    return (f"category {proposal.category!r}, {proposal.currency.value} {proposal.limit_amount} a month, from "
+            f"{proposal.year}-{proposal.month:02d}")  # fmt: skip
+
+
+def _proposal(change: BudgetProposal) -> dict:
+    return {"category": change.category, "currency": change.currency.value, "limit": str(change.limit_amount),
+            "from_month": f"{change.year}-{change.month:02d}"}  # fmt: skip
 
 
 def _memory(memory: Memory) -> dict:

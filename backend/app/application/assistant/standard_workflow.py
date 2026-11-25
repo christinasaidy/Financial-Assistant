@@ -41,6 +41,7 @@ from app.application.assistant.standard_tools import (
     StandardTools,
     ToolContext,
     ToolOutcome,
+    budget_line,
     memory_line,
 )
 from app.domain.assistant import answer as answers
@@ -60,6 +61,12 @@ _UNIT_SIZE = re.compile(r"(?<![\d.,])100\s?(g|gr|grams?|ml)\b", re.IGNORECASE)
 _MEMORY_CLAIM = re.compile(
     r"\b(i'?ve|i have|i)\s+(saved|stored|remembered|noted|forgotten|deleted|updated)\b|\bi'?ll\s+(remember|forget)\b"
     r"|\bi will\s+(remember|forget)\b|^\s*(saved|done, saved|noted)\b|\bsaved\s+(it|that|this)\b",
+    re.IGNORECASE,
+)
+# An answer saying a budget was set or changed (English only, as above). "Should I set it?" is not a claim.
+_BUDGET_CLAIM = re.compile(
+    r"\b(i'?ve|i have)\s+(now\s+)?(set|updated|changed|created)\b|\bbudget\s+(is|has been|was)\s+(now\s+)?"
+    r"(set|updated|changed)\b",
     re.IGNORECASE,
 )
 _NO_MORE_TOOLS = (
@@ -110,9 +117,11 @@ class StandardWorkflow:
     def answer(self, request: TurnRequest) -> WorkflowAnswer:
         run = _Run(self._clock(), self._today())
         context = ToolContext(run.today, "\n".join([*_questions(request.history), request.question]),
-                              request.conversation_id, request.question_message_id)  # fmt: skip
+                              request.conversation_id, request.question_message_id,
+                              request.budget_proposals)  # fmt: skip
         opening = turn_context(run.today.isoformat(), WEEKDAYS[run.today.weekday()], request.receipts_waiting,
-                               request.address.value, tuple(memory_line(m) for m in request.memories))  # fmt: skip
+                               request.address.value, tuple(memory_line(m) for m in request.memories),
+                               tuple(budget_line(p) for p in request.budget_proposals))  # fmt: skip
         own_words = [request.question, *(m.content for m in request.history), *(m.text for m in request.memories)]
         messages = [*_history(request.history, self._limits), ChatMessage("user", (TextPart(opening),
                                                                                     TextPart(request.question)))]
@@ -186,8 +195,17 @@ class StandardWorkflow:
             if spelling:
                 logger.warning("Standard answer broke the Arabizi rulings: %s", "; ".join(spelling))
                 found += [f"{problem} (follow the lebanese_arabizi skill)" for problem in spelling]
-        if _MEMORY_CLAIM.search(text) and not run.memory_written:
+        about_budget = run.budget_written and "budget" in text.casefold()  # "I've updated your budget"
+        if _MEMORY_CLAIM.search(text) and not run.memory_written and not about_budget:
             found.append("it says a memory was saved, changed or forgotten, but no memory tool succeeded")
+        if _BUDGET_CLAIM.search(text) and not run.budget_written:
+            found.append("it says a budget was set or changed, but confirm_budget did not succeed (propose_budget "
+                         "sets nothing: ask the user to confirm)")  # fmt: skip
+        shown = answers.numbers_in(figures)
+        for proposal in run.proposals:  # the user must see the amount they are asked to confirm
+            if proposal.limit_amount not in shown:
+                found.append(f"it asks to confirm a budget without showing its amount ({proposal.limit_amount} "
+                             f"{proposal.currency.value} for {proposal.category!r})")  # fmt: skip
         return found
 
     def _run_tool(self, user_id: int, call, context: ToolContext, run: "_Run") -> ToolResult:
@@ -235,6 +253,8 @@ class StandardWorkflow:
                      "pricing_version": usage.pricing_version},
             "sources_complete": run.sources_complete(),
             "duration_ms": duration_ms,
+            # What the user was asked to confirm: only an answer that was shown, and passed its checks, can ask.
+            "budget_proposals": [p.to_record() for p in run.proposals] if outcome == "answered" else [],
         }
         return WorkflowAnswer(text, details, execution, usage)
 
@@ -260,6 +280,16 @@ class _Run:
     @property
     def memory_written(self) -> bool:
         return any(o.memory_written and not o.is_error for o in self._outcomes)
+
+    @property
+    def budget_written(self) -> bool:
+        return any(o.budget_written and not o.is_error for o in self._outcomes)
+
+    @property
+    def proposals(self) -> list:
+        """The budget changes this answer asks the user to confirm (each once)."""
+        found = [o.budget_proposal for o in self._outcomes if not o.is_error and o.budget_proposal is not None]
+        return list(dict.fromkeys(found))
 
     def record_call(self, response: ChatResponse, seconds: float) -> None:
         usage = response.usage

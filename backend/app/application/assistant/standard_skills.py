@@ -46,7 +46,7 @@ PRICE_COMPARISONS = Skill(
 
 BUDGETS = Skill(
     "budgets",
-    "budgets-2026-11-23.2",
+    "budgets-2026-11-25.1",
     """Explaining budgets (get_budgets):
 - A budget is a monthly limit for one category, in one currency; it repeats every month until the user changes it.
 - spent counts that category's items only (tax, discounts and rounding are not counted); remaining is negative once
@@ -56,7 +56,15 @@ BUDGETS = Skill(
   limit_reached, and never translate the field name.
 - pace is only for the current month: projected is where spending ends up at this rate. In the first 7 days
   (low_confidence) say it is an early estimate.
-- You can read budgets but not change them: to set or change one, the user uses the Budgets screen.""",
+- Setting or changing a budget is always confirmed first:
+  1. When the user asks, call propose_budget with the category's exact name, the amount as digits in its currency
+     (in Lebanon "150 alf" is 150000 LBP; if the currency is not clear, ask), and the month it starts: this month
+     unless they name a later one. It sets nothing.
+  2. Tell them the category, the amount in digits with its currency (e.g. 150,000 LBP, not "150 alf"), the month it
+     starts from, and what it replaces, and ask whether to set it. Never say it is set.
+  3. When their next message clearly says yes, call confirm_budget with exactly those values, then say it is set. If
+     they change something, propose the new values and ask again. If they say no, set nothing.
+- Earlier months, and removing a budget, are done on the Budgets screen: say so.""",
 )
 
 SKILL_ORDER = ("price_comparisons", "budgets", "lebanese_arabizi")

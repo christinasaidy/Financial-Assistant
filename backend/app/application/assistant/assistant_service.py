@@ -16,6 +16,7 @@ from app.application.assistant.dtos import (
     TurnRequest,
     UsageView,
     WorkflowAnswer,
+    budget_proposals,
 )
 from app.application.assistant.interfaces import (
     AssistantModel,
@@ -273,6 +274,9 @@ class AssistantService:
             # Standard only: Beta's prompt is its training contract and gets neither memories nor the gender.
             memories = tuple(work.memories.list_all()) if standard else ()
             address = address_for(work.profile.gender()) if standard else None
+            # The budget changes the previous answer asked to confirm: the only ones this question may set.
+            proposals = budget_proposals(work.turns.previous_execution(turn.conversation_id, turn.id)) if standard \
+                else ()  # fmt: skip
         if turn.mode is AssistantMode.BETA:
             history = recent_exchanges(messages, self._history_exchanges, self._history_characters)
             content, details = self._answer(user_id, turn.question, history, waiting)
@@ -286,7 +290,7 @@ class AssistantService:
             return _not_available("not_configured")
         before = tuple(message for message in messages if message.id != turn.question_message_id)
         request = TurnRequest(user_id, turn.conversation_id, turn.id, turn.question, before, waiting,
-                              turn.question_message_id, address, memories)  # fmt: skip
+                              turn.question_message_id, address, memories, proposals)  # fmt: skip
         return self._standard.answer(request)
 
     def _finish_turn(self, user_id: int, turn: Turn, answer: WorkflowAnswer) -> AskResult:

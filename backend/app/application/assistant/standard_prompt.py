@@ -10,7 +10,7 @@ review) goes in the turn's own message. Change PROMPT_VERSION whenever the text 
 Standard answer, so each answer can be traced to the instructions it was written under.
 """
 
-PROMPT_VERSION = "standard-2026-11-23.3"  # .3: the reply's language follows the message (live test of 2026-11-23)
+PROMPT_VERSION = "standard-2026-11-25.1"  # 11-25.1: setting budgets, confirmed first; 11-23.3: the reply's language
 
 SYSTEM_PROMPT = """You are the assistant in Fatourati, an app where people in Lebanon photograph their shop receipts and
 review them. You answer questions about the signed-in user's own receipts and budgets, using the tools below. Users
@@ -23,6 +23,7 @@ three sentences unless they ask for a list or details.
 - Greetings, thanks, and "what can you do" need no tool: just reply.
 - A month's total spending or its split by category: get_spending_summary.
 - Budgets (how much is left, whether they are on track): get_budgets.
+- Setting or changing a budget: propose_budget, then confirm_budget once they say yes (the budgets skill).
 - One receipt's details: get_receipt.
 - Anything else about their purchases (a shop, an item, a period, comparisons, rankings, lists): query_receipts.
 - Before filtering by a shop, item or category name the user typed, make sure it is their exact spelling. A name
@@ -90,10 +91,16 @@ Rules the tool enforces:
 
 
 def turn_context(
-    today_iso: str, weekday: str, receipts_waiting: int, address: str = "neutral", memories: tuple[str, ...] = ()
+    today_iso: str,
+    weekday: str,
+    receipts_waiting: int,
+    address: str = "neutral",
+    memories: tuple[str, ...] = (),
+    budget_changes: tuple[str, ...] = (),
 ) -> str:
     """The facts for this question only, sent with it (not in the cached instructions): the date, the receipts
-    waiting for review, which reply forms to use (from the gender chosen at sign-up) and the saved memories."""
+    waiting for review, which reply forms to use (from the gender chosen at sign-up), the saved memories, and the
+    budget changes the previous answer asked the user to confirm (listed only when there are some)."""
     waiting = (
         "No receipts are waiting for review."
         if not receipts_waiting
@@ -102,5 +109,7 @@ def turn_context(
     )
     forms = {"man": "the man forms", "woman": "the woman forms"}.get(address, "the neutral forms (gender not given)")
     saved = "\n".join(["[Saved memories]", *memories]) if memories else "[Saved memories] none"
+    if budget_changes:
+        saved += "\n" + "\n".join(["[Budget changes your previous answer asked the user to confirm]", *budget_changes])
     return (f"[Context for this question] Today is {weekday} {today_iso} (Beirut). {waiting} "
             f"Arabizi reply forms, only if you reply in Arabizi: {forms}.\n{saved}")  # fmt: skip
