@@ -43,6 +43,7 @@ async function renderHome(scheme: ColorScheme, home: FakeHomeRepository, auth = 
       index: Home,
       budgets: () => <Text>Budgets tab</Text>,
       scan: () => <Text>Scan tab</Text>,
+      settings: () => <Text>Settings screen</Text>,
     },
     { initialUrl: '/' },
   );
@@ -230,11 +231,11 @@ describe('Home', () => {
     await waitFor(() => expect(router.getPathname()).toBe('/budgets'));
   });
 
-  it('keeps the temporary sign out', async () => {
-    const auth = signedIn();
-    await renderHome('light', new FakeHomeRepository(), auth);
+  it('opens settings from the gear, and has no sign out of its own (it moved to settings, D043)', async () => {
+    const router = await renderHome('light', new FakeHomeRepository());
     await waitFor(() => expect(screen.getByText('Hello, Christina')).toBeTruthy());
-    await fireEvent.press(screen.getByRole('link', { name: 'Sign out' }));
-    await waitFor(() => expect(auth.accessToken()).toBeNull());
+    expect(screen.queryByRole('link', { name: 'Sign out' })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: 'Settings' }));
+    await waitFor(() => expect(router.getPathname()).toBe('/settings'));
   });
 });

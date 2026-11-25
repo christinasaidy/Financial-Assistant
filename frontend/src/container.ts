@@ -6,18 +6,21 @@
  * A feature adds itself by building its repository and service below and adding the service to Container.
  */
 import { apiBaseUrl, createHttpClient } from '@/shared/api/httpClient';
-import { SESSION_KEY, secureValue } from '@/shared/storage/tokenStore';
+import { APPEARANCE_KEY, SESSION_KEY, secureValue } from '@/shared/storage/tokenStore';
 
 import { AuthService } from './features/auth/application/authService';
 import { ApiAuthRepository } from './features/auth/data/apiAuthRepository';
 import { SecureTokenStore } from './features/auth/data/secureTokenStore';
 import { HomeService } from './features/home/application/homeService';
 import { ApiHomeRepository } from './features/home/data/apiHomeRepository';
+import { SettingsService } from './features/settings/application/settingsService';
+import { StoredAppearanceStore } from './features/settings/data/storedAppearanceStore';
 
 /** The services screens may use. Repositories and the HTTP client stay inside this file. */
 export type Container = {
   auth: AuthService;
   home: HomeService;
+  settings: SettingsService;
 };
 
 export function createContainer(): Container {
@@ -34,7 +37,9 @@ export function createContainer(): Container {
 
   const home = new HomeService(new ApiHomeRepository(http));
 
-  return { auth, home };
+  const settings = new SettingsService(new StoredAppearanceStore(secureValue(APPEARANCE_KEY)));
+
+  return { auth, home, settings };
 }
 
 let instance: Container | null = null;

@@ -26,14 +26,14 @@ export type Theme = {
 const SchemeOverride = createContext<ColorScheme | null>(null);
 
 /**
- * Forces a theme for everything inside it. The app does not use it (it follows the phone, D003);
- * it exists for tests and for previewing a screen in the other theme.
+ * Forces a theme for everything inside it; null follows the phone (D003). The appearance setting (D043)
+ * wraps the whole app in it, and tests use it to render a screen in each theme.
  */
-export function ThemeOverride({ scheme, children }: { scheme: ColorScheme; children: ReactNode }) {
+export function ThemeOverride({ scheme, children }: { scheme: ColorScheme | null; children: ReactNode }) {
   return <SchemeOverride.Provider value={scheme}>{children}</SchemeOverride.Provider>;
 }
 
-/** The light or dark palette, following the phone's setting (D003). */
+/** The light or dark palette: the forced one inside ThemeOverride, otherwise the phone's setting (D003). */
 export function useTheme(): Theme {
   const override = useContext(SchemeOverride);
   const system = useColorScheme();

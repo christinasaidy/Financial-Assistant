@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSession } from '@/features/auth/ui/SessionProvider';
 import { spacing, useTheme } from '@/shared/theme';
-import { AppText, DashedRule, Paper } from '@/shared/ui';
+import { AppText, DashedRule, Paper, TextLink } from '@/shared/ui';
 
 import type { HomeService } from '../application/homeService';
 import type { HomeError } from '../domain/errors';
@@ -15,7 +15,6 @@ import { BudgetsSection } from './BudgetsSection';
 import { HomeHeader } from './HomeHeader';
 import { MonthSection, ScanPrompt } from './MonthSection';
 import { RecentSection } from './RecentSection';
-import { TextLink } from './TextLink';
 import { useHomeOverview, useHomeService } from './useHomeOverview';
 
 type Props = {
@@ -30,7 +29,7 @@ type Props = {
  */
 export function HomeScreen({ service }: Props) {
   const home = useHomeOverview(useHomeService(service));
-  const { user, signOut } = useSession();
+  const { user } = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -61,8 +60,6 @@ export function HomeScreen({ service }: Props) {
               <Overview overview={state.overview} onOpenBudgets={openBudgets} onScan={openScan} />
             </>
           ) : null}
-          {/* TODO(auth): temporary, until sign out has a home (settings is not designed). */}
-          <TextLink label="Sign out" onPress={() => void signOut()} testID="home-sign-out" />
         </View>
       </ScrollView>
     </Paper>

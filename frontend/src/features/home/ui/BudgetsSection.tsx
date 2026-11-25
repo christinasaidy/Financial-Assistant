@@ -1,12 +1,11 @@
 import { StyleSheet, View } from 'react-native';
 
 import { useTheme, spacing } from '@/shared/theme';
-import { AppText } from '@/shared/ui';
+import { AppText, TextLink } from '@/shared/ui';
 
 import { barWidthPercent, budgetStateWords, budgetTone } from '../domain/rules';
 import type { BudgetUse } from '../domain/types';
 import { budgetAccessibilityLabel, budgetAmounts } from './homeText';
-import { TextLink } from './TextLink';
 
 /** 4 px budget bars (D032). */
 const BAR_HEIGHT = 4;

@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { SessionProvider, useSession } from '@/features/auth/ui/SessionProvider';
+import { AppearanceProvider } from '@/features/settings/ui/AppearanceProvider';
 import { fontFamilies, useTheme } from '@/shared/theme';
 
 // Keep the native splash up until the fonts are ready, so no text flashes in the system font.
@@ -30,15 +31,23 @@ export default function RootLayout() {
 
   return (
     <SessionProvider>
-      <StatusBar style="auto" />
-      <Routes />
+      <AppearanceProvider>
+        <ThemedStatusBar />
+        <Routes />
+      </AppearanceProvider>
     </SessionProvider>
   );
 }
 
+/** Dark status-bar text on light paper and light text on dark, following the app's theme (D043). */
+function ThemedStatusBar() {
+  const { scheme } = useTheme();
+  return <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />;
+}
+
 /**
  * Who may see which routes. While the saved session is checked, only the launch route (index) exists.
- * Signed out: the (auth) screens. Signed in: the (tabs). When the session ends (sign out, or a 401), the
+ * Signed out: the (auth) screens. Signed in: the (tabs), and settings pushed over them from Home's gear. When the session ends (sign out, or a 401), the
  * (tabs) disappear and the router goes back to index, which sends the user to sign in.
  */
 function Routes() {
@@ -52,6 +61,7 @@ function Routes() {
       </Stack.Protected>
       <Stack.Protected guard={status === 'signedIn'}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="settings" />
       </Stack.Protected>
     </Stack>
   );

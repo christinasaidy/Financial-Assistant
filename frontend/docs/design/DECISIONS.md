@@ -584,6 +584,26 @@ considered, so the reasoning can be explained later.
   near-limit 5.9, limit-reached 6.7). The main button's label uses the `paper` token, so it is now white on pen
   blue. Dark mode keeps its colour, only its textures go.
 
+## D043: Settings: appearance and sign out, from a gear on Home
+
+- **Status:** Accepted, 2026-11-25. Christina chose where settings open from and what the appearance setting
+  offers, after finding no way to leave dark mode or to sign out on her iPhone. The rest are my calls, on her
+  standing instruction to decide small details myself.
+- **Options considered:** the gear in Home's header (chosen), a SETTINGS link at the bottom of Home, or tapping the
+  wordmark. For appearance: Phone / Light / Dark (chosen), Light / Dark only, or dropping dark mode.
+- **Decision:**
+  - **Home's header:** the gear (D030) to the left of the bell. Their 44 pt touch areas sit side by side, so the
+    two 24 px icons are 20 px apart. The gear opens Settings, pushed over the tabs (iOS slide), with Back.
+  - **Settings screen**, laid out like Home on plain paper (D042): a 44 px header with Back (left, 12 px padding),
+    the SETTINGS screen title, then sections 24 px apart with a dashed rule between them:
+    - **APPEARANCE:** Phone, Light, Dark, as three equal square options (the gender control of D041, now the
+      shared `OptionRow`). Phone is the default and follows the iPhone (D003). The choice applies at once to the
+      whole app, status bar included, and is kept on the phone (it survives signing out).
+    - **ACCOUNT:** the email in `meta` style, then SIGN OUT as a pen-blue link (section-label style). Signing out
+      needs no confirmation and goes straight to sign in.
+  - The temporary SIGN OUT link at the bottom of Home is removed.
+- **Consequences:** D003 ("follow the phone") stays the default, with an override. The bell still does nothing.
+
 ## Open (not decided)
 
 From Christina, to discuss later:
@@ -596,4 +616,3 @@ From Christina, to discuss later:
 
 Proposed earlier, still to discuss:
 - Interface language: English screens, Arabizi in the assistant only (proposed).
-- Theme switch: follow the phone, with an override in settings (proposed).

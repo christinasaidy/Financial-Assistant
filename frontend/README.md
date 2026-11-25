@@ -80,26 +80,28 @@ violations to prove it catches them.
 ```
 frontend/
   app/                         Expo Router routes only
-    _layout.tsx                fonts, splash, SessionProvider, status bar, who sees which routes
+    _layout.tsx                fonts, splash, SessionProvider, AppearanceProvider, status bar, who sees which routes
     index.tsx                  launch route: LaunchScreen while the session is checked, then redirects
     (auth)/sign-in.tsx         sign in (features/auth/ui/SignInScreen)
     (auth)/sign-up.tsx         create account (features/auth/ui/SignUpScreen)
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
     (tabs)/index.tsx           Home (features/home/ui/HomeScreen)
     (tabs)/receipts|scan|budgets|assistant.tsx   placeholders
+    settings.tsx               settings, pushed over the tabs (features/settings/ui/SettingsScreen)
   src/
     container.ts               composition root
     shared/
       theme/                   tokens.ts (from DESIGN.md), textStyles.ts, useTheme() (light/dark)
-      ui/                      AppText, Paper, Wordmark, Icon, Button, TextField, DashedRule, TabBar,
-                               HighlightSwipe, PlaceholderScreen; art/ = converted SVGs
+      ui/                      AppText, Paper, Wordmark, Icon, Button, TextField, TextLink, OptionRow,
+                               DashedRule, TabBar, HighlightSwipe, PlaceholderScreen; art/ = converted SVGs
       api/httpClient.ts        fetch wrapper: base URL, JSON, bearer token, ApiError, NetworkError
-      storage/tokenStore.ts    one secret value in the Keychain (expo-secure-store)
+      storage/tokenStore.ts    one value in the Keychain (expo-secure-store): the session, the appearance
       format/                  money.ts (D034), dates.ts (dd/mm/yyyy, 24 h)
     features/
       auth/{domain,application,data,ui}
       launch/ui                LaunchScreen (yellow paper, large wordmark); no other layers
-      home/{domain,application,data,ui}     empty, for Home
+      home/{domain,application,data,ui}     Home
+      settings/{domain,application,data,ui} Settings: the appearance (Phone / Light / Dark) and sign out
   tests/                       mirrors src/; plus architecture.test.ts and routes.test.tsx
   assets/                      fonts (+ DejaVu LICENSE), icons, wordmark, paper textures, splash
   scripts/convert-svgs.mjs     SVG → react-native-svg data

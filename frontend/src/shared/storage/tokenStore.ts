@@ -21,3 +21,6 @@ export function secureValue(key: string): SecureValue {
 
 /** The key the signed-in session is kept under. */
 export const SESSION_KEY = 'fatourati.session';
+
+/** The key the appearance setting is kept under (D043). */
+export const APPEARANCE_KEY = 'fatourati.appearance';

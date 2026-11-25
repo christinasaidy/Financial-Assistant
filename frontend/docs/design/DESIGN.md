@@ -199,12 +199,15 @@ Budgets, Assistant, Back; then (D030) Notifications, Close, Settings, Add, Flash
 Mono characters, the width of a real receipt. 8 px between a label and its content, 16 px between rows, 24 px
 above and below a rule between sections.
 
-**Home** (D035, D036), top to bottom: header (small wordmark, bell); "Hello, <first name>" as the screen title;
+**Home** (D035, D036, D043), top to bottom: header (small wordmark; gear and bell on the right); "Hello, <first name>" as the screen title;
 THIS MONTH label, month total, combined-currency line; rule; BUDGETS (three closest to their limit) with "See all";
 rule; RECENT (two newest in the first view, the rest scroll); tab bar.
 
 **Home before any receipts** (D037): $0.00 and "No receipts yet this month"; one sentence on scanning and the
 **Scan a receipt** button; Budgets and Recent each say in one grey sentence what will appear there.
+
+**Settings** (D043), opened from the gear: header with Back; SETTINGS; APPEARANCE (Phone, Light, Dark as three
+square options, Phone following the iPhone); rule; ACCOUNT (the email, SIGN OUT as a pen-blue link).
 
 **Money** (D034). `$6.60`, `450,000 LBP`. A mixed total is shown in dollars and says how it was combined:
 "$412.60 + 3,150,000 LBP at 89,500 LBP per $".
