@@ -27,7 +27,7 @@ describe.each<ColorScheme>(['light', 'dark'])('LaunchScreen in the %s theme', (s
 
   it('is yellow paper with its grain, the same in both themes (D039)', () => {
     expect(flat(screen.getByTestId('paper-yellow').props.style).backgroundColor).toBe('#f5e54a');
-    expect(screen.queryByTestId('paper-creased')).toBeNull();
+    expect(screen.queryByTestId('paper-plain')).toBeNull();
   });
 
   it('shows only the large wordmark, in ink, read as "Fatourati", centred', () => {

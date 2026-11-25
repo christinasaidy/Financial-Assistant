@@ -33,7 +33,7 @@ async function pressSignIn() {
 describe('SignInScreen', () => {
   it('shows the approved layout: wordmark, title, sentence, two fields, the button and the link', async () => {
     await renderAuthRoutes('/sign-in');
-    expect(screen.getByTestId('paper-creased')).toBeTruthy();
+    expect(screen.getByTestId('paper-plain')).toBeTruthy();
     expect(screen.getByLabelText('Fatourati')).toBeTruthy();
     expect(screen.getByTestId('highlight-swipe')).toBeTruthy();
     expect(screen.getByRole('header', { name: 'Sign in' })).toBeTruthy();

@@ -94,6 +94,19 @@ describe('TabBar', () => {
     await fireEvent.press(screen.getByRole('tab', { name: 'Scan' }));
     expect(onSelect).toHaveBeenCalledWith('scan');
   });
+
+  it('draws the yellow swipe at the size its label measures, clipped to it, so it never spills onto the icon', async () => {
+    await render(<TabBar tabs={appTabs} selectedRoute="budgets" onSelect={jest.fn()} bottomInset={0} />);
+    const swipe = screen.getByTestId('highlight-swipe');
+    let box = swipe.parent;
+    while (box && !box.props.onLayout) box = box.parent;
+    if (!box) throw new Error('the swipe has no measured box');
+    expect(flat(box.props.style).overflow).toBe('hidden');
+
+    await fireEvent(box, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 61, height: 15 } } });
+    const drawn = screen.getByTestId('highlight-swipe');
+    expect([drawn.props.width, drawn.props.height]).toEqual([61, 15]);
+  });
 });
 
 describe('artwork and paper', () => {
@@ -112,11 +125,11 @@ describe('artwork and paper', () => {
 
   it('renders both papers and the dashed rule', async () => {
     await render(
-      <Paper variant="creased">
+      <Paper variant="plain">
         <DashedRule />
       </Paper>,
     );
-    expect(screen.getByTestId('paper-creased')).toBeTruthy();
+    expect(screen.getByTestId('paper-plain')).toBeTruthy();
     await render(<Paper variant="yellow" />);
     expect(flat(screen.getByTestId('paper-yellow').props.style).backgroundColor).toBe('#f5e54a');
   });

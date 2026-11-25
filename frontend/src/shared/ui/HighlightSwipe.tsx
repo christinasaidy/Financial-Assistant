@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { StyleSheet, View, type LayoutChangeEvent, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Polygon } from 'react-native-svg';
 
 import { useTheme } from '../theme';
@@ -29,12 +29,19 @@ type Props = {
  */
 export function HighlightSwipe({ shape, children, style }: Props) {
   const { colors } = useTheme();
+  // The swipe is drawn at the size the box measured, never at a percentage: on iOS a percentage-sized Svg
+  // can come out larger than its box and spill over the icon and the next tab. The box also clips it.
+  const [box, setBox] = useState({ width: 0, height: 0 });
+  const measure = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setBox((old) => (old.width === width && old.height === height ? old : { width, height }));
+  };
   return (
-    <View style={style}>
+    <View style={[styles.clip, style]} onLayout={measure}>
       <Svg
-        style={StyleSheet.absoluteFill}
-        width="100%"
-        height="100%"
+        style={styles.swipe}
+        width={box.width}
+        height={box.height}
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
         pointerEvents="none"
@@ -48,3 +55,8 @@ export function HighlightSwipe({ shape, children, style }: Props) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  clip: { overflow: 'hidden' },
+  swipe: { position: 'absolute', top: 0, left: 0 },
+});

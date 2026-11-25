@@ -21,7 +21,7 @@ type Props = {
 export function PlaceholderScreen({ title, owner, children }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <Paper variant="creased">
+    <Paper variant="plain">
       <View style={[styles.content, { paddingTop: insets.top + spacing.xl }]}>
         <AppText variant="screen-title" accessibilityRole="header">
           {title}

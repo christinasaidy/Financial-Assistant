@@ -527,7 +527,7 @@ considered, so the reasoning can be explained later.
 
 ## D039: Paper by screen: yellow launch, lightly creased everywhere else
 
-- **Status:** Accepted, 2026-11-23. Chosen by Christina from the canvas (launch "Yellow", sign in and Home "Lightly
+- **Status:** Accepted, 2026-11-23; the creased paper is replaced by D042 (plain white). Chosen by Christina from the canvas (launch "Yellow", sign in and Home "Lightly
   creased"). She rejected the heavily crumpled experiment for every screen.
 - **Decision:**
   - **Launch screen:** a full page of yellow paper (`highlight` #f5e54a with the fine grain) and the large wordmark
@@ -570,6 +570,19 @@ considered, so the reasoning can be explained later.
   assistant could use gender to address the user correctly in Arabizi; that is a separate change.
 
 ---
+
+## D042: Plain white paper, no crease
+
+- **Status:** Accepted, 2026-11-25. Asked for by Christina after trying the app on her iPhone ("remove the creasing
+  and make it just white, all pages"). Replaces the lightly creased paper of D039.
+- **Decision:**
+  - Sign in, create account, Home and every other app screen sit on flat paper: **#ffffff** in light mode, the
+    same **#17181b** in dark mode. No grain, no crease shading. `wrinkle-light.png`, `wrinkle-dark.png` and
+    `grain-dark.png` are deleted; `grain-light.png` stays for the yellow launch.
+  - The launch screen stays yellow with its grain (D039); it never had a crease.
+- **Consequences:** Contrast on white is a little higher than on #f7f8f6 (ink 16.8, ink-2 6.9, pen blue 8.6,
+  near-limit 5.9, limit-reached 6.7). The main button's label uses the `paper` token, so it is now white on pen
+  blue. Dark mode keeps its colour, only its textures go.
 
 ## Open (not decided)
 

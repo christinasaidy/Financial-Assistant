@@ -8,7 +8,7 @@ description: A receipt-first expense tracker for Lebanon. Scan receipts, track s
 colors:
   primary: "#2443a8"        # pen blue: main button, links, things the user can change
   primary-dark: "#9db0ff"
-  paper: "#f7f8f6"          # milky thermal paper (background, with grain and crease textures, D039)
+  paper: "#ffffff"          # plain white paper, no texture (D042)
   paper-dark: "#17181b"
   ink: "#1c1d21"            # text and fine budgets
   ink-dark: "#e6e6e1"
@@ -151,8 +151,8 @@ contrast ratios: front matter and D022.
 **Brand yellow** (D038). Highlighter yellow (`highlight`), only as a swipe behind the wordmark and the selected
 tab's label, always with ink text on it. The launch screen is a full page of it (D039).
 
-**Paper** (D039). Light screens are milky paper #f7f8f6 with a fine grain and soft crease shading
-(`assets/paper/`); dark screens keep #17181b with the dark versions of both textures.
+**Paper** (D042). Screens are plain: flat white #ffffff in light mode and flat #17181b in dark mode, with no
+grain and no crease. Only the launch screen keeps a texture: yellow paper with the fine grain (D039).
 
 ## Typography
 

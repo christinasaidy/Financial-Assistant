@@ -26,8 +26,8 @@ first name.
 |---|---|
 | `e396e385…` / `31af3f95…` | `assets/fonts/DejaVuSansMono.ttf` / `DejaVuSansMono-Bold.ttf` |
 | `427875e5…` / `775de8ac…` | `assets/fonts/DejaVuSans.ttf` / `DejaVuSans-Bold.ttf` |
-| `68091e1f…` / `1ddc5343…` | `assets/paper/grain-light.png` / `grain-dark.png` (256 px tile, repeat) |
-| `30d76934…` / `55bd9532…` | `assets/paper/wrinkle-light.png` / `wrinkle-dark.png` (crease shading, one per screen, stretched to the screen) |
+| `68091e1f…` / `1ddc5343…` | `assets/paper/grain-light.png` (256 px tile, repeat; only on the yellow launch since D042) / grain-dark, removed |
+| `30d76934…` / `55bd9532…` | crease shading; removed from the app by D042 (screens are plain) |
 | `d2554d85…` | `assets/wordmark/fatourati-large.svg` in ink (#1c1d21) |
 | `3df1b468…` / `406e1f00…` | `assets/wordmark/fatourati-small.svg` in ink / ink-dark |
 | `7f9e0f22…` `7a74bbe0…` `0d7e61e0…` `26e0734e…` `6c2e0c17…` `f3b5ea0e…` | printed icons (light): home (ink), receipts, scan (paper colour, on the blue square), budgets, assistant (ink-2), notifications (ink) |
@@ -38,5 +38,5 @@ Icons are `assets/icons/<name>-printed.svg`; they draw in `currentColor`.
 ## Things the mockups cannot show
 
 - The highlighter swipe uses CSS `clip-path`; in React Native draw it as an SVG polygon behind the wordmark.
-- Paper textures are CSS backgrounds; in React Native use images (grain tiled, crease stretched).
+- Paper textures are CSS backgrounds. Since D042 the app's screens are plain; only the launch tiles the grain.
 - "Continue with Apple" and "Forgot password?" are **not built yet** (D040).

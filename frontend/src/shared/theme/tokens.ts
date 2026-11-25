@@ -3,10 +3,10 @@
  * change a value there first (with its DECISIONS.md entry), then here. tokens.test.ts checks that the two match.
  */
 
-/** Colours (D022, D023, D038, D039). Each has a light and a dark value (D003). */
+/** Colours (D022, D023, D038, D039, D042). Each has a light and a dark value (D003). */
 export const colorTokens = {
   primary: { light: '#2443a8', dark: '#9db0ff' },
-  paper: { light: '#f7f8f6', dark: '#17181b' },
+  paper: { light: '#ffffff', dark: '#17181b' },
   ink: { light: '#1c1d21', dark: '#e6e6e1' },
   'ink-2': { light: '#575a60', dark: '#a2a4a8' },
   rule: { light: '#c3c6c2', dark: '#3a3c40' },

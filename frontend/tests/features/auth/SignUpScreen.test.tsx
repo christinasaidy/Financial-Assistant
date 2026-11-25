@@ -31,7 +31,7 @@ async function pressCreate() {
 describe('SignUpScreen', () => {
   it('shows the approved layout with the gender choice and no Apple button', async () => {
     await renderAuthRoutes('/sign-up');
-    expect(screen.getByTestId('paper-creased')).toBeTruthy();
+    expect(screen.getByTestId('paper-plain')).toBeTruthy();
     expect(screen.getByLabelText('Fatourati')).toBeTruthy();
     expect(screen.getByRole('header', { name: 'Create account' })).toBeTruthy();
     expect(screen.getByText('Keep every receipt in one place, in dollars and pounds.')).toBeTruthy();

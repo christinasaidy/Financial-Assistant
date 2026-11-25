@@ -58,7 +58,7 @@ describe.each<ColorScheme>(['light', 'dark'])('Home in %s', (scheme) => {
     await renderHome(scheme, home);
 
     await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
-    expect(screen.getByTestId('paper-creased')).toBeTruthy();
+    expect(screen.getByTestId('paper-plain')).toBeTruthy();
     expect(screen.getByLabelText('Fatourati')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeTruthy();
     expect(screen.getByText('Hello, Christina')).toBeTruthy();

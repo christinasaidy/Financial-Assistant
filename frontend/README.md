@@ -152,7 +152,7 @@ approved mockup, and should be decided with Christina and recorded in DECISIONS.
 
 - **Main button states**: pressed, disabled and busy have no look yet (only behaviour and VoiceOver). Its side
   padding when a long label wraps at large text sizes uses `spacing.lg` (16). The label uses the `paper` token
-  (#f7f8f6 / #17181b); the mockups still show the old #f3f4f1.
+  (#ffffff / #17181b, D042); the mockups still show the old #f3f4f1.
 - **Fill-in field** (D040): the 40 px value row, the 4 px caption gap and the 12 px gap before SHOW come from the
   sign-in mockup. Error text style and place are not decided (built as a `sentence` in `limit-reached` under the
   line); placeholder colour (`ink-2`), focus look and whether the line changes colour on error are not decided.
@@ -167,6 +167,6 @@ approved mockup, and should be decided with Christina and recorded in DECISIONS.
   4 px padding inside the yellow swipe. At very large text sizes the labels shrink to fit one line
   (ASSISTANT barely fits a fifth of the screen); not decided.
 - **Dark mode on yellow**: the selected tab's label is ink #1c1d21 as D038 says (the dark mockup uses #17181b).
-  Dark creased paper is #17181b as D039 says (the dark mockup uses #1a1b1e).
+  Dark paper is #17181b as D039 says (the dark mockup uses #1a1b1e).
 - **Printed look for text** (D011, still open in DECISIONS.md): text is drawn clean for now.
 - **App icon**: not designed, so `app.json` has none (Expo's default icon is used).

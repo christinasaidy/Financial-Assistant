@@ -43,14 +43,14 @@ type Props = {
 };
 
 /**
- * What sign in and create account share (D040): lightly creased paper (D039), the large highlighted
+ * What sign in and create account share (D040): plain paper (D042), the large highlighted
  * wordmark, the title, one grey sentence, the fields, the main button, and the link to the other screen
  * at the bottom. The content scrolls, so large text sizes and the keyboard never cut anything off.
  */
 export function AuthScreenLayout({ title, sentence, top, children, formError, submitLabel, onSubmit, busy, switchLink }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <Paper variant="creased">
+    <Paper variant="plain">
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={styles.fill}

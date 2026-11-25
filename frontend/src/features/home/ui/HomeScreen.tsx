@@ -24,7 +24,7 @@ type Props = {
 };
 
 /**
- * Home (D035-D037, D039), on lightly creased paper: the header, "Hello, <first name>", this month's total,
+ * Home (D035-D037, D042), on plain paper: the header, "Hello, <first name>", this month's total,
  * the budgets closest to their limit and the newest receipts. Each part shows its own empty state, so a
  * user with receipts but no budgets sees both. Pull down to reload; it also reloads when the tab comes back.
  */
@@ -40,7 +40,7 @@ export function HomeScreen({ service }: Props) {
   const openScan = () => router.navigate('/scan');
 
   return (
-    <Paper variant="creased">
+    <Paper variant="plain">
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top }]}
         refreshControl={
