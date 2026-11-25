@@ -1,10 +1,14 @@
-import { act, fireEvent, screen, waitFor } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import { AccessibilityInfo, StyleSheet } from 'react-native';
 
+import { AuthService } from '@/features/auth/application/authService';
 import { AuthError, type AuthErrorCode } from '@/features/auth/domain/errors';
+import { SessionProvider } from '@/features/auth/ui/SessionProvider';
+import { SignInScreen } from '@/features/auth/ui/SignInScreen';
 import { colorTokens } from '@/shared/theme';
 
 import { maya, renderAuthRoutes } from './authRoutes';
+import { FakeAuthRepository, FakeTokenStore } from './fakes';
 
 // The first render loads expo-router, which is slow on a cold cache.
 jest.setTimeout(30_000);
@@ -135,6 +139,40 @@ describe('SignInScreen', () => {
 
     await act(async () => finish());
     await waitFor(() => expect(screen.getByText('Signed in as Maya')).toBeTruthy());
+  });
+
+  it('is ready again after signing out when the screen was kept alive under the tabs (as iOS does)', async () => {
+    const repository = new FakeAuthRepository();
+    await repository.register({ ...maya });
+    const service = new AuthService(repository, new FakeTokenStore());
+    // No guard: the screen stays mounted through the sign-in, like the native stack keeps it on the iPhone.
+    function Layout() {
+      return (
+        <SessionProvider authService={service}>
+          <SignInScreen />
+        </SessionProvider>
+      );
+    }
+    await renderRouter({ _layout: Layout, index: () => null }, { initialUrl: '/' });
+
+    await fill(maya.email, maya.password);
+    await pressSignIn();
+    await waitFor(() => expect(service.accessToken()).not.toBeNull());
+    expect(screen.getByRole('button', { name: 'Sign in' }).props.accessibilityState).toMatchObject({ busy: true });
+
+    await act(() => service.signOut());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Sign in' }).props.accessibilityState).toMatchObject({
+        busy: false,
+        disabled: false,
+      }),
+    );
+    expect(screen.getByLabelText('Password').props.value).toBe('');
+
+    await fill(maya.email, maya.password);
+    await pressSignIn();
+    await waitFor(() => expect(service.accessToken()).not.toBeNull());
+    expect(repository.calls.filter((call) => call.startsWith('login'))).toHaveLength(2);
   });
 
   it('says the email or password is wrong, without saying which', async () => {

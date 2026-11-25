@@ -7,6 +7,7 @@ import { hasProblems, validateSignIn } from '../domain/validation';
 import { messageForError, problemMessages } from './authMessages';
 import { AuthScreenLayout } from './AuthScreenLayout';
 import { useSession } from './SessionProvider';
+import { useSignedOutAgain } from './useSignedOutAgain';
 
 type Errors = { email: string | null; password: string | null };
 const noErrors: Errors = { email: null, password: null };
@@ -27,6 +28,13 @@ export function SignInScreen() {
   const submitting = useRef(false);
   const emailInput = useRef<ComponentRef<typeof TextInput>>(null);
   const passwordInput = useRef<ComponentRef<typeof TextInput>>(null);
+
+  useSignedOutAgain(() => {
+    submitting.current = false;
+    setBusy(false);
+    setPassword('');
+    setPasswordShown(false);
+  });
 
   function edit(field: keyof Errors, setValue: (value: string) => void) {
     return (value: string) => {

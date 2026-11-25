@@ -10,6 +10,7 @@ import { messageForError, passwordHint, problemMessages } from './authMessages';
 import { AuthScreenLayout } from './AuthScreenLayout';
 import { GenderChoice } from './GenderChoice';
 import { useSession } from './SessionProvider';
+import { useSignedOutAgain } from './useSignedOutAgain';
 
 type Field = 'firstName' | 'email' | 'password' | 'gender';
 type Errors = Record<Field, string | null>;
@@ -39,6 +40,13 @@ export function SignUpScreen() {
   const firstNameInput = useRef<ComponentRef<typeof TextInput>>(null);
   const emailInput = useRef<ComponentRef<typeof TextInput>>(null);
   const passwordInput = useRef<ComponentRef<typeof TextInput>>(null);
+
+  useSignedOutAgain(() => {
+    submitting.current = false;
+    setBusy(false);
+    setPassword('');
+    setPasswordShown(false);
+  });
 
   function clear(field: Field) {
     if (errors[field]) setErrors((current) => ({ ...current, [field]: null }));
