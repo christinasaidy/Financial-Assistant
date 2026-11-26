@@ -1,4 +1,4 @@
-import { ApiError, NetworkError, createHttpClient, detailFrom } from '@/shared/api/httpClient';
+import { ApiError, NetworkError, backendUrl, createHttpClient, detailFrom } from '@/shared/api/httpClient';
 
 import { fetchMock } from '../../fetchMock';
 
@@ -130,5 +130,21 @@ describe('detailFrom', () => {
 
   it('falls back to the status', () => {
     expect(detailFrom('Internal Server Error', 500)).toBe('The request failed (500)');
+  });
+});
+
+describe('backendUrl', () => {
+  it('follows the laptop Expo Go loaded the app from, on any network, on port 8000', () => {
+    expect(backendUrl(undefined, '192.168.1.2:8081')).toBe('http://192.168.1.2:8000');
+    expect(backendUrl('', '172.20.10.3:8081')).toBe('http://172.20.10.3:8000');
+    expect(backendUrl(undefined, 'exp://10.0.0.7:8081/--/')).toBe('http://10.0.0.7:8000');
+  });
+
+  it('uses EXPO_PUBLIC_API_URL when it is set', () => {
+    expect(backendUrl('https://fatourati.example.com', '192.168.1.2:8081')).toBe('https://fatourati.example.com');
+  });
+
+  it('says what to do when it cannot tell', () => {
+    expect(() => backendUrl(undefined, null)).toThrow('npm run phone');
   });
 });

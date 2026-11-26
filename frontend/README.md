@@ -13,11 +13,12 @@ Expo Go (D004). The design is in [design/DESIGN.md](design/DESIGN.md), with its 
    `uvicorn app.main:app --reload --host 0.0.0.0 --port 8000`
    (`--host 0.0.0.0` listens on the Wi-Fi too, not only on the laptop itself). The first time, Windows asks
    whether Python may use private networks: allow it.
-3. In `frontend/`, copy `.env.example` to `.env` and put the laptop's Wi-Fi address in it. Find it with
-   `ipconfig` ("IPv4 Address"), for example `EXPO_PUBLIC_API_URL=http://192.168.1.23:8000`. `localhost` does
-   not work: on the phone it means the phone. **The iPhone and the laptop must be on the same Wi-Fi.**
-4. `npm install`, then `npx expo start`. Scan the QR code with the iPhone's Camera app; it opens in Expo Go.
-   After changing `.env`, restart with `npx expo start --clear`.
+3. In `frontend/`: `npm install`, then **`npm run phone`**. It finds the laptop's address on whatever Wi-Fi or
+   hotspot it is on, starts Expo there and prints the link to open in Expo Go (`exp://<address>:8081`). Nothing
+   to edit when the network changes: the app finds the backend on that same laptop, port 8000. The iPhone and
+   the laptop must be on the same network (the iPhone's own hotspot works: connect the laptop to it).
+   `.env` is optional; set `EXPO_PUBLIC_API_URL` only for a backend somewhere else (then restart with
+   `npm run phone -- --clear`).
 
 To check the phone can reach the backend, open `http://<laptop-IP>:8000/docs` in Safari on the iPhone.
 

@@ -35,6 +35,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "phone": "node scripts/start-phone.mjs",
     "ios": "expo start --ios",
     "test": "jest",
     "typecheck": "tsc --noEmit",

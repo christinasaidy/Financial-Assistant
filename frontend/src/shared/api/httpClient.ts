@@ -1,3 +1,5 @@
+import Constants from 'expo-constants';
+
 /**
  * A small fetch wrapper for the Fatourati backend: JSON in and out, the bearer token on every signed-in
  * request, and one error type for anything that is not a 2xx.
@@ -154,11 +156,25 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
   };
 }
 
-/** EXPO_PUBLIC_API_URL from .env (see .env.example). Read with dot notation so Expo inlines it. */
-export function apiBaseUrl(): string {
-  const url = process.env.EXPO_PUBLIC_API_URL;
-  if (!url) {
-    throw new Error('EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env and put your laptop LAN IP in it.');
+/** The backend's port on the laptop (uvicorn ... --port 8000). */
+export const BACKEND_PORT = 8000;
+
+/**
+ * Where the backend is. EXPO_PUBLIC_API_URL wins when it is set (a backend somewhere else). Otherwise it is the
+ * laptop Expo Go loaded the app from, on port 8000: the backend runs on that same laptop, so this follows the
+ * laptop to whatever Wi-Fi or hotspot it is on, with nothing to edit.
+ */
+export function backendUrl(configured: string | undefined, devServerHost: string | null | undefined): string {
+  const fixed = configured?.trim();
+  if (fixed) return fixed;
+  const host = devServerHost?.replace(/^[a-z]+:\/\//i, '').split('/')[0]?.replace(/:\d+$/, '');
+  if (!host) {
+    throw new Error('Cannot tell where the backend is: open the app in Expo Go from `npm run phone`, or set EXPO_PUBLIC_API_URL in .env.');
   }
-  return url;
+  return `http://${host}:${BACKEND_PORT}`;
+}
+
+/** The backend's address for this run of the app (see backendUrl). EXPO_PUBLIC_API_URL is read with dot notation so Expo inlines it. */
+export function apiBaseUrl(): string {
+  return backendUrl(process.env.EXPO_PUBLIC_API_URL, Constants.expoConfig?.hostUri ?? Constants.expoGoConfig?.debuggerHost);
 }

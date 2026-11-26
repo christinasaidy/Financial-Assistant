@@ -32,6 +32,9 @@ it('shows the launch screen until the saved session is checked, then goes to sig
   expect(screen.getByRole('header', { name: 'Fatourati' })).toBeTruthy();
 
   await act(async () => finishReading(null));
-  await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
+  // The session is known, but the launch screen stays for its 1.5 s.
+  expect(router.getPathname()).toBe('/');
+  expect(screen.getByTestId('launch-screen')).toBeTruthy();
+  await waitFor(() => expect(router.getPathname()).toBe('/sign-in'), { timeout: 5_000 });
   expect(screen.queryByTestId('launch-screen')).toBeNull();
 });

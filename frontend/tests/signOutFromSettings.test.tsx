@@ -34,20 +34,20 @@ it('opens settings from the wordmark, signs out there, and signs in again', asyn
   });
 
   const router = await renderRouter(APP_DIR, { initialUrl: '/' });
-  await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
+  await waitFor(() => expect(router.getPathname()).toBe('/sign-in'), { timeout: 5_000 });
 
   const signInOnce = async () => {
     await fireEvent.changeText(screen.getByLabelText('Email'), 'christina@example.com');
     await fireEvent.changeText(screen.getByLabelText('Password'), 'password123');
     await fireEvent.press(screen.getByRole('button', { name: 'Sign in' }));
-    await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy(), { timeout: 5_000 });
   };
   await signInOnce();
 
   await fireEvent.press(screen.getByTestId('home-settings'));
   await waitFor(() => expect(router.getPathname()).toBe('/settings'));
   await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
-  await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
+  await waitFor(() => expect(router.getPathname()).toBe('/sign-in'), { timeout: 5_000 });
 
   const before = fetchMock.mock.calls.filter(([u]) => String(u).includes('/auth/login')).length;
   await fireEvent.changeText(screen.getByLabelText('Email'), 'christina@example.com');
@@ -55,5 +55,5 @@ it('opens settings from the wordmark, signs out there, and signs in again', asyn
   const button = screen.getByRole('button', { name: 'Sign in' });
   await fireEvent.press(button);
   await waitFor(() => expect(fetchMock.mock.calls.filter(([u]) => String(u).includes('/auth/login')).length).toBe(before + 1));
-  await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy());
+  await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy(), { timeout: 5_000 });
 });
