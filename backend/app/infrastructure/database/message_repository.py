@@ -13,6 +13,13 @@ from app.domain.assistant.conversation import (
 )
 
 
+_SELECT = """
+    SELECT m.id, m.role, m.content, m.metadata, m.created_at, f.rating
+    FROM messages m
+    LEFT JOIN assistant_feedback f ON f.message_id = m.id
+"""
+
+
 class SqlMessageRepository:
     """Messages have no user_id: row-level security lets a user see only the messages of their own
     conversations, so a message or conversation id from someone else simply does not exist here."""
@@ -39,34 +46,30 @@ class SqlMessageRepository:
 
     def list_for(self, conversation_id: int) -> list[Message]:
         rows = self._conn.execute(
-            text(
-                """
-                SELECT m.id, m.role, m.content, m.metadata, m.created_at, f.rating
-                FROM messages m
-                LEFT JOIN assistant_feedback f ON f.message_id = m.id
-                WHERE m.conversation_id = :id
-                ORDER BY m.created_at, m.id
-                """
-            ),
-            {"id": conversation_id},
+            text(_SELECT + " WHERE m.conversation_id = :id ORDER BY m.created_at, m.id"), {"id": conversation_id}
         ).all()
-        return [
-            Message(
-                id=row.id,
-                role=MessageRole(row.role),
-                content=row.content,
-                created_at=row.created_at,
-                details=_from_metadata(row.metadata),
-                rating=Rating.from_score(row.rating) if row.rating is not None else None,
-            )
-            for row in rows
-        ]
+        return [_to_message(row) for row in rows]
+
+    def get(self, message_id: int) -> Message | None:
+        row = self._conn.execute(text(_SELECT + " WHERE m.id = :id"), {"id": message_id}).one_or_none()
+        return _to_message(row) if row else None
 
     def role_of(self, message_id: int) -> MessageRole | None:
         role = self._conn.execute(
             text("SELECT role FROM messages WHERE id = :id"), {"id": message_id}
         ).scalar_one_or_none()
         return MessageRole(role) if role else None
+
+
+def _to_message(row) -> Message:
+    return Message(
+        id=row.id,
+        role=MessageRole(row.role),
+        content=row.content,
+        created_at=row.created_at,
+        details=_from_metadata(row.metadata),
+        rating=Rating.from_score(row.rating) if row.rating is not None else None,
+    )
 
 
 def _to_metadata(details: AnswerDetails) -> dict[str, object]:

@@ -1,13 +1,26 @@
 """In-memory stand-ins for the interfaces, so services and the API can be tested without a database."""
 
+import threading
+from decimal import Decimal
 from datetime import UTC, datetime
 
+from app.application.assistant.dtos import (
+    ChatRequest,
+    ChatResponse,
+    ModelUsage,
+    TextPart,
+    ToolCall,
+    TurnRequest,
+    WorkflowAnswer,
+)
 from app.application.auth.interfaces import StoredCredentials
 from app.application.receipts.interfaces import StoredFile
+from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Step
+from app.domain.assistant.usage import TurnUsage
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered
-from app.domain.users.user import User
+from app.domain.users.user import Gender, User
 
 
 class FakeReceiptExtractor:
@@ -100,27 +113,86 @@ class FakeHasher:
 
 class InMemoryUserRepository:
     def __init__(self) -> None:
-        self._rows: dict[int, tuple[str, str]] = {}  # id -> (email, password_hash)
+        self._rows: dict[int, tuple[User, str]] = {}  # id -> (user, password_hash)
         self._next_id = 1
 
-    def add(self, email: str, password_hash: str) -> User:
-        if any(existing == email for existing, _ in self._rows.values()):
+    def add(self, email: str, password_hash: str, first_name: str, gender: Gender) -> User:
+        if any(user.email == email for user, _ in self._rows.values()):
             raise EmailAlreadyRegistered("Email is already registered")
-        user_id = self._next_id
+        user = User(id=self._next_id, email=email, first_name=first_name, gender=gender)
         self._next_id += 1
-        self._rows[user_id] = (email, password_hash)
-        return User(id=user_id, email=email)
+        self._rows[user.id] = (user, password_hash)
+        return user
 
     def get_credentials_by_email(self, email: str) -> StoredCredentials | None:
-        for user_id, (stored_email, password_hash) in self._rows.items():
-            if stored_email == email:
-                return StoredCredentials(User(user_id, stored_email), password_hash)
+        for user, password_hash in self._rows.values():
+            if user.email == email:
+                return StoredCredentials(user, password_hash)
         return None
 
     def get_by_id(self, user_id: int) -> User | None:
         if user_id not in self._rows:
             return None
-        return User(user_id, self._rows[user_id][0])
+        return self._rows[user_id][0]
 
     def delete(self, user_id: int) -> bool:
         return self._rows.pop(user_id, None) is not None
+
+
+class FakeStandardAssistant:
+    """Stands in for the Standard workflow: answers every question with `reply` and records each request. If
+    `hold` is set, it waits until `release` is set before answering (to keep a turn running); a `fail` exception is
+    raised instead of answering."""
+
+    model = "fake-standard-model"
+
+    def __init__(self, reply: str = "Standard answer") -> None:
+        self.reply = reply
+        self.requests: list[TurnRequest] = []
+        self.fail: Exception | None = None
+        self.hold = False
+        self.started = threading.Event()  # set once a request has arrived
+        self.release = threading.Event()
+
+    def answer(self, request: TurnRequest) -> WorkflowAnswer:
+        self.requests.append(request)
+        self.started.set()
+        if self.hold:
+            assert self.release.wait(10), "the test never released the held answer"
+        if self.fail is not None:
+            raise self.fail
+        attempt = Attempt(Step.ANSWER, self.model, self.reply)
+        details = AnswerDetails(AnswerKind.REPLY, attempts=(attempt,))
+        usage = TurnUsage(1, 0, 0, 0, 0, Decimal(0), "fake")  # a fake costs nothing, and says so
+        return WorkflowAnswer(self.reply, details, {"fake": True, "outcome": "answered"}, usage)
+
+
+class ScriptedChatModel:
+    """Stands in for the Standard mode's hosted model: returns the scripted responses in order (a ModelFailed in the
+    script is raised instead) and records every request it was sent."""
+
+    model = "fake-sonnet"
+
+    def __init__(self, *script) -> None:
+        self.script = list(script)
+        self.requests: list[ChatRequest] = []
+
+    def respond(self, request: ChatRequest) -> ChatResponse:
+        self.requests.append(request)
+        if not self.script:
+            raise AssertionError("the model was called more often than the test expected")
+        step = self.script.pop(0)
+        if isinstance(step, Exception):
+            raise step
+        return step
+
+
+def says(text: str, usage: ModelUsage | None = ModelUsage(10, 5, 0, 0)) -> ChatResponse:
+    """A finished model reply."""
+    return ChatResponse((TextPart(text),), "end_turn", "fake-sonnet", usage, "req_text", ("provider", text))
+
+
+def calls(*tool_calls: tuple[str, str, dict], usage: ModelUsage | None = ModelUsage(10, 5, 0, 0)) -> ChatResponse:
+    """A model reply asking for tools: (id, name, input) each."""
+    parts = tuple(ToolCall(call_id, name, args) for call_id, name, args in tool_calls)
+    return ChatResponse(parts, "tool_use", "fake-sonnet", usage, "req_tools", ("provider", tool_calls))

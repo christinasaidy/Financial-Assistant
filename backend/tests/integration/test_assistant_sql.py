@@ -68,7 +68,7 @@ def sign_in(client, engine):
         email = f"{uuid.uuid4()}@test.local"
         emails.append(email)
         body = {"email": email, "password": "correct-horse"}
-        assert client.post("/auth/register", json=body).status_code == 201
+        assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
         result = client.post("/auth/login", json=body).json()
         return {"Authorization": f"Bearer {result['access_token']}"}, result["user"]["id"]
 
@@ -143,6 +143,26 @@ def test_amounts_in_pounds_are_also_given_in_dollars_at_the_saved_rate(container
     result = container.assistant.run_query(alice, "SELECT total, total_usd FROM receipts WHERE currency = 'LBP'")
     total, total_usd = result.rows[0]
     assert (total, round(total_usd, 2)) == (Decimal("895000.00"), Decimal("10.00"))
+
+
+def test_every_amount_is_also_given_in_pounds_at_the_saved_rate(container, alice_with_receipts):
+    """Migration 0009 (approved 2026-11-23): "bel lira" is answered like "bel dollar"."""
+    _, alice = alice_with_receipts
+    lbp = container.assistant.run_query(alice, "SELECT total, total_lbp FROM receipts WHERE currency = 'LBP'").rows[0]
+    assert lbp[0] == lbp[1] == Decimal("895000.00")  # pounds stay as they are
+    usd = container.assistant.run_query(alice, "SELECT total, total_usd, total_lbp FROM receipts WHERE currency = 'USD'")
+    for total, total_usd, total_lbp in usd.rows:
+        assert total == total_usd and round(total_lbp / total) == 89500  # dollars times the receipt's saved rate
+
+
+def test_the_amounts_in_pounds_add_up_across_the_views(container, alice_with_receipts):
+    _, alice = alice_with_receipts
+    by_receipt = one_value(container.assistant.run_query(alice, "SELECT SUM(total_lbp) FROM receipts"))
+    by_category = one_value(container.assistant.run_query(alice, "SELECT SUM(amount_lbp) FROM category_spending"))
+    by_line = one_value(container.assistant.run_query(alice, "SELECT SUM(line_total_lbp) FROM purchases"))
+    by_receipt_usd = one_value(container.assistant.run_query(alice, "SELECT SUM(total_usd) FROM receipts"))
+    assert round(by_category) == round(by_receipt) == round(by_receipt_usd * 89500)
+    assert by_line <= by_receipt  # receipts without items and the tax row are only in category_spending
 
 
 def test_purchases_show_each_item_with_its_effective_category(container, alice_with_receipts):
@@ -446,15 +466,15 @@ UNIT_PRICE = "COALESCE(unit_price, line_total / quantity)"
 
 def post_receipt(client, headers, day, vendor, total, lines=(), category="Groceries", currency="USD"):
     """A confirmed receipt (USD Groceries unless given); `lines` are (name, size, unit, quantity, unit_price,
-    line_total)."""
+    line_total[, brand])."""
     category_id = next(c["id"] for c in client.get("/categories", headers=headers).json() if c["name"] == category)
     body = {
         "vendor_name": vendor, "receipt_date": day, "currency": currency, "total": total,
         "primary_category_id": category_id, "lbp_per_usd": "89500",
         "lines": [
             {"description": name.upper(), "normalized_name": name, "size_amount": size, "size_unit": unit,
-             "quantity": quantity, "unit_price": price, "line_total": line_total}
-            for name, size, unit, quantity, price, line_total in lines
+             "quantity": quantity, "unit_price": price, "line_total": line_total, "brand": brand[0] if brand else None}
+            for name, size, unit, quantity, price, line_total, *brand in lines
         ],
     }  # fmt: skip
     response = client.post("/receipts/manual", json=body, headers=headers)

@@ -95,14 +95,14 @@ def validate_jobs(jobs, complete=False):
             raise ValueError("Expected train 30/user and validation 50/user (960 jobs)")
 
 
-def save_jobs(jobs, raw_dir, metadata, chunk_size=40):
+def save_jobs(jobs, raw_dir, metadata, chunk_size=40, validate=None, seed=SEED_PREFIX):
     """Publish a validated snapshot. Fingerprints detect edits, not malicious forgery."""
-    validate_jobs(jobs)
+    (validate or validate_jobs)(jobs)
     if type(chunk_size) is not int or chunk_size <= 0:
         raise ValueError("chunk_size must be positive")
     text = _jsonl(asdict(job) for job in jobs)
     manifest = {"format": 1, "jobs_sha256": _fingerprint(text), "count": len(jobs),
-                "seed": SEED_PREFIX, "metadata": metadata,
+                "seed": seed, "metadata": metadata,
                 "reproducibility": "Saved specs, prompts, names, dates and validated row counts are authoritative. "
                 "Replay uses current checks/catalogue/reply rules; pin the code revision for identical output."}
     raw_dir.mkdir(parents=True, exist_ok=True)
@@ -123,7 +123,7 @@ def _spec(data):
                    "base": _spec(data["base"]) if data["base"] else None})
 
 
-def load_jobs(raw_dir):
+def load_jobs(raw_dir, validate=None):
     text = (raw_dir / "jobs.jsonl").read_text(encoding="utf-8")
     manifest = _json((raw_dir / "prepare.json").read_text(encoding="utf-8"))
     if manifest.get("format") != 1 or manifest.get("jobs_sha256") != _fingerprint(text):
@@ -134,7 +134,7 @@ def load_jobs(raw_dir):
         jobs.append(build.Job(**{**entry, "spec": _spec(entry["spec"]),
                                  "today": date.fromisoformat(entry["today"]),
                                  "names": build.UserNames(**entry["names"])}))
-    validate_jobs(jobs)
+    (validate or validate_jobs)(jobs)
     if manifest.get("count") != len(jobs):
         raise ValueError("Saved job count mismatch")
     return jobs
@@ -198,8 +198,8 @@ def read_reply(text, spec):
     return versions
 
 
-def load_replies(path, jobs):
-    validate_jobs(jobs)
+def load_replies(path, jobs, validate=None):
+    (validate or validate_jobs)(jobs)
     expected = {job.prompt: job for job in jobs}
     replies = {}
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -218,9 +218,9 @@ def load_replies(path, jobs):
     return replies
 
 
-def effective_replies(jobs, replies, catalogue):
+def effective_replies(jobs, replies, catalogue, seed=SEED_PREFIX):
     return {job.prompt: [users_reply(version, job.spec, catalogue,
-                                   random.Random(f"{SEED_PREFIX}/replies/{job.spec_id}/{index}"))
+                                   random.Random(f"{seed}/replies/{job.spec_id}/{index}"))
                         for index, version in enumerate(replies[job.prompt])] for job in jobs}
 
 
@@ -257,9 +257,9 @@ def export_assignments(raw_dir=RAW_DIR):
     return paths
 
 
-def collect_authored(raw_dir=RAW_DIR):
+def collect_authored(raw_dir=RAW_DIR, validate=None):
     """Validate manually authored versions, then attach original prompts; generate no text."""
-    jobs = load_jobs(raw_dir)
+    jobs = load_jobs(raw_dir, validate)
     expected = {job.spec_id: job for job in jobs}
     authored = {}
     for path in sorted((raw_dir / "authored").glob("chunk-*.jsonl")):
@@ -316,11 +316,14 @@ def load_review(path, jobs, replies):
     return found
 
 
-def replay(raw_dir=RAW_DIR, out_dir=DATA_DIR, review=REVIEW_FILE, complete=False):
-    jobs = load_jobs(raw_dir)
-    validate_jobs(jobs, complete=complete)
-    catalogue = load_catalogue()
-    replies = effective_replies(jobs, load_replies(raw_dir / "generator_replies.jsonl", jobs), catalogue)
+def replay(raw_dir=RAW_DIR, out_dir=DATA_DIR, review=REVIEW_FILE, complete=False, validate=None, catalogue=None,
+           seed=SEED_PREFIX):
+    """`validate`, `catalogue` and `seed` default to batch 2's; batch 3 passes its own (2026-11-15)."""
+    jobs = load_jobs(raw_dir, validate)
+    (validate or validate_jobs)(jobs, complete=complete)
+    catalogue = catalogue or load_catalogue()
+    replies = effective_replies(jobs, load_replies(raw_dir / "generator_replies.jsonl", jobs, validate), catalogue,
+                                seed)
     reviewed = load_review(review, jobs, replies)
     held_out = build.test_questions(None)  # internal only; never put matched evaluation text in artifacts
     accepted, drops = [], []

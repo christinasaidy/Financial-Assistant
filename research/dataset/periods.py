@@ -94,6 +94,28 @@ def yesterday(today: date) -> Period:
                   ("yesterday", "mbere7", "mberi7", "mbereh", "embere7"))  # fmt: skip
 
 
+def day_before_yesterday(today: date) -> Period:  # batch 3 (2026-11-15): abel mbereh / awalt mbereh
+    day = today - timedelta(days=2)
+    return Period("day_before_yesterday", "receipt_date = CURRENT_DATE - 2", day, day + timedelta(days=1),
+                  "the day before yesterday",
+                  ("day before yesterday", "abel mbereh", "abel mbere7", "awalt mbereh", "awalt mbere7",
+                   "2abel mbereh", "2abel mbere7"))  # fmt: skip
+
+
+def since_weekday(today: date, day: int) -> Period:
+    """Batch 3: since a weekday, the most recent one before today (never today), until today."""
+    start = today - timedelta(days=(today.weekday() - day) % 7 or 7)
+    return Period(f"since_weekday_{day}", f"receipt_date >= '{start}'", start, today + timedelta(days=1),
+                  f"since {WEEKDAYS[day]} (the last one before today) until today",
+                  (WEEKDAYS[day].lower(),) + ARABIZI_WEEKDAYS[day])  # fmt: skip
+
+
+def since_yesterday(today: date) -> Period:  # batch 3: men mberha la lyom
+    return Period("since_yesterday", "receipt_date >= CURRENT_DATE - 1", today - timedelta(days=1),
+                  today + timedelta(days=1), "since yesterday (yesterday and today)",
+                  ("since yesterday", "men mberha", "men mbere7", "mn mberha", "mn mbere7", "men mbereh"))  # fmt: skip
+
+
 def last_days(today: date, days: int) -> Period:
     return Period(f"last_{days}_days", f"receipt_date > CURRENT_DATE - {days} AND receipt_date <= CURRENT_DATE",
                   today - timedelta(days=days - 1), today + timedelta(days=1),
@@ -127,6 +149,36 @@ def since_start_of_year(today: date) -> Period:
                   today + timedelta(days=1), "since the start of the year (this year so far)",
                   ("men awal el sene", "mn awal el sene", "since the start of the year", "since january",
                    "since the beginning of the year", "this year so far"))  # fmt: skip
+
+
+def last_year(today: date) -> Period:  # batch 4 (2026-11-16): el sene el madye
+    return Period("last_year", "receipt_date >= date_trunc('year', CURRENT_DATE) - INTERVAL '1 year' "
+                  "AND receipt_date < date_trunc('year', CURRENT_DATE)", date(today.year - 1, 1, 1),
+                  date(today.year, 1, 1), "last year (the previous calendar year)",
+                  ("el sene el madye", "l sene l madye", "sene el madye", "el sene li mar2it", "ekher sene", "e5er sene",
+                   "last year"))  # fmt: skip
+
+
+def last_years(today: date, years: int) -> Period:  # batch 4: mn sentain la hala2, ekher sentain
+    start = _months_before(today, 12 * years) + timedelta(days=1)
+    return Period(f"last_{years}_years",
+                  f"receipt_date > CURRENT_DATE - INTERVAL '{years} years' AND receipt_date <= CURRENT_DATE",
+                  start, today + timedelta(days=1), f"the last {years} years (up to today)",
+                  ("sentain", "sentein", "2 years", "two years"))  # fmt: skip
+
+
+def last_few_weeks(today: date) -> Period:  # batch 4: ekher kam jem3a, the last 3 weeks
+    p = last_weeks(today, 3)
+    return Period("last_few_weeks", p.sql, p.start, p.end, "the last few weeks (the last 3 weeks, 21 days)",
+                  ("ekher kam jem3a", "ekher kam jemaa", "kam jem3a", "kam jemaa", "few weeks", "couple of weeks",
+                   "last 3 weeks"))  # fmt: skip
+
+
+def since_summer(today: date) -> Period:  # batch 4: mn el sayfiye la hala2
+    start = summer(today).start
+    return Period("since_summer", f"receipt_date >= '{start}'", start, today + timedelta(days=1),
+                  "since the summer (from 1 June of the most recent summer, up to today)",
+                  ("sayfiye", "sayf", "summer", "seyfiye"))  # fmt: skip
 
 
 def named_month(today: date, month: int) -> Period:

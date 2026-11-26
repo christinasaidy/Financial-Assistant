@@ -8,9 +8,13 @@ from app.infrastructure.database.category_repository import SqlCategoryRepositor
 from app.infrastructure.database.connection import user_scoped_connection
 from app.infrastructure.database.conversation_repository import SqlConversationRepository
 from app.infrastructure.database.feedback_repository import SqlFeedbackRepository
+from app.infrastructure.database.memory_repository import SqlMemoryRepository, SqlProfileRepository
 from app.infrastructure.database.message_repository import SqlMessageRepository
+from app.infrastructure.database.name_repository import SqlNameRepository
 from app.infrastructure.database.notification_repository import SqlNotificationRepository
 from app.infrastructure.database.receipt_repository import SqlReceiptRepository
+from app.infrastructure.database.turn_repository import SqlTurnRepository
+from app.infrastructure.database.usage_repository import SqlUsageRepository
 from app.infrastructure.database.vendor_repository import SqlVendorRepository
 
 
@@ -26,6 +30,11 @@ class SqlUnitOfWork:
         self.conversations = SqlConversationRepository(conn)
         self.messages = SqlMessageRepository(conn)
         self.feedback = SqlFeedbackRepository(conn)
+        self.turns = SqlTurnRepository(conn)
+        self.names = SqlNameRepository(conn)
+        self.memories = SqlMemoryRepository(conn)
+        self.profile = SqlProfileRepository(conn)
+        self.usage = SqlUsageRepository(conn)
 
 
 class SqlUnitOfWorkFactory:

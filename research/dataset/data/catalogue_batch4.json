@@ -1,0 +1,25 @@
+{
+  "about": "Batch-4 extension (approved 2026-11-16), added on top of the batch-3 one: items and shops from Christina's batch-4 seeds. Used only for the batch-4 synthetic users (42 and up). The salon and pool shops' names, haircut's category and the items' prices are the assistant's guesses.",
+  "items": [
+    {"name": "steak", "category": "Groceries", "words": ["steak"], "weight_g": [300, 1000], "per_kg": [18.0, 35.0], "at": ["butcher", "supermarket"]},
+    {"name": "haircut", "category": "Health", "words": ["haircut", "hair cut", "sha3re", "shaare"], "price": [10.0, 30.0], "at": ["salon"]},
+    {"name": "pool entry", "category": "Entertainment", "words": ["piscine", "pool", "swimming pool"], "price": [10.0, 25.0], "at": ["pool"]},
+    {"name": "protein powder", "category": "Groceries", "words": ["protein powder", "protein", "whey"], "sizes": [[900, "g", 30.0, 60.0]], "at": ["sports", "pharmacy", "supermarket"]}
+  ],
+  "item_words": {
+    "headphones": ["earphones"],
+    "toothbrush": ["toothbrushes", "fersheyet snan"],
+    "car wash": ["ghasalet el sayara", "ghasalet el siyara"],
+    "argile": ["argalet"],
+    "heated tobacco device": ["iqos"],
+    "sponge": ["sfenje", "sfenjet jale", "sponge jale"]
+  },
+  "shops": [
+    {"name": "Lakkis", "kind": "restaurant", "category": "Dining", "lbp_share": 0.3},
+    {"name": "Sushi Star", "kind": "restaurant", "category": "Dining", "lbp_share": 0.1},
+    {"name": "Glow Paradise", "kind": "cafe", "category": "Dining", "lbp_share": 0.2},
+    {"name": "Le Poulet", "kind": "fast_food", "category": "Dining", "lbp_share": 0.3, "nicknames": ["le poule"]},
+    {"name": "Coiffure Tony", "kind": "salon", "category": "Health", "lbp_share": 0.5},
+    {"name": "Splash Club", "kind": "pool", "category": "Entertainment", "lbp_share": 0.3}
+  ]
+}

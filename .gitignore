@@ -18,8 +18,11 @@ research/evaluation/results/
 
 # Dataset generator output and stand-in runs.
 research/dataset/raw/
-# The built training data (batch 1, batch 2, the mix) stays on the laptop: large, and the repository is public
+# The built training data (batches 1-5, the mix) stays on the laptop: large, and the repository is public
 # (decided 2026-11-15). catalogue.json in the same folder is source and stays committed.
 research/dataset/data/*.jsonl
 research/dataset/data/batch2/
+research/dataset/data/batch3/
+research/dataset/data/batch4/
+research/dataset/data/batch5/
 research/dataset/data/mix/

@@ -11,6 +11,9 @@ from decimal import Decimal
 from pathlib import Path
 
 CATALOGUE_FILE = Path(__file__).parent / "data" / "catalogue.json"
+# Batch 3's items, shops and spellings (2026-11-15), only for its own users: batch 1-2 prompts must not change.
+BATCH3_EXTENSION = Path(__file__).parent / "data" / "catalogue_batch3.json"
+BATCH4_EXTENSION = Path(__file__).parent / "data" / "catalogue_batch4.json"  # added on top of batch 3's
 
 
 @dataclass(frozen=True)
@@ -74,8 +77,11 @@ class CatalogueError(ValueError):
     pass
 
 
-def load_catalogue(path: Path = CATALOGUE_FILE) -> Catalogue:
+def load_catalogue(path: Path = CATALOGUE_FILE, extension: Path | tuple[Path, ...] | None = None) -> Catalogue:
+    """The catalogue, with one extension or several applied in order (batch 4 builds on batch 3's)."""
     data = json.loads(path.read_text(encoding="utf-8"))
+    for one in (extension,) if isinstance(extension, Path) else extension or ():
+        _extend(data, json.loads(one.read_text(encoding="utf-8")))
     categories = data["categories"]
     catalogue = Catalogue(
         items=tuple(_item(entry) for entry in data["items"]),
@@ -87,6 +93,17 @@ def load_catalogue(path: Path = CATALOGUE_FILE) -> Catalogue:
     )
     _check(catalogue)
     return catalogue
+
+
+def _extend(data: dict, extension: dict) -> None:
+    """Add an extension's items and shops, and its extra spellings and brands for existing items."""
+    entries = {entry["name"]: entry for entry in data["items"]}
+    for name, words in extension.get("item_words", {}).items():
+        entries[name]["words"] = list(entries[name].get("words", [])) + [w for w in words if w not in entries[name].get("words", [])]
+    for name, brands in extension.get("item_brands", {}).items():
+        entries[name]["brands"] = list(entries[name].get("brands", [])) + [b for b in brands if b not in entries[name].get("brands", [])]
+    data["items"] = data["items"] + extension.get("items", [])
+    data["shops"] = data["shops"] + extension.get("shops", [])
 
 
 def _words(section: dict) -> dict[str, tuple[str, ...]]:

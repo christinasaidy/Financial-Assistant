@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Protocol
 
-from app.domain.users.user import User
+from app.domain.users.user import Gender, User
 
 
 @dataclass(frozen=True)
@@ -19,7 +19,7 @@ class AccessToken:
 
 
 class UserRepository(Protocol):
-    def add(self, email: str, password_hash: str) -> User:
+    def add(self, email: str, password_hash: str, first_name: str, gender: Gender) -> User:
         """Create a user. Raises EmailAlreadyRegistered if the email is taken."""
 
     def get_credentials_by_email(self, email: str) -> StoredCredentials | None: ...

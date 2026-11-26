@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.application.auth.interfaces import StoredCredentials
 from app.domain.users.errors import EmailAlreadyRegistered
-from app.domain.users.user import User
+from app.domain.users.user import Gender, User
 
 UNIQUE_VIOLATION = "23505"
 
@@ -15,37 +15,52 @@ class SqlUserRepository:
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
 
-    def add(self, email: str, password_hash: str) -> User:
+    def add(self, email: str, password_hash: str, first_name: str, gender: Gender) -> User:
         try:
             with self._engine.begin() as conn:
                 row = conn.execute(
-                    text("INSERT INTO users (email, password_hash) VALUES (:email, :hash) RETURNING id, email"),
-                    {"email": email, "hash": password_hash},
+                    text(
+                        "INSERT INTO users (email, password_hash, first_name, gender)"
+                        " VALUES (:email, :hash, :first_name, :gender) RETURNING id, email, first_name, gender"
+                    ),
+                    {"email": email, "hash": password_hash, "first_name": first_name, "gender": gender.value},
                 ).one()
         except IntegrityError as exc:
             if getattr(exc.orig, "sqlstate", None) == UNIQUE_VIOLATION:
                 raise EmailAlreadyRegistered("Email is already registered") from exc
             raise
-        return User(id=row.id, email=row.email)
+        return _to_user(row)
 
     def get_credentials_by_email(self, email: str) -> StoredCredentials | None:
         with self._engine.connect() as conn:
             row = conn.execute(
-                text("SELECT id, email, password_hash FROM users WHERE lower(email) = lower(:email)"),
+                text(
+                    "SELECT id, email, first_name, gender, password_hash FROM users WHERE lower(email) = lower(:email)"
+                ),
                 {"email": email},
             ).one_or_none()
         if row is None:
             return None
-        return StoredCredentials(user=User(id=row.id, email=row.email), password_hash=row.password_hash)
+        return StoredCredentials(user=_to_user(row), password_hash=row.password_hash)
 
     def get_by_id(self, user_id: int) -> User | None:
         with self._engine.connect() as conn:
             row = conn.execute(
-                text("SELECT id, email FROM users WHERE id = :id"), {"id": user_id}
+                text("SELECT id, email, first_name, gender FROM users WHERE id = :id"), {"id": user_id}
             ).one_or_none()
-        return User(id=row.id, email=row.email) if row else None
+        return _to_user(row) if row else None
 
     def delete(self, user_id: int) -> bool:
         with self._engine.begin() as conn:
             deleted = conn.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id}).rowcount
         return deleted == 1
+
+
+def _to_user(row) -> User:
+    # Accounts made before names were asked have no first name or gender.
+    return User(
+        id=row.id,
+        email=row.email,
+        first_name=row.first_name,
+        gender=Gender(row.gender) if row.gender else None,
+    )

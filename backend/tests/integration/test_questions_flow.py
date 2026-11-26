@@ -32,6 +32,7 @@ from app.infrastructure.sql.sql_guard import SqlGlotGuard
 from app.infrastructure.storage.local_file_storage import LocalFileStorage
 from app.main import build_container
 from tests.fakes import FakeAssistantModel, FakeReceiptExtractor
+from tests.integration.conftest import forget_usage_by_email
 
 TODAY = date(2026, 11, 3)
 THIS_MONTH = "receipt_date >= date_trunc('month', CURRENT_DATE) AND receipt_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'"  # noqa: E501
@@ -104,11 +105,13 @@ def sign_in(client, engine):
         email = f"{uuid.uuid4()}@test.local"
         emails.append(email)
         body = {"email": email, "password": "correct-horse"}
-        assert client.post("/auth/register", json=body).status_code == 201
+        assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
         result = client.post("/auth/login", json=body).json()
         return {"Authorization": f"Bearer {result['access_token']}"}, result["user"]["id"]
 
     yield _sign_in
+    for email in emails:
+        forget_usage_by_email(engine, email)
     with engine.begin() as conn:
         for email in emails:
             conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})
@@ -544,7 +547,9 @@ def test_e20_another_users_data_never_appears(client, container, settings, model
 
     assert (answer["kind"], answer["content"]) == ("error", answers.FAILURE)
     assert "'manakish' is not one of the user's items" in model.sql_prompts[1]
-    lists = [line for line in model.sql_prompts[0].splitlines() if line.startswith("The user's ")]
+    # The name lists only (since 2026-11-17 the prompt also has "The user's gender is not given.").
+    name_lists = ("The user's items:", "The user's vendors:", "The user's categories:")
+    lists = [line for line in model.sql_prompts[0].splitlines() if line.startswith(name_lists)]
     assert len(lists) == 3 and '"laban"' in lists[0] and '"Spinneys"' in lists[1]
     for name in ("manakish", "Zaatar w Zeit"):
         assert all(name not in line for line in lists)
@@ -589,11 +594,12 @@ def test_without_a_model_the_assistant_is_not_available(settings, tmp_path, sign
     email = f"{uuid.uuid4()}@test.local"
     body = {"email": email, "password": "correct-horse"}
     try:
-        assert client.post("/auth/register", json=body).status_code == 201
+        assert client.post("/auth/register", json=body | {"first_name": "Sam", "gender": "male"}).status_code == 201
         token = client.post("/auth/login", json=body).json()["access_token"]
         answer = ask(client, {"Authorization": f"Bearer {token}"}, "How much did I spend?")
         assert (answer["kind"], answer["content"]) == ("error", answers.NOT_AVAILABLE)
     finally:
+        forget_usage_by_email(engine, email)
         with engine.begin() as conn:
             conn.execute(text("DELETE FROM users WHERE email = :e"), {"e": email})
 

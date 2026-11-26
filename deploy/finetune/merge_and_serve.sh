@@ -5,12 +5,13 @@
 #   setsid nohup bash merge_and_serve.sh > /root/serve.out 2>&1 &     # keeps going if the browser disconnects
 #   tail -f /root/serve.out                                            # then: tail -f /root/vllm.log
 #
-# The bundle holds the adapter (ft-4b-batch2-adapter.tgz), merge.py, serve.sh and key.txt, the API key made on the
+# The bundle holds the adapter (ADAPTER, default ft-4b-batch4-adapter.tgz), merge.py, serve.sh and key.txt, the API key made on the
 # laptop, so nothing has to be typed or pasted. The merged model is rebuilt only if /root/ft-4b is not there yet.
 # Same environment as finetune.sh and serve.sh (/root/venv, vLLM 0.33.0), so the model is served as it was trained.
 set -euo pipefail
 cd "$(dirname "$0")"
 VLLM_VERSION="0.33.0"
+ADAPTER="${ADAPTER:-ft-4b-batch4-adapter.tgz}"
 
 if [ ! -x /root/venv/bin/vllm ]; then
   python3 -m venv /root/venv || { apt-get update && apt-get install -y python3.12-venv && python3 -m venv /root/venv; }
@@ -22,7 +23,7 @@ unset HF_HOME  # the pod's own disk, as in serve.sh
 
 if [ ! -f /root/ft-4b/config.json ]; then
   mkdir -p /root/adapter
-  tar xzf ft-4b-batch2-adapter.tgz -C /root/adapter
+  tar xzf "${ADAPTER}" -C /root/adapter
   python merge.py --adapter /root/adapter/adapter --out /root/ft-4b
 fi
 

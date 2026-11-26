@@ -20,6 +20,9 @@ Decided by the assistant on 2026-11-08 (the user delegated these choices):
 
 Planning (`make_user`) is separate from writing to the database (`seed_user`), so the plan can be checked and tested
 without one.
+
+Each user's gender (decided with the user on 2026-11-17, batch 5): about 40% women, 40% men and 20% not given in each
+split, fixed from the user number by its own seed, so no receipt or other draw changes (`gender_of`).
 """
 
 import random
@@ -31,6 +34,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Protocol
 
 from app.application.auth.dtos import RegisterRequest
+from app.domain.assistant.prompt import Gender
 from app.application.receipts.dtos import ConfirmReceiptRequest
 from app.domain.receipts.receipt import ReceiptLine
 
@@ -41,6 +45,15 @@ RATE = Decimal(89500)  # LBP per USD
 HISTORY_DAYS = 425  # about 14 months
 FIRST_TODAY = date(2025, 3, 1)
 EMAIL_DOMAIN = "dataset.local"
+
+# Every user in the dataset by split: batches 1-2 (1-30), batch 3 (32-41) and batch 4 (42-51). A new batch's users are
+# added here, so each is given a gender before any of its examples is written.
+GENDER_USERS = {
+    "train": (*range(1, 28), *range(32, 40), *range(42, 50)),
+    "validation": (28, 29, 30, 40, 41, 50, 51),
+}
+GENDER_SHARES = ((Gender.WOMAN, 0.4), (Gender.MAN, 0.4), (Gender.NOT_GIVEN, 0.2))
+GENDER_SEED = "fyp-dataset/gender"
 
 # kind: (chance a user shops there at all, how many such shops, visits a month to all of them, lines per receipt)
 KINDS: dict[str, tuple[float, tuple[int, int], tuple[float, float], tuple[int, int]]] = {
@@ -111,21 +124,48 @@ class SyntheticUser:
     receipts: tuple[PlannedReceipt, ...]
 
 
+def _genders() -> dict[int, Gender]:
+    found: dict[int, Gender] = {}
+    for split, numbers in GENDER_USERS.items():
+        order = list(numbers)
+        random.Random(f"{GENDER_SEED}/{split}").shuffle(order)
+        women, men = (round(len(order) * share) for _, share in GENDER_SHARES[:2])
+        for position, number in enumerate(order):
+            found[number] = Gender.WOMAN if position < women else Gender.MAN if position < women + men else (
+                Gender.NOT_GIVEN)  # fmt: skip
+    # Validation's draw left only user 41 (84 lines) not given, 5% of its lines; users 28-30 have about 400 each.
+    # Swapped with user 29 so not given can be measured (approved by the user on 2026-11-18): about 37% women, 37%
+    # men and 26% not given by lines. Training is unchanged.
+    found[29], found[41] = found[41], found[29]
+    return found
+
+
+GENDERS = _genders()
+
+
+def gender_of(number: int) -> Gender:
+    """The user's gender as their prompts state it. KeyError for a user not listed in GENDER_USERS."""
+    return GENDERS[number]
+
+
 def make_users(catalogue: Catalogue, count: int = USER_COUNT) -> list[SyntheticUser]:
     return [make_user(catalogue, number) for number in range(1, count + 1)]
 
 
-def make_user(catalogue: Catalogue, number: int) -> SyntheticUser:
-    return _Planner(catalogue, number).user()
+def make_user(catalogue: Catalogue, number: int, today: date | None = None) -> SyntheticUser:
+    """`today` is set only for the batch-3 users (2026-11-15); the random draw for it still happens, so every other
+    choice stays the same."""
+    return _Planner(catalogue, number, today).user()
 
 
 class _Planner:
-    def __init__(self, catalogue: Catalogue, number: int) -> None:
+    def __init__(self, catalogue: Catalogue, number: int, today: date | None = None) -> None:
         self.catalogue = catalogue
         self.number = number
         self.rng = random.Random(f"fyp-dataset/user/{number}")
         rng = self.rng
-        self.today = FIRST_TODAY + timedelta(days=round((number - 1) * 1000 / (USER_COUNT - 1)) + rng.randint(0, 25))
+        planned = FIRST_TODAY + timedelta(days=round((number - 1) * 1000 / (USER_COUNT - 1)) + rng.randint(0, 25))
+        self.today = today or planned
         self.has_car = rng.random() < 0.7
         self.has_pet = rng.random() < 0.3
         self.smokes = rng.random() < 0.3
@@ -397,7 +437,8 @@ def seed_user(services: Services, user: SyntheticUser) -> int:
     """Create the user, their private categories and their receipts; returns the new user's id. Remove the user
     with `remove_user` afterwards."""
     email = f"dataset-{user.number:02d}-{uuid.uuid4()}@{EMAIL_DOMAIN}"
-    user_id = services.auth.register(RegisterRequest(email, f"{uuid.uuid4()}{uuid.uuid4()}")).id
+    password = f"{uuid.uuid4()}{uuid.uuid4()}"
+    user_id = services.auth.register(RegisterRequest(email, password, "Dataset", "prefer_not_to_say")).id
     for name in user.private_categories:
         services.categories.create(user_id, name)
     ids = {category.name: category.id for category in services.categories.list_all(user_id)}
