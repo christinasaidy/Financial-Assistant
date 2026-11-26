@@ -59,7 +59,7 @@ def test_replies_use_the_users_lines():
     assert reply("R1", "sabah el kheir") == "REPLY: sabah el nour"
     assert reply("R1", "hi kifak") in ("REPLY: Marhaba", "REPLY: Hi", "REPLY: Bonjour")
     assert reply("R2", "merci ktir") in tuple(f"REPLY: {line}" for line in THANKS)
-    assert reply("R3", "shu fik ta3mel?") == "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+    assert reply("R3", "shu fik ta3mel?") == "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen"  # 2026-11-23
     assert reply("R4", "wow ma kent metwa23a") == "REPLY: hahaha, fie se3dak b shi tene?"
 
 
@@ -69,3 +69,43 @@ def test_mixed_versions_get_them_too_and_english_versions_and_queries_keep_qwens
     assert replied(spec, "I didn't get that", language="english") == "CLARIFY: qwen's words"
     query = Spec("T1", "sql", "", "SELECT 1", ())
     assert users_reply(Version("arabizi", "adde sarafet?"), query, CATALOGUE, random.Random(1)).reply is None
+
+
+# Her spellings in the batch-1 rewrites (2026-11-22): the checks accept them and the ask-back repeats them.
+C5_GIFTS = ("hadeye", "hadaya", "hdaya", "gifts", "gift")  # templates.c5_no_such_items
+C5_REPAIRS = ("tasli7", "tesli7", "repairs", "siyene", "siyane", "maintenance")
+
+
+@pytest.mark.parametrize(("words", "question", "word"), [
+    (C5_GIFTS, "adesh kalafoune el hadeya li jebton?", "hadeya"),
+    (C5_GIFTS, "adday dafa3et 3al hdeye?", "hdeye"),
+    (C5_REPAIRS, "aday dafa3et 3al tosli7?", "tosli7"),
+])  # fmt: skip
+def test_her_spelling_of_gift_or_repairs_passes_the_checks_and_is_repeated_back(words, question, word):
+    from research.dataset.checks import mentions
+
+    assert mentions(question, words)
+    group = "gifts" if words is C5_GIFTS else "repairs"
+    assert replied(clarify("C5", words, group=group), question) == f"CLARIFY: ma edert le2e fatoura 3an {word}"
+
+
+def test_her_spelling_of_the_season_passes_the_checks():
+    from research.dataset.checks import mentions
+
+    assert mentions("baddi majmou3 masroufe hal fasel", ("semester", "fasl"))
+    assert not mentions("baddi majmou3 masroufe hal shaher", ("semester", "fasl"))
+
+
+def test_no_spelling_is_listed_twice_in_also_accepted():
+    """A repeated key silently drops the first entry (2026-11-22: "li mara2" lost her "ekher l shaher" that way)."""
+    import ast
+    from pathlib import Path
+
+    from research.dataset import checks
+
+    tree = ast.parse(Path(checks.__file__).read_text(encoding="utf-8"))
+    table = next(node.value for node in ast.walk(tree) if isinstance(node, ast.Assign)
+                 and any(getattr(t, "id", None) == "ALSO_ACCEPTED" for t in node.targets))  # fmt: skip
+    keys = [key.value for key in table.keys]
+    assert len(keys) == len(set(keys)), sorted({k for k in keys if keys.count(k) > 1})
+    assert checks.ALSO_ACCEPTED["li mara2"] == ("ekher l shaher", "el shaher li ra7")

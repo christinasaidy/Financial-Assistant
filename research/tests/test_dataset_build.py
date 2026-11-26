@@ -212,6 +212,15 @@ def test_a_follow_ups_earlier_question_must_mention_what_it_asked_plurals_allowe
     assert problems(wrong, follow, CATALOGUE) == ["the earlier question does not mention any of: weekend, wikend"]
 
 
+def test_an_earlier_question_may_use_an_also_accepted_spelling():  # approved 2026-11-20: "3elkit Trident"
+    base = spec_with((("chewing gum", "3elke"),), template="T10", labels={"item": "chewing gum"})
+    follow = spec_with((), template="F8", base=base)
+    ok = Version("arabizi", "nafs el shi bas bi 7zayran", first="shu tole3 majmou3 masroufe 3a 3elkit Trident bi shaher ab?")
+    assert problems(ok, follow, CATALOGUE) == []
+    wrong = Version("arabizi", "nafs el shi bas bi 7zayran", first="shu tole3 majmou3 masroufe 3a Trident bi shaher ab?")
+    assert problems(wrong, follow, CATALOGUE) == ["the earlier question does not mention any of: chewing gum, 3elke"]
+
+
 def test_buying_a_service_or_bill_in_arabizi_is_dropped_but_recharge_and_tickets_are_bought():  # approved 2026-11-08
     wash = spec_with((("car wash", "ghasil sayara"),), template="T14", labels={"item": "car wash"})
     assert problems(Version("arabizi", "nsit b adde jebt el ghasil sayara"), wash, CATALOGUE) == [

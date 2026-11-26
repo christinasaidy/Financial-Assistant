@@ -1,0 +1,251 @@
+"""Corrections to stored gold replies, made by code when the mix is built (batch 5, from 2026-11-19).
+
+The stored batches stay as they were reviewed; each fix rewrites one exact SQL shape, so it can only change the lines
+it names, and the rebuild (rerender.py) applies it to every reply in an example (the answer and the chat's earlier
+turns), so the model never sees the old shape next to the new one.
+
+- "How often do I go to <shop>" (B13, batch 4): it returned only the visits per month (0.7), which no one says.
+  It now also returns the visits of those 3 months, so the answer can say "martain bel 3 eshor el ekhrin"
+  (approved by Christina on 2026-11-19). The per-month figure stays, as the prompt's rule asks.
+"""
+
+import hashlib
+import re
+
+from research.dataset import batch1_cleanup
+
+_VISITS_PER_MONTH = re.compile(r"^SELECT ROUND\(COUNT\(DISTINCT receipt_id\) / 3\.0, 1\) AS visits_per_month FROM ")
+_WITH_VISITS = "SELECT COUNT(DISTINCT receipt_id) AS visits, ROUND(COUNT(DISTINCT receipt_id) / 3.0, 1) AS visits_per_month FROM "
+
+
+
+# - "Did the price of X go up" (B4, batch 3, 42 lines) compared the latest purchase with the one before it whatever
+#   its currency (420,000 LBP against $4.20: +9,999,900%). Both purchases are now in the latest one's currency, which
+#   is returned too (approved by Christina on 2026-11-19, with the prompt rule "in the same currency").
+_PRICE_CHANGE = re.compile(
+    r"\(SELECT receipt_date, (?P<price>COALESCE\(unit_price, line_total / quantity\)(?: / size_amount \* 1000)?) AS "
+    r"price FROM purchases WHERE (?P<where>item_name = '(?:[^']|'')*'(?: AND size_unit = '[a-z]+')?) ORDER BY "
+    r"receipt_date DESC, receipt_id DESC LIMIT 1(?P<offset> OFFSET 1)?\)")
+_PRICE_CHANGE_START = "SELECT latest.receipt_date AS latest_date, "
+
+
+def _same_currency(found: re.Match) -> str:
+    where = found.group("where")
+    latest_currency = f"(SELECT currency FROM purchases WHERE {where} ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1)"
+    return (f"(SELECT receipt_date, currency, {found.group('price')} AS price FROM purchases WHERE {where} AND currency = "
+            f"{latest_currency} ORDER BY receipt_date DESC, receipt_id DESC LIMIT 1{found.group('offset') or ''})")
+
+
+def _price_change(reply: str) -> str:
+    if not reply.startswith(_PRICE_CHANGE_START) or " AND currency = " in reply:
+        return reply
+    fixed, count = _PRICE_CHANGE.subn(_same_currency, reply)
+    if count != 2:
+        raise ValueError(f"A price-change query not in the approved shape: {reply[:120]}")
+    return "SELECT latest.currency, " + fixed.removeprefix("SELECT ")
+
+
+
+# - "The shop I went to most" (all shops, the top one; 24 lines) counted a bill or a subscription as a visit (one
+#   user's answer was Anghami). Bills are left out by their category (Utilities) and subscriptions by name, since
+#   they often have no category of their own (approved by Christina on 2026-11-19, option B, with the prompt rule).
+SUBSCRIPTION_VENDORS = ("Netflix", "Shahid", "Anghami", "Spotify")
+_TOP_VISITED = re.compile(r"^SELECT vendor, COUNT\(DISTINCT receipt_id\) AS visits FROM receipts WHERE (?P<period>.+) "
+                          r"GROUP BY vendor ORDER BY visits DESC LIMIT 1$")
+
+
+def _quoted(name: str) -> str:
+    return "'" + name.replace("'", "''") + "'"
+
+
+def _top_visited(reply: str, vendors) -> str:
+    found = _TOP_VISITED.match(reply)
+    if not found:
+        return reply
+    theirs = [name for name in SUBSCRIPTION_VENDORS if name in vendors]
+    listed = ", ".join(_quoted(name) for name in theirs)
+    not_subscriptions = f" AND vendor NOT IN ({listed})" if theirs else ""
+    return (f"SELECT vendor, COUNT(DISTINCT receipt_id) AS visits FROM category_spending WHERE category <> 'Utilities'"
+            f"{not_subscriptions} AND {found.group('period')} GROUP BY vendor ORDER BY visits DESC LIMIT 1")
+
+
+# - Question words (approved by Christina on 2026-11-22), rewritten in the question and in a chat's earlier questions,
+#   so the model never sees them: "man2ish" (1 batch-4 question; her word is mana2ish, the plural of man2ushi) and
+#   batch 4's one "3al el" ("aday def3a 3al el iqos" -> "3al iqos").
+# - Her batch-1 rules (batch1_cleanup.py) applied to every stored question: they were only ever run on batch 1, and
+#   batch 2 still had them: sarfet -> sarafet (174 questions), "ekher 2 shhour" -> "ekher shahrain" (34), "el osbou3
+#   li mara2" -> "el jem3a li mar2it" (26), baskawit -> baskot (10), "kam total" -> "aday total" (1). Her "articles"
+#   rule is left out: written for batch 1's wording, it breaks batch 2's ("se3er el litre ma3 ..." -> "litre el ma3").
+QUESTION_WORDS = ((re.compile(r"(?<!\w)man2ish(?!\w)", re.IGNORECASE), "mana2ish"),
+                  (re.compile(r"(?<!\w)3al el (?=\w)", re.IGNORECASE), "3al "))
+QUESTION_RULES = (batch1_cleanup.sarfet, batch1_cleanup.kam_money, batch1_cleanup.rejected_word, batch1_cleanup.dual,
+                  batch1_cleanup.period)  # batch 1's order
+
+
+# - Double letters (approved by Christina on 2026-11-22: "lessen their count if they are the overwhelming majority"):
+#   words written doubled in 80% or more of the Arabizi questions (10+ uses) are written single in about half of
+#   the questions (a hash of the question picks which; all its listed words change together, so running the fix
+#   again changes nothing). 3eddele, 2elle, kallafne, tammouz and adday were already mixed
+#   and stay; French and English words (moyenne, dollar) keep their spelling; replies are not changed (her choice).
+SINGLE_LETTERS = {"baddi": "badi", "7abbe": "7abe", "ykallefne": "ykalefne", "ayyar": "ayar", "marraat": "marat",
+                  "ayyam": "ayam", "3edde": "3ede", "t2elle": "t2ele", "addeh": "adeh", "ma7allet": "ma7alet",
+                  "besse": "bese", "7abbet": "7abet", "miyye": "miye", "7ommos": "7omos", "hommos": "homos",
+                  "yalla": "yala"}  # fmt: skip
+_DOUBLED = re.compile(r"(?<!\w)(" + "|".join(map(re.escape, SINGLE_LETTERS)) + r")(?!\w)", re.IGNORECASE)
+
+
+def _single(found: re.Match) -> str:
+    word = SINGLE_LETTERS[found.group(1).lower()]
+    return word.capitalize() if found.group(1)[0].isupper() else word
+
+
+# - Numbers said in words before a period (her spellings, 2026-11-23): "ekher tlet shhour", "arba3 shhour",
+#   "3ashr iyem", 5 = "khames" (a few "khamst"), 6 = "set" (her "set / sette esshor"), in about half of the Arabizi
+#   questions that write 3, 4, 5, 6 or 10 in digits before shhour / eshhor / iyem / jema3 ... (other numbers: not hers).
+_PERIOD_NOUNS = "shhour|shhur|eshhor|eshor|esshor|oshhor|iyem|iyyem|ayyam|ayam|jema3|jme3|jemaa|jeme3"
+_IN_WORDS = {"3": "tlet", "4": "arba3", "5": "khames", "6": "set", "10": "3ashr"}
+_DIGITS = re.compile(rf"(?<![\w.])(3|4|5|6|10) ({_PERIOD_NOUNS})(?!\w)", re.IGNORECASE)
+_WORDS = re.compile(rf"(?<!\w)(tlet|arba3|khames|khamst|set|3ashr) ({_PERIOD_NOUNS})(?!\w)", re.IGNORECASE)
+_AS_DIGITS = {"tlet": "3", "arba3": "4", "khames": "5", "khamst": "5", "set": "6", "3ashr": "10"}
+
+
+def _usual(question: str) -> str:
+    """The question in lower case with sho / mish / mesh written shu / msh and numbers before a period in digits:
+    what the hash-picked fixes read, so none changes what another picks and running them again changes nothing."""
+    q = re.sub(r"(?<!\w)(mish|mesh)(?!\w)", "msh", re.sub(r"(?<!\w)sho(?!\w)", "shu", question.lower()))
+    q = re.sub(r"(?<!\w)bs(?!\w)", "bas", q)
+    return _WORDS.sub(lambda m: f"{_AS_DIGITS[m.group(1)]} {m.group(2)}", q)
+
+
+def numbers_in_words(question: str) -> str:
+    if not _DIGITS.search(question):
+        return question
+    key = int(hashlib.sha256(f"numbers/{_usual(question)}".encode("utf-8")).hexdigest(), 16)
+    if key % 2:
+        return question
+    five = "khamst" if key % 5 == 0 else "khames"  # mostly khames, her better form
+    return _DIGITS.sub(lambda m: f"{five if m.group(1) == '5' else _IN_WORDS[m.group(1)]} {m.group(2)}", question)
+
+
+def single_letters(question: str) -> str:
+    """The question with its listed doubled words single, in about half of the questions."""
+    if not _DOUBLED.search(question):
+        return question
+    if int(hashlib.sha256(_usual(question).encode("utf-8")).hexdigest(), 16) % 2:
+        return question
+    return _DOUBLED.sub(_single, question)
+
+
+_OLD_C = "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarfet, aa shu, wen"
+_NEW_C = "REPLY: fie jewbak 3an masroufak men fawatirak: adde sarafet, aa shu, wen"
+
+
+# - Her everyday spellings (2026-11-22: "sho, mish ... are very common"): the mix had sho 1 / shu 1,151 and mish 1 /
+#   msh + mesh 193. About a third of the questions with "shu" say "sho", and about a third with "msh" / "mesh" say
+#   "mish" (a hash of the question picks which, each word on its own); "bs" in about a quarter of those with "bas"
+#   (her 2026-11-18 "bs = bas", and 2026-11-23: the model must understand both).
+HER_SPELLINGS = ((re.compile(r"(?<!\w)shu(?!\w)", re.IGNORECASE), "sho", "sho", 3),
+                 (re.compile(r"(?<!\w)(msh|mesh)(?!\w)", re.IGNORECASE), "mish", "mish", 3),
+                 (re.compile(r"(?<!\w)bas(?!\w)", re.IGNORECASE), "bs", "bs", 4))  # bs: a quarter (her, 2026-11-23)
+
+
+def her_spellings(question: str) -> str:
+    """Stable: the choice reads the question with sho / mish put back, so running it again changes nothing."""
+    key = _usual(question)
+    for word, spelling, salt, one_in in HER_SPELLINGS:
+        if word.search(question) and int(hashlib.sha256(f"{salt}/{key}".encode("utf-8")).hexdigest(), 16) % one_in == 0:
+            question = word.sub(lambda m: spelling.capitalize() if m.group(0)[0].isupper() else spelling, question)
+    return question
+
+
+def fixed_question(question: str) -> str:
+    for rule in QUESTION_RULES:
+        question = rule(question)
+    for word, fixed in QUESTION_WORDS:
+        question = word.sub(fixed, question)
+    return numbers_in_words(her_spellings(single_letters(question)))
+
+
+# - Reply words (her rulings, 2026-11-23): table C's man reply says "adde sarafet" (it said "sarfet", approved before
+#   her "sarfet is wrong"); stored replies are changed before their gender form is looked up. And fawatirak /
+#   fawatirik are correct but fwatirak / fwatirik a bit more common: about 60% of the replies that use them say
+#   fwatirak / fwatirik (a hash of the question picks which; the reply tables keep her approved fawatirak).
+REPLY_WORDS = ((f"{_OLD_C}", f"{_NEW_C}"),)
+
+
+def stored_reply_words(reply: str) -> str:
+    for old, new in REPLY_WORDS:
+        reply = reply.replace(old, new)
+    return reply
+
+
+_FAWATIR = re.compile(r"(?<!\w)fawatir(ak|ik)(?!\w)")
+
+
+def reply_spellings(reply: str, question: str) -> str:
+    if reply.startswith("SELECT") or not _FAWATIR.search(reply):
+        return reply
+    if int(hashlib.sha256(f"fwatir/{_usual(question)}".encode("utf-8")).hexdigest(), 16) % 10 >= 6:
+        return reply
+    return _FAWATIR.sub(lambda m: "fwatir" + m.group(1), reply)
+
+
+def fixed_reply(reply: str, vendors=()) -> str:
+    """The gold reply with every approved fix applied (`vendors`: the user's, as the prompt lists them); any other
+    reply is returned as it is."""
+    return _top_visited(_price_change(_VISITS_PER_MONTH.sub(_WITH_VISITS, stored_reply_words(reply), count=1)), vendors)
+
+
+# - "The pharmacy" when the user has two (her ruling, 2026-11-22): a stored question about "el saydaliye / pharmacie /
+#   the pharmacy" with no name, from a user with more than one pharmacy, added them all up; it now asks which,
+#   naming them (genders.PHARMACIES gives the woman's and neutral forms). "a / any pharmacy", the plural
+#   ("saydaliyet" alone, "pharmacies") and a named one ("saydaliyet Mazloum", "Pharmacie Nassar") are left as they are.
+_ONE_PHARMACY = re.compile(r"(?<![\w-])(saydaliye|saydalie|pharmacie|pharmacy)(?!\w)", re.IGNORECASE)
+_ANY = re.compile(r"(?<!\w)(a|any)\s+$", re.IGNORECASE)
+
+
+def pharmacy_reply(reply: str, question: str, vendors=(), english: bool = False) -> str:
+    pharmacies = sorted(v for v in vendors if v.startswith("Pharmacie"))
+    if len(pharmacies) < 2 or not reply.startswith("SELECT"):
+        return reply
+    if f"vendor IN ({', '.join(map(_quoted, pharmacies))})" not in reply:
+        return reply
+    found = _ONE_PHARMACY.search(question)
+    if not found or _ANY.search(question[: found.start()]):
+        return reply
+    names = {w.lower() for p in pharmacies for w in p.split()[1:]}
+    if any(re.search(rf"(?<!\w){re.escape(n)}(?!\w)", question, re.IGNORECASE) for n in names):
+        return reply
+    a, b = pharmacies[:2] if len(pharmacies) == 2 else (", ".join(pharmacies[:-1]), pharmacies[-1])
+    return f"CLARIFY: {a} or {b}?" if english else f"CLARIFY: azdak {a} aw {b}?"
+
+
+# - Gold replies left out of the mix (found by the pre-mortem audit, 2026-11-22): a question that names a period
+#   whose SQL has no date at all (8 batch-1 lines: "how much did I spend on President cheese this month"), and visits
+#   counted for a bill or a subscription (41 lines: "kam marra re7et 3a Touch?"; her rule: bills are not visits).
+_PERIOD = re.compile(r"\b(this|last) (month|year|week)\b|\bhal (shaher|sene|jem3a|jemaa|osbou3)\b|\bekher shaher\b|"
+                     r"\bmbere7\b|\byesterday\b|\btoday\b|\blyom\b|since the start", re.IGNORECASE)  # fmt: skip
+_BILLS = ("Netflix", "Spotify", "Shahid", "Anghami", "Ishtirak el Hay", "Ogero", "EDL", "Alfa", "Touch")
+
+
+def wrong_gold(question: str, reply: str) -> str | None:
+    """Why a stored gold reply must not be trained on, or None."""
+    reads = reply.startswith("SELECT") and " FROM " in reply  # a query over the receipts, not a placeholder
+    if reads and _PERIOD.search(question) and "receipt_date" not in reply and "CURRENT_DATE" not in reply:
+        return "a period with no date"
+    if "COUNT(DISTINCT receipt_id) AS visits" in reply and any(f"vendor = {_quoted(b)}" in reply for b in _BILLS):
+        return "visits to a bill"
+    return None
+
+
+def history_problem(question_turns, names) -> str | None:
+    """Why the earlier turns of a chat could never come from the app, or None: an earlier query naming a category,
+    shop or item not in the user's lists (the 6 "Rent" chats), or an earlier "the pharmacy" turn still adding two up."""
+    for turn in question_turns:
+        for column, listed in (("category", names.categories), ("vendor", names.vendors), ("item_name", names.items)):
+            for name in re.findall(rf"{column} = '((?:[^']|'')*)'", turn.reply):
+                if name.replace("''", "'") not in listed:
+                    return f"an earlier {column} not listed"
+        if pharmacy_reply(turn.reply, turn.question, names.vendors) != turn.reply:
+            return "an earlier pharmacy turn adding two up"
+    return None

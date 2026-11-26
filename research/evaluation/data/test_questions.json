@@ -654,8 +654,8 @@
    "template": "T8",
    "type": "visits",
    "language": "arabizi",
-   "seed": "7asse ma 3am betla3 men pull and bear, adde marra re7et hal shaher",
-   "question": "7asse ma 3am betla3 men pull and bear, adde marra re7et hal shaher",
+   "seed": "7asse ma 3am betla3 men pull and bear, kam marra re7et hal shaher",
+   "question": "7asse ma 3am betla3 men pull and bear, kam marra re7et hal shaher",
    "accept": [
     {
      "sql": "SELECT COUNT(DISTINCT receipt_id) AS visits FROM receipts WHERE vendor = 'Pull and Bear' AND receipt_date >= '2028-01-01' AND receipt_date < '2028-02-01'"
@@ -1366,7 +1366,7 @@
    "type": "quantity",
    "language": "arabizi",
    "seed": "men kel el ma7allet sawa, adde 3elbet pansements jebt hal sene",
-   "question": "men kel el ma7allet sawa, adde 3elbet shay jebt el sene li mar2it",
+   "question": "men kel el ma7allet sawa, kam 3elbit shay jebt el sene li mar2it",
    "accept": [
     {
      "sql": "SELECT SUM(quantity) AS quantity_bought FROM purchases WHERE item_name = 'tea' AND receipt_date >= '2027-01-01' AND receipt_date < '2028-01-01'"
@@ -1443,8 +1443,8 @@
    "template": "T15",
    "type": "clarify",
    "language": "arabizi",
-   "seed": "adde litre painture shtarayt lal bet hal sene",
-   "question": "adde litre painture shtarayt lal bet hal sene",
+   "seed": "kam litre painture shtarayt lal bet hal sene",
+   "question": "kam litre painture shtarayt lal bet hal sene",
    "accept": [
     {
      "reply": "CLARIFY"
@@ -1469,8 +1469,8 @@
    "template": "T16",
    "type": "receipts",
    "language": "arabizi",
-   "seed": "adde fetoura sajjalet hal jemaa",
-   "question": "adde fetoura sajjalet hal jemaa",
+   "seed": "kam fetoura sajalet hal jemaa",
+   "question": "kam fetoura sajalet hal jemaa",
    "accept": [
     {
      "sql": "SELECT COUNT(*) AS receipt_count FROM receipts WHERE receipt_date >= '2028-01-10' AND receipt_date < '2028-01-17'"

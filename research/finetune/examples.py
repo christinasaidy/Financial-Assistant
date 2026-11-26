@@ -40,6 +40,45 @@ def encode(pair: Pair, prefix: Callable[[str], str], tokenize: Callable[[str], l
     return {"input_ids": prompt_ids + reply_ids, "labels": [IGNORE] * len(prompt_ids) + reply_ids}
 
 
+MAX_LENGTH = 6144  # tokens; batch 5 chats carry up to 6 earlier exchanges (changed requirement, 2026-11-17)
+
+
+class TooLong(ValueError):
+    """Examples over the length limit, all of them listed, found before the model is loaded."""
+
+
+@dataclass(frozen=True)
+class Lengths:
+    examples: list[dict]
+    longest: int
+    longest_index: int  # position in the file, so the example can be found
+
+
+def encode_all(pairs: list[Pair], prefix: Callable[[str], str], tokenize: Callable[[str], list[int]],
+               max_length: int) -> Lengths:  # fmt: skip
+    """Every example encoded, and the longest one. Raises TooLong naming every example over the limit (not only the
+    first), so one look at the check run shows all that must be fixed."""
+    examples, over = [], []
+    for index, pair in enumerate(pairs):
+        prompt_ids, reply_ids = tokenize(prefix(pair.prompt)), tokenize(pair.reply + END)
+        length = len(prompt_ids) + len(reply_ids)
+        if length > max_length:
+            over.append((index, length))
+        examples.append({"input_ids": prompt_ids + reply_ids, "labels": [IGNORE] * len(prompt_ids) + reply_ids})
+    if over:
+        shown = ", ".join(f"line {index + 1} ({length} tokens)" for index, length in over[:20])
+        raise TooLong(f"{len(over)} examples have more than {max_length} tokens: {shown}")
+    lengths = [len(e["input_ids"]) for e in examples]
+    longest = max(range(len(lengths)), key=lengths.__getitem__) if lengths else -1
+    return Lengths(examples, lengths[longest] if lengths else 0, longest)
+
+
+def longest_first(examples: list[dict], count: int) -> list[dict]:
+    """The `count` longest examples, longest first: what a short check run trains on, so that it uses as much GPU
+    memory as the hardest batches of the real run will."""
+    return sorted(examples, key=lambda e: len(e["input_ids"]), reverse=True)[:count]
+
+
 def pad(batch: list[dict], pad_id: int) -> dict:
     """Pad a batch on the right: padding is masked from attention and from the loss."""
     longest = max(len(example["input_ids"]) for example in batch)
@@ -50,3 +89,19 @@ def pad(batch: list[dict], pad_id: int) -> dict:
         padded["labels"].append(example["labels"] + [IGNORE] * missing)
         padded["attention_mask"].append([1] * len(example["input_ids"]) + [0] * missing)
     return padded
+
+
+CHECKPOINT_EVERY = 100  # steps; about 30 minutes, the most a crash or a dropped terminal can now cost (2026-11-15)
+
+
+def checkpoint_settings(max_steps: int) -> dict:
+    """A real run saves every 100 steps and keeps the last two; a short check run (max_steps >= 0) saves nothing."""
+    if max_steps >= 0:
+        return {"save_strategy": "no"}
+    return {"save_strategy": "steps", "save_steps": CHECKPOINT_EVERY, "save_total_limit": 2}
+
+
+def latest_checkpoint(folder: Path) -> str | None:
+    """The newest checkpoint-<step> folder to resume from, by step number, or None to start from the beginning."""
+    found = [p for p in folder.glob("checkpoint-*") if p.name.split("-", 1)[1].isdigit()] if folder.is_dir() else []
+    return str(max(found, key=lambda p: int(p.name.split("-", 1)[1]))) if found else None

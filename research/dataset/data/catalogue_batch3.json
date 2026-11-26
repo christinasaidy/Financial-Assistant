@@ -1,0 +1,34 @@
+{
+  "about": "Batch-3 extension of catalogue.json (approved 2026-11-15): items, shops and spellings from Christina's 60 seed questions. Used only for the batch-3 synthetic users (32 and up), so users 1-30, their saved prompts and the batch 1-2 replays stay exactly as they are. Shop kinds of Foodies, Kadri and Coop are the assistant's guesses.",
+  "items": [
+    {"name": "beer", "category": "Groceries", "words": ["bira", "beer", "birra"], "brands": ["almaza", "heineken"], "sizes": [[330, "ml", 1.2, 2.5], [6, "pcs", 6.0, 12.0]], "at": ["supermarket", "minimarket"]},
+    {"name": "protein bars", "category": "Groceries", "words": ["protein bars", "protein bar", "bar protein"], "sizes": [[60, "g", 1.5, 3.0]], "at": ["supermarket", "minimarket", "sports"]},
+    {"name": "hair dye", "category": "Household", "words": ["sabghit sha3er", "sabghet sha3er", "sabgha", "sabghit sha3r", "hair dye"], "brands": ["l'oreal", "garnier"], "price": [6.0, 14.0], "at": ["supermarket", "pharmacy"]},
+    {"name": "argile", "category": "Dining", "words": ["argile", "argileh", "arguile", "2ragil"], "price": [5.0, 12.0], "at": ["cafe"]},
+    {"name": "mouthwash", "category": "Household", "words": ["mouthwash", "listerine", "ghassoul tim"], "brands": ["listerine"], "sizes": [[500, "ml", 4.0, 8.0]], "at": ["supermarket", "pharmacy"]},
+    {"name": "powdered milk", "category": "Groceries", "words": ["halib el powder", "halib bowder", "7alib powder", "7alib el powder", "halib powder"], "brands": ["nido"], "sizes": [[400, "g", 6.0, 10.0], [900, "g", 12.0, 19.0]], "at": ["supermarket", "pharmacy"]}
+  ],
+  "item_words": {
+    "cigarettes": ["dekhan", "dekhkhan"],
+    "hangers": ["3ela2at"],
+    "car wash": ["ghasil el sayara"],
+    "dishwashing liquid": ["sabon el jale", "dawa el jale", "savon el jale"],
+    "walnuts": ["jawz", "joz"],
+    "iced tea": ["iced tea"],
+    "noodles": ["noodle"],
+    "cat litter": ["raml el bese"],
+    "fries": ["french fries"],
+    "candles": ["shame3"],
+    "perfume": ["parfume", "3otr"],
+    "cake": ["gateux"],
+    "bananas": ["mawz"]
+  },
+  "item_brands": {
+    "shampoo": ["dove"]
+  },
+  "shops": [
+    {"name": "Foodies", "kind": "supermarket", "category": "Groceries", "lbp_share": 0.2},
+    {"name": "Kadri", "kind": "minimarket", "category": "Groceries", "lbp_share": 0.4},
+    {"name": "Coop", "kind": "supermarket", "category": "Groceries", "lbp_share": 0.2, "nicknames": ["co-op"]}
+  ]
+}

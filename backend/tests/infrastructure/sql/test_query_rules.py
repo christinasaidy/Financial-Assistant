@@ -103,6 +103,10 @@ def test_names_wrapped_in_a_function_are_refused():
         prepared("SELECT SUM(total) FROM receipts WHERE lower(vendor) = 'spinneys'")
 
 
+def test_counting_shops_is_not_comparing_a_name():  # found 2026-11-15 with the approved "same brand" example
+    prepared("SELECT brand FROM purchases WHERE item_name = 'bread' GROUP BY brand HAVING COUNT(DISTINCT vendor) = 2")
+
+
 @pytest.mark.parametrize(
     "sql",
     [

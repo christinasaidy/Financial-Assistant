@@ -11,13 +11,16 @@ from pathlib import Path
 import pytest
 from sqlalchemy import create_engine, text
 
+from app.domain.assistant.prompt import Gender
 from research.dataset.catalogue import CATALOGUE_FILE, CatalogueError, load_catalogue
 from research.dataset.users import (
+    GENDER_USERS,
     HISTORY_DAYS,
     RATE,
     PlannedLine,
     _Planner,
     _printed,
+    gender_of,
     make_user,
     make_users,
     remove_user,
@@ -239,3 +242,33 @@ def test_suggested_category_and_group_words_are_used_like_the_main_ones():  # de
     assert {"fawe7esh", "na2rashe"} <= set(catalogue.group_words["snacks"])
     assert "tasawwo2" in catalogue.category_words["Shopping"]
     assert "suggested" not in catalogue.group_words and "suggested" not in catalogue.category_words
+
+
+# --- Gender (decided with the user on 2026-11-17, batch 5) ---
+
+
+def test_each_split_is_about_40_percent_women_40_percent_men_and_20_percent_not_given():
+    train = Counter(gender_of(n) for n in GENDER_USERS["train"])
+    validation = Counter(gender_of(n) for n in GENDER_USERS["validation"])
+    assert train == {Gender.WOMAN: 17, Gender.MAN: 17, Gender.NOT_GIVEN: 9}
+    assert validation == {Gender.WOMAN: 3, Gender.MAN: 3, Gender.NOT_GIVEN: 1}
+
+
+def test_every_user_of_every_batch_has_a_gender_and_a_user_is_in_one_split_only():
+    train, validation = set(GENDER_USERS["train"]), set(GENDER_USERS["validation"])
+    assert not train & validation
+    assert train | validation == set(range(1, 31)) | set(range(32, 52))
+    for number in train | validation:
+        gender_of(number)
+
+
+def test_a_user_not_listed_has_no_gender():
+    with pytest.raises(KeyError):
+        gender_of(31)
+
+
+def test_a_large_validation_user_is_not_given_so_that_form_can_be_measured():
+    """Approved by the user on 2026-11-18: users 29 and 41 swapped (41 alone had 84 lines, 5% of validation)."""
+    assert gender_of(29) is Gender.NOT_GIVEN and gender_of(41) is Gender.WOMAN
+    assert {n: gender_of(n) for n in (28, 30, 40, 50, 51)} == {
+        28: Gender.WOMAN, 30: Gender.MAN, 40: Gender.MAN, 50: Gender.WOMAN, 51: Gender.MAN}

@@ -1,9 +1,22 @@
 """In-memory stand-ins for the interfaces, so services and the API can be tested without a database."""
 
+import threading
+from decimal import Decimal
 from datetime import UTC, datetime
 
+from app.application.assistant.dtos import (
+    ChatRequest,
+    ChatResponse,
+    ModelUsage,
+    TextPart,
+    ToolCall,
+    TurnRequest,
+    WorkflowAnswer,
+)
 from app.application.auth.interfaces import StoredCredentials
 from app.application.receipts.interfaces import StoredFile
+from app.domain.assistant.conversation import AnswerDetails, AnswerKind, Attempt, Step
+from app.domain.assistant.usage import TurnUsage
 from app.domain.receipts.errors import ExtractionFailed
 from app.domain.receipts.extraction import ExtractedReceipt
 from app.domain.users.errors import EmailAlreadyRegistered
@@ -124,3 +137,62 @@ class InMemoryUserRepository:
 
     def delete(self, user_id: int) -> bool:
         return self._rows.pop(user_id, None) is not None
+
+
+class FakeStandardAssistant:
+    """Stands in for the Standard workflow: answers every question with `reply` and records each request. If
+    `hold` is set, it waits until `release` is set before answering (to keep a turn running); a `fail` exception is
+    raised instead of answering."""
+
+    model = "fake-standard-model"
+
+    def __init__(self, reply: str = "Standard answer") -> None:
+        self.reply = reply
+        self.requests: list[TurnRequest] = []
+        self.fail: Exception | None = None
+        self.hold = False
+        self.started = threading.Event()  # set once a request has arrived
+        self.release = threading.Event()
+
+    def answer(self, request: TurnRequest) -> WorkflowAnswer:
+        self.requests.append(request)
+        self.started.set()
+        if self.hold:
+            assert self.release.wait(10), "the test never released the held answer"
+        if self.fail is not None:
+            raise self.fail
+        attempt = Attempt(Step.ANSWER, self.model, self.reply)
+        details = AnswerDetails(AnswerKind.REPLY, attempts=(attempt,))
+        usage = TurnUsage(1, 0, 0, 0, 0, Decimal(0), "fake")  # a fake costs nothing, and says so
+        return WorkflowAnswer(self.reply, details, {"fake": True, "outcome": "answered"}, usage)
+
+
+class ScriptedChatModel:
+    """Stands in for the Standard mode's hosted model: returns the scripted responses in order (a ModelFailed in the
+    script is raised instead) and records every request it was sent."""
+
+    model = "fake-sonnet"
+
+    def __init__(self, *script) -> None:
+        self.script = list(script)
+        self.requests: list[ChatRequest] = []
+
+    def respond(self, request: ChatRequest) -> ChatResponse:
+        self.requests.append(request)
+        if not self.script:
+            raise AssertionError("the model was called more often than the test expected")
+        step = self.script.pop(0)
+        if isinstance(step, Exception):
+            raise step
+        return step
+
+
+def says(text: str, usage: ModelUsage | None = ModelUsage(10, 5, 0, 0)) -> ChatResponse:
+    """A finished model reply."""
+    return ChatResponse((TextPart(text),), "end_turn", "fake-sonnet", usage, "req_text", ("provider", text))
+
+
+def calls(*tool_calls: tuple[str, str, dict], usage: ModelUsage | None = ModelUsage(10, 5, 0, 0)) -> ChatResponse:
+    """A model reply asking for tools: (id, name, input) each."""
+    parts = tuple(ToolCall(call_id, name, args) for call_id, name, args in tool_calls)
+    return ChatResponse(parts, "tool_use", "fake-sonnet", usage, "req_tools", ("provider", tool_calls))

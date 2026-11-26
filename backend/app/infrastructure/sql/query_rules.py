@@ -205,6 +205,17 @@ class SqlGlotQueryRules:
         query = exp.select(exp.column(_SOURCE_ALIAS)).distinct().from_(shown.subquery("shown")).order_by("1")
         return query.sql(dialect="postgres")
 
+    def named_literals(self, sql: str) -> dict[str, set[str]]:
+        found: dict[str, set[str]] = {"items": set(), "vendors": set(), "categories": set()}
+        for comparison in _parse(sql).find_all(exp.EQ, exp.NEQ, exp.In):
+            sides = [comparison.this, *comparison.expressions] if isinstance(comparison, exp.In) else [
+                comparison.this, comparison.expression]  # fmt: skip
+            named = [side for side in sides if isinstance(side, exp.Column) and side.name in _NAME_COLUMNS]
+            if named:
+                kind = _NAME_COLUMNS[named[0].name]
+                found[kind] |= {side.this for side in sides if isinstance(side, exp.Literal) and side.is_string}
+        return found
+
 
 def _parse(sql: str) -> exp.Expression:
     try:
@@ -228,7 +239,7 @@ def _check_exact_names(tree: exp.Expression, names: UserNames) -> None:
             comparison.this, comparison.expression]  # fmt: skip
         named = [side for side in sides if isinstance(side, exp.Column) and side.name in _NAME_COLUMNS]
         wrapped = [side for side in sides if not isinstance(side, exp.Column) and _has_name_column(side)]
-        if wrapped:
+        if wrapped and any(_is_text(side) for side in sides):  # a name; COUNT(DISTINCT vendor) = 2 compares a number
             # lower(vendor) = 'spinneys' would get past the name list below, so names are compared as they are.
             column = next(c.name for side in wrapped for c in side.find_all(exp.Column) if c.name in _NAME_COLUMNS)
             raise QueryRejected(f"Compare {column} with a name exactly as listed, without functions around it")

@@ -38,6 +38,21 @@ def as_user(engine):
     return _as_user
 
 
+def forget_usage(engine, user_id: int) -> None:
+    """Delete a test user's usage rows before the user. Otherwise they stay (an account's spending counts after it
+    is deleted) and a test's crashed Standard questions, each counted at the reserve, would fill this month's cap on
+    the development database."""
+    with user_scoped_connection(engine, user_id) as conn:
+        conn.execute(text("DELETE FROM assistant_usage"))
+
+
+def forget_usage_by_email(engine, email: str) -> None:
+    with engine.connect() as conn:
+        user_id = conn.execute(text("SELECT id FROM users WHERE email = :e"), {"e": email}).scalar_one_or_none()
+    if user_id is not None:
+        forget_usage(engine, user_id)
+
+
 def _create_user(engine) -> int:
     with engine.begin() as conn:
         return conn.execute(
@@ -58,6 +73,8 @@ def make_user(engine):
 
     yield _make
 
+    for user_id in created:
+        forget_usage(engine, user_id)
     with engine.begin() as conn:
         for user_id in created:
             conn.execute(text("DELETE FROM users WHERE id = :id"), {"id": user_id})

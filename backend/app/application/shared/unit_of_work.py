@@ -7,7 +7,16 @@ together or not at all, and all of them run as the given user (row-level securit
 from contextlib import AbstractContextManager
 from typing import Protocol
 
-from app.application.assistant.interfaces import ConversationRepository, FeedbackRepository, MessageRepository
+from app.application.assistant.interfaces import (
+    ConversationRepository,
+    FeedbackRepository,
+    MemoryRepository,
+    MessageRepository,
+    NameRepository,
+    ProfileRepository,
+    TurnRepository,
+    UsageRepository,
+)
 from app.application.budgets.interfaces import BudgetRepository
 from app.application.categories.interfaces import CategoryRepository
 from app.application.notifications.interfaces import NotificationRepository
@@ -23,6 +32,11 @@ class UnitOfWork(Protocol):
     conversations: ConversationRepository
     messages: MessageRepository
     feedback: FeedbackRepository
+    turns: TurnRepository
+    names: NameRepository
+    memories: MemoryRepository
+    profile: ProfileRepository
+    usage: UsageRepository
 
 
 class UnitOfWorkFactory(Protocol):
