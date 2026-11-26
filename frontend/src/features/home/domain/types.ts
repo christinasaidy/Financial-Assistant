@@ -82,9 +82,9 @@ export type HomeOverview = {
   spending: MonthSpending;
   /** The invoice's number: the month's place since the user's first receipt (0001 is the first month). */
   invoiceNumber: number;
-  /** The budgets closest to their limit, closest first (at most three). */
+  /** Every budget of the month, closest to its limit first (D048). */
   budgets: BudgetUse[];
-  /** The rest of the month's spending in dollars: the total minus the budgets shown ("Everything else"). */
+  /** The rest of the month's spending in dollars: the total minus the budgets ("Everything else"). */
   everythingElse: string;
   /** The older months peeking behind the invoice, oldest first ("2026-09-01", "2026-10-01"); empty for a new user. */
   olderMonths: string[];

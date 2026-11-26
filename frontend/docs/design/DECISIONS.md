@@ -629,8 +629,8 @@ considered, so the reasoning can be explained later.
   - My calls, on her standing instruction to decide small details:
     - **Invoice number:** one invoice a month, counted from the month of the first receipt (Nº 0001 is that
       month, and a new user's).
-    - **The table** lists the three budgets closest to their limit, then "Everything else" = the dollar total
-      minus those three categories, so the rows add up to TOTAL. A budget is red once spent passes its limit.
+    - **The table** lists the three budgets closest to their limit (every budget since D048), then "Everything else" = the dollar total
+      minus those categories, so the rows add up to TOTAL. A budget is red once spent passes its limit.
     - **The older months** behind the invoice are the two months before this one, shown once the user has a
       receipt from before this month. They are not tappable yet (switching months is not designed).
     - **The note** says "Set your first monthly budget" (opens Budgets) until there is a budget, then
@@ -703,6 +703,15 @@ considered, so the reasoning can be explained later.
   - When a mode cannot answer (not set up, today's limit, the monthly cap), a sentence says so and Send is off.
 - **Consequences:** New line icons from the reference: send, the query chevron, ✓, ✗, and + for a new
   conversation. Conversation history (older conversations) is not designed yet.
+
+## D048: Home's invoice lists every budget
+
+- **Status:** Accepted, 2026-11-26. Christina's fourth budget (Transport, set through the assistant) was missing
+  from Home: the invoice listed only the three budgets closest to their limit, and unused budgets tied at 0% were
+  cut by name.
+- **Decision:** The invoice table lists every budget of the month, closest to its limit first (then by name),
+  then Everything else, which is now only spending with no budget. More budgets make a longer invoice.
+- **Consequences:** Replaces D044's "three closest" rule. Everything else no longer includes budgeted categories.
 
 ## Open (not decided)
 

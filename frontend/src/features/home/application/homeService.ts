@@ -4,7 +4,6 @@ import { HomeError } from '../domain/errors';
 import {
   closestToLimit,
   everythingElse,
-  HOME_BUDGET_COUNT,
   HOME_RECENT_COUNT,
   invoiceNumber,
   newestConfirmed,
@@ -25,7 +24,7 @@ export class HomeService {
   }
 
   /**
-   * The month's spending, the three budgets closest to their limit and "Everything else", the invoice's
+   * The month's spending, every budget (closest to its limit first) and "Everything else", the invoice's
    * number, the older months behind it, and the newest confirmed receipts with their category and item
    * count. The lists are fetched at the same time; the item counts follow, because the receipt list does not
    * include lines. Throws HomeError.
@@ -39,7 +38,7 @@ export class HomeService {
         this.repository.receipts(),
         this.repository.categoryNames(),
       ]);
-      const shownBudgets = closestToLimit(budgets, HOME_BUDGET_COUNT);
+      const shownBudgets = closestToLimit(budgets);
       const recent = await Promise.all(
         newestConfirmed(receipts, HOME_RECENT_COUNT).map(
           async (receipt): Promise<RecentReceipt> => ({

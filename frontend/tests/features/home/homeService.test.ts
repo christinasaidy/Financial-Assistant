@@ -28,8 +28,8 @@ describe('HomeService.loadOverview', () => {
 
     expect(repository.calls.slice(0, 4)).toEqual(['summary 2026-11', 'budgets 2026-11', 'receipts', 'categories']);
     expect(overview.spending).toEqual(november);
-    expect(overview.budgets.map((budget) => budget.name)).toEqual(['Transport', 'Eating out', 'Groceries']);
-    // The design's sample: the four rows add up to $447.80.
+    expect(overview.budgets.map((budget) => budget.name)).toEqual(['Transport', 'Eating out', 'Groceries', 'Fuel']);
+    // Fuel has no spending this month, so Everything else stays the design's $126.90 and the rows add up to $447.80.
     expect(overview.everythingElse).toBe('126.90');
     expect(overview.invoiceNumber).toBe(3);
     expect(overview.olderMonths).toEqual(['2026-09-01', '2026-10-01']);

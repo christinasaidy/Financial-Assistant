@@ -45,11 +45,20 @@ describe('the invoice header', () => {
 });
 
 describe('the budget table', () => {
-  it('lists the three budgets closest to their limit, over-budget first', () => {
+  it('lists every budget, over-budget first, then by % used, then by name (D048)', () => {
     expect(closestToLimit([groceries, fuel, transport, eatingOut]).map((budget) => budget.name)).toEqual([
       'Transport',
       'Eating out',
       'Groceries',
+      'Fuel',
+    ]);
+    // Untouched budgets tie at 0% and keep every one of them, in name order (Transport is no longer left out).
+    const unused = (id: number, name: string) => ({ ...fuel, categoryId: id, name, spent: '0.00', percentUsed: '0.0' });
+    expect(closestToLimit([unused(1, 'Transport'), unused(2, 'Dining'), unused(3, 'Shopping'), unused(4, 'Health')]).map((budget) => budget.name)).toEqual([
+      'Dining',
+      'Health',
+      'Shopping',
+      'Transport',
     ]);
   });
 
@@ -70,7 +79,7 @@ describe('the budget table', () => {
   it('puts the rest of the total under "Everything else", so the rows add up to TOTAL', () => {
     const shown = [transport, eatingOut, groceries];
     expect(everythingElse(november.total, november.categories, shown)).toBe('126.90');
-    // A budget that is not shown falls into Everything else too.
+    // With fewer budgets, more of the total is Everything else.
     expect(everythingElse(november.total, november.categories, [transport])).toBe('384.80');
     expect(everythingElse('0.00', [], [])).toBe('0.00');
   });

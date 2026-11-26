@@ -4,9 +4,6 @@
  */
 import type { BudgetUse, CategoryAmount, MonthSpending, ReceiptListing } from './types';
 
-/** The invoice table lists the three budgets closest to their limit, then "Everything else". */
-export const HOME_BUDGET_COUNT = 3;
-
 /** Home lists the three newest receipts under the invoice. */
 export const HOME_RECENT_COUNT = 3;
 
@@ -48,18 +45,16 @@ export function budgetRemainder(budget: Pick<BudgetUse, 'spent' | 'limit'>): { k
 }
 
 /**
- * The budgets closest to their limit, closest first: highest percent used, then by name. Budgets past their
- * limit come first, as they need attention most.
+ * Every budget, closest to its limit first: highest percent used, then by name. The invoice lists them all
+ * (D048), so budgets past their limit lead, as they need attention most.
  */
-export function closestToLimit(budgets: readonly BudgetUse[], count: number = HOME_BUDGET_COUNT): BudgetUse[] {
-  return [...budgets]
-    .sort((a, b) => number(b.percentUsed) - number(a.percentUsed) || a.name.localeCompare(b.name))
-    .slice(0, Math.max(count, 0));
+export function closestToLimit(budgets: readonly BudgetUse[]): BudgetUse[] {
+  return [...budgets].sort((a, b) => number(b.percentUsed) - number(a.percentUsed) || a.name.localeCompare(b.name));
 }
 
 /**
- * "Everything else": the month's dollar total minus what the shown budgets' categories spent, so the table's
- * rows add up to TOTAL. Hidden budgets and spending with no category fall in here. Never below zero.
+ * "Everything else": the month's dollar total minus what the budgets' categories spent, so the table's rows add
+ * up to TOTAL. Spending with no budget or no category falls in here. Never below zero.
  */
 export function everythingElse(total: string, categories: readonly CategoryAmount[], shown: readonly BudgetUse[]): string {
   const budgeted = new Set(shown.map((budget) => budget.categoryId));
