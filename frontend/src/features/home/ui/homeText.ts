@@ -3,7 +3,7 @@
  * the cap style adds capitals.
  */
 import { parseApiDate, shortMonthName } from '@/shared/format/dates';
-import { formatApproxUsd, formatCell, formatInvoiceLine, formatLbp, formatLimitCell, formatMoney, formatUsd } from '@/shared/format/money';
+import { formatApproxUsd, formatCell, formatCompactLbp, formatInvoiceLine, formatLbp, formatLimitCell, formatMoney, formatUsd } from '@/shared/format/money';
 
 import { budgetRemainder, isMonthEmpty } from '../domain/rules';
 import type { BudgetUse, MonthSpending, RecentReceipt } from '../domain/types';
@@ -44,21 +44,30 @@ export function invoiceLine(spending: MonthSpending): { text: string; blank: boo
   return { text: formatInvoiceLine(usdPart, lbpPart, lbpPerUsd), blank: false };
 }
 
-/** A budget's LIMIT cell: "60", "62.50", "3,000,000". */
+/** A table cell in the budget's currency: dollars as cells ("63.00"), pounds short (D049: "150M", "450,000"). */
+function cell(amount: string, budget: BudgetUse): string {
+  return budget.currency === 'LBP' ? formatCompactLbp(amount) : formatCell(amount, 'USD');
+}
+
+/** A budget's LIMIT cell: "60", "62.50", "150M". */
 export function limitCell(budget: BudgetUse): string {
-  return formatLimitCell(budget.limit, budget.currency);
+  return budget.currency === 'LBP' ? formatCompactLbp(budget.limit) : formatLimitCell(budget.limit, 'USD');
 }
 
-/** A budget's SPENT cell: "63.00". */
+/** "LBP" under a pound budget's limit, so a short amount is never mistaken for dollars (D049); nothing for dollars. */
+export function limitCurrency(budget: BudgetUse): string | null {
+  return budget.currency === 'LBP' ? 'LBP' : null;
+}
+
+/** A budget's SPENT cell: "63.00", "1.2M". */
 export function spentCell(budget: BudgetUse): string {
-  return formatCell(budget.spent, budget.currency);
+  return cell(budget.spent, budget);
 }
 
-/** Under the spent amount: "8.50 left" or "+3.00 over". */
+/** Under the spent amount: "8.50 left", "+3.00 over", "150M left". */
 export function remainderText(budget: BudgetUse): string {
   const { kind, amount } = budgetRemainder(budget);
-  const cell = formatCell(amount, budget.currency);
-  return kind === 'over' ? `+${cell} over` : `${cell} left`;
+  return kind === 'over' ? `+${cell(amount, budget)} over` : `${cell(amount, budget)} left`;
 }
 
 /** The date block of a receipt row: "18" over "Nov". */

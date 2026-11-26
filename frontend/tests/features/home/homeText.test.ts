@@ -3,6 +3,7 @@ import {
   invoiceLabel,
   invoiceLine,
   limitCell,
+  limitCurrency,
   monthLabel,
   monthTotal,
   olderMonthLabel,
@@ -52,9 +53,18 @@ describe('the invoice in words (design/screens/03-home.png)', () => {
     expect(spentCell(eatingOut)).toBe('71.50');
     expect(remainderText(eatingOut)).toBe('8.50 left');
     expect(remainderText(transport)).toBe('+3.00 over');
-    const pounds = { ...budget(9, 'Bakery', '1250000.00', '3000000.00', '41.7', 'ok' as const), currency: 'LBP' as const };
-    expect(limitCell(pounds)).toBe('3,000,000');
-    expect(remainderText(pounds)).toBe('1,750,000 left');
+    expect(limitCurrency(transport)).toBeNull();
+  });
+
+  it('shortens pound budgets to fit the narrow columns, with LBP under the limit (D049)', () => {
+    const pounds = { ...budget(9, 'Shopping', '1250000.00', '150000000.00', '0.8', 'ok' as const), currency: 'LBP' as const };
+    expect(limitCell(pounds)).toBe('150M');
+    expect(limitCurrency(pounds)).toBe('LBP');
+    expect(spentCell(pounds)).toBe('1.25M');
+    expect(remainderText(pounds)).toBe('148.75M left');
+    const small = { ...pounds, spent: '450000.00', limit: '900000.00' };
+    expect(spentCell(small)).toBe('450,000');
+    expect(remainderText({ ...small, spent: '1500000.00' })).toBe('+600,000 over');
   });
 });
 

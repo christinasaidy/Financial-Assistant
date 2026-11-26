@@ -5,7 +5,7 @@ import { AppText, DashedLine, DoubleRule, LineIcon, PaperSheet } from '@/shared/
 
 import { barWidthPercent, billedTo, isMonthEmpty, isOver } from '../domain/rules';
 import type { BudgetUse, HomeOverview } from '../domain/types';
-import { invoiceLabel, invoiceLine, limitCell, monthLabel, monthTotal, olderMonthLabel, remainderText, spentCell } from './homeText';
+import { invoiceLabel, invoiceLine, limitCell, limitCurrency, monthLabel, monthTotal, olderMonthLabel, remainderText, spentCell } from './homeText';
 
 type Props = {
   overview: HomeOverview;
@@ -131,6 +131,11 @@ function BudgetRow({ budget }: { budget: BudgetUse }) {
         <AppText font="mono" size={14} color="inkSoft">
           {limitCell(budget)}
         </AppText>
+        {limitCurrency(budget) ? (
+          <AppText cap size={9.5} testID={`budget-currency-${budget.categoryId}`}>
+            {limitCurrency(budget)}
+          </AppText>
+        ) : null}
       </View>
       <View style={[styles.numberCell, styles.spentCell]}>
         <AppText font="mono" weight={over ? 500 : 400} size={15} color={over ? 'red' : 'ink'}>

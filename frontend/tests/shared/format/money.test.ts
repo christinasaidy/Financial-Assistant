@@ -1,4 +1,4 @@
-import { formatCombinedLine, formatLbp, formatMoney, formatUsd } from '@/shared/format/money';
+import { formatCombinedLine, formatCompactLbp, formatLbp, formatMoney, formatUsd } from '@/shared/format/money';
 
 describe('formatUsd (D034)', () => {
   it.each([
@@ -51,4 +51,15 @@ it('formatCombinedLine says how a mixed total was combined (D034)', () => {
 it('refuses text that is not an amount', () => {
   expect(() => formatUsd('abc')).toThrow('Not a decimal amount');
   expect(() => formatUsd(Number.NaN)).toThrow('Not a finite amount');
+});
+
+describe('formatCompactLbp', () => {
+  it('writes millions and billions short, and smaller amounts exactly', () => {
+    expect(formatCompactLbp('150000000.00')).toBe('150M');
+    expect(formatCompactLbp('1250000')).toBe('1.25M');
+    expect(formatCompactLbp('1234567')).toBe('1.23M');
+    expect(formatCompactLbp('2500000000')).toBe('2.5B');
+    expect(formatCompactLbp('999999')).toBe('999,999');
+    expect(formatCompactLbp('0.00')).toBe('0');
+  });
 });

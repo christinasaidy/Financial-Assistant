@@ -109,3 +109,20 @@ export function formatApproxUsd(lbpAmount: Amount, lbpPerUsd: Amount): string {
   const usd = Number(lbpAmount) / Number(lbpPerUsd);
   return `≈ ${formatUsd(Number.isFinite(usd) ? usd : 0)}`;
 }
+
+/**
+ * A pound amount short enough for the invoice's narrow columns (D049): from a million up, millions with at most
+ * two decimals ("150M", "1.25M"), from a billion up, billions ("2.5B"); below a million, exact ("450,000").
+ */
+export function formatCompactLbp(amount: Amount): string {
+  const { negative, whole } = roundDecimal(amount, 0);
+  const value = Number(whole);
+  const sign = negative ? '-' : '';
+  const short = (divisor: number, unit: string) => {
+    const scaled = Math.round((value / divisor) * 100) / 100;
+    return `${sign}${String(scaled)}${unit}`;
+  };
+  if (value >= 1_000_000_000) return short(1_000_000_000, 'B');
+  if (value >= 1_000_000) return short(1_000_000, 'M');
+  return `${sign}${groupThousands(whole)}`;
+}

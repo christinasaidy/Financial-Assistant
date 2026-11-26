@@ -713,6 +713,16 @@ considered, so the reasoning can be explained later.
   then Everything else, which is now only spending with no budget. More budgets make a longer invoice.
 - **Consequences:** Replaces D044's "three closest" rule. Everything else no longer includes budgeted categories.
 
+## D049: Pound budgets in the invoice table: short amounts with LBP under the limit
+
+- **Status:** Accepted, 2026-11-26. Christina's Shopping budget of 150,000,000 LBP barely fit the invoice's fixed
+  LIMIT (60 px) and SPENT (84 px) columns. She chose short amounts and asked for the currency to show.
+- **Decision:** In Home's invoice table, pound amounts from a million up are short: "150M", "1.25M" (two decimals
+  at most), "2.5B" from a billion; below a million they stay exact ("450,000"). The same goes for "148.75M left"
+  and "+600,000 over". Every pound budget shows a small LBP cap label under its limit; dollar budgets show none
+  (the invoice is in dollars). Budgets and the budget form keep the full numbers.
+- **Consequences:** Only the invoice table shortens amounts; totals and receipts are exact everywhere.
+
 ## Open (not decided)
 
 From Christina, to discuss later:
