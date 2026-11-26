@@ -20,7 +20,7 @@ type Props = {
 
 const placeholders: Record<AssistantMode, string> = {
   standard: 'Ask about your spending…',
-  beta: 'Es2al bel arabizi… e.g. addeh dafa3et?',
+  beta: 'S2al bel arabizi… e.g. adey dafa3et?',
 };
 
 /**

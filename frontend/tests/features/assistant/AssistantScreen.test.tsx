@@ -108,7 +108,7 @@ describe('Arabizi Beta with the fine-tuned Qwen (screen 08)', () => {
   async function openBeta(repository = new FakeAssistantRepository()) {
     await renderAssistant(repository);
     await fireEvent.press(screen.getByRole('tab', { name: 'Arabizi Beta, Fine-tuned Qwen' }));
-    await waitFor(() => expect(screen.getByText('addeh sraft 3al akl hal shahr?')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('adey sarafet 3al akel hal shaher?')).toBeTruthy());
     return repository;
   }
 
@@ -116,7 +116,7 @@ describe('Arabizi Beta with the fine-tuned Qwen (screen 08)', () => {
     await openBeta();
     expect(screen.getByText('Ask in Lebanese Arabizi. Answers come straight from your receipts.')).toBeTruthy();
     expect(screen.getByText('Arabizi · Beta')).toBeTruthy();
-    expect(screen.getByPlaceholderText('Es2al bel arabizi… e.g. addeh dafa3et?')).toBeTruthy();
+    expect(screen.getByPlaceholderText('S2al bel arabizi… e.g. adey dafa3et?')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Where can I cut back?' })).toBeNull();
   });
 

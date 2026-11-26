@@ -634,7 +634,9 @@ considered, so the reasoning can be explained later.
     - **The older months** behind the invoice are the two months before this one, shown once the user has a
       receipt from before this month. They are not tappable yet (switching months is not designed).
     - **The note** says "Set your first monthly budget" (opens Budgets) until there is a budget, then
-      "Ask me — “addeh sraft 3al akl?”" (opens the Assistant).
+      "Ask me — “adey sarafet 3al akel?”" (opens the Assistant; the design's "addeh sraft 3al akl" is
+      wrong Arabizi, corrected by Christina on 2026-11-26, as is the Beta placeholder: "S2al bel arabizi… e.g.
+      adey dafa3et?").
     - Create account's heading: "Start a fresh invoice."; field errors are 13 px `redText` under the line;
       the button shows a spinner while busy and turns `cobaltPressed` while pressed.
     - The torn teeth are part of the creased sheet (the gaps are painted in the colour behind), as the

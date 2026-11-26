@@ -201,7 +201,7 @@ function Note({ hasBudgets, onPress }: { hasBudgets: boolean; onPress: () => voi
       <DashedLine />
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={hasBudgets ? 'Note: ask me, “addeh sraft 3al akl?”' : 'Note: set your first monthly budget'}
+        accessibilityLabel={hasBudgets ? 'Note: ask me, “adey sarafet 3al akel?”' : 'Note: set your first monthly budget'}
         onPress={onPress}
         style={({ pressed }) => [styles.note, { opacity: pressed ? 0.7 : 1 }]}
         testID="invoice-note"
@@ -214,7 +214,7 @@ function Note({ hasBudgets, onPress }: { hasBudgets: boolean; onPress: () => voi
             <>
               Ask me —{' '}
               <AppText size={14} weight={500}>
-                “addeh sraft 3al akl?”
+                “adey sarafet 3al akel?”
               </AppText>
             </>
           ) : (

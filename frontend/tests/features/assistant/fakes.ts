@@ -22,8 +22,8 @@ export const betaTalk: Conversation = {
   mode: 'beta',
   lastMessageAt: '2026-11-26T10:00:05Z',
   messages: [
-    message(3, 'user', 'addeh sraft 3al akl hal shahr?', '2026-11-26T10:00:00Z'),
-    message(4, 'assistant', 'Sraft $71.50 3al akl hal shahr.', '2026-11-26T10:00:05Z', {
+    message(3, 'user', 'adey sarafet 3al akel hal shaher?', '2026-11-26T10:00:00Z'),
+    message(4, 'assistant', 'Sarafet $71.50 3al akel hal shaher.', '2026-11-26T10:00:05Z', {
       sql: "SELECT SUM(amount_usd)\nFROM receipts\nWHERE category = 'Eating out'",
     }),
   ],

@@ -101,6 +101,8 @@ describe('Home with a month of receipts (design/screens/03-home.png)', () => {
     expect(screen.getByText('63.60 left')).toBeTruthy();
     expect(screen.getByText('Everything else')).toBeTruthy();
     expect(screen.getByText('126.90')).toBeTruthy();
+    // Christina's spelling (the design's "addeh sraft 3al akl" is wrong Arabizi).
+    expect(screen.getByText('“adey sarafet 3al akel?”')).toBeTruthy();
   });
 
   it('lists the recent receipts with category, item count and dollars under pounds', async () => {
