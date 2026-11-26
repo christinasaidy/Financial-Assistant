@@ -65,7 +65,10 @@ const styles = StyleSheet.create({
   sheet: { flex: 1, paddingHorizontal: 26, paddingBottom: 40 },
   between: { flexDirection: 'row', justifyContent: 'space-between' },
   rule: { borderTopWidth: 1, borderTopColor: colors.ink, marginTop: 14 },
-  arabic: { marginTop: 'auto', lineHeight: 124, textAlign: 'right', marginRight: -6, writingDirection: 'rtl' },
+  // The design's CSS sets line-height 1.15 (124 px) and lets the letters overflow it; iOS clips letters to the line
+  // instead, and Noto Naskh's letters need 184 px at 108 px (ascent 1069 + descent 634 per 1000). So the text keeps
+  // its full height, and the 30 px the design's box leaves below it is taken back, keeping the double rule in place.
+  arabic: { marginTop: 'auto', marginBottom: -30, textAlign: 'right', marginRight: -6, writingDirection: 'rtl' },
   double: { marginTop: 18 },
   nameRow: { alignItems: 'baseline', paddingTop: 14 },
   tagline: { lineHeight: 19.5, marginTop: 10 },
