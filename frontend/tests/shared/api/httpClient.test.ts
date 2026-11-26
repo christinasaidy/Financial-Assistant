@@ -81,6 +81,35 @@ describe('httpClient', () => {
     await expect(http.request('/health')).rejects.toBeInstanceOf(NetworkError);
   });
 
+  /** A fetch to an address nothing answers on: it waits until it is aborted. */
+  const silentFetch = (async (_url: string, init?: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+    })) as unknown as typeof fetch;
+
+  it('gives up on a server that never answers, as a NetworkError, instead of waiting forever', async () => {
+    const http = createHttpClient({
+      baseUrl: 'http://192.168.1.71:8000',
+      getToken: () => null,
+      onUnauthorized: () => undefined,
+      fetchFn: silentFetch,
+      timeoutMs: 30,
+    });
+    const started = Date.now();
+    await expect(http.request('/auth/login', { method: 'POST', body: {}, auth: 'none' })).rejects.toThrow(
+      'Could not reach the server: No answer within 0.03 s',
+    );
+    expect(Date.now() - started).toBeLessThan(2_000);
+  });
+
+  it('lets one request wait longer than the default, and the caller cancel it', async () => {
+    const { http } = client(silentFetch);
+    const caller = new AbortController();
+    const pending = http.request('/receipts', { method: 'POST', timeoutMs: 60_000, signal: caller.signal });
+    caller.abort(new Error('left the screen'));
+    await expect(pending).rejects.toThrow('Could not reach the server: aborted');
+  });
+
   it('reports a missing EXPO_PUBLIC_API_URL when a request is made, not at start', async () => {
     const http = createHttpClient({
       baseUrl: () => {
