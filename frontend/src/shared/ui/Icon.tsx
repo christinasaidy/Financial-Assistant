@@ -45,6 +45,8 @@ const lineIcons = {
   eye: { strokeWidth: 1.7, paths: ['M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z'], circle: true },
   arrow: { strokeWidth: 2, paths: ['M5 12h14M13 6l6 6-6 6'] },
   back: { strokeWidth: 1.8, paths: ['M19 12H5M11 6l-6 6 6 6'] },
+  /** Not in the design: drawn in its line style for the account button by the bell (D045). */
+  account: { strokeWidth: 1.7, paths: ['M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M4.5 20.5c1.3-3.6 4.2-5.5 7.5-5.5s6.2 1.9 7.5 5.5'] },
 } as const;
 
 export type LineIconName = keyof typeof lineIcons;
@@ -57,7 +59,7 @@ export type LineIconProps = {
   accessibilityLabel?: string;
 };
 
-/** A line icon of the new design: bell, eye (show password), arrow (the note), back. */
+/** A line icon of the new design: bell, eye (show password), arrow (the note), back, and account (D045). */
 export function LineIcon({ name, size = 20, color = 'ink', accessibilityLabel }: LineIconProps) {
   const icon = lineIcons[name];
   const stroke = colors[color];

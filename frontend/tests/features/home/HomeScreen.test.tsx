@@ -117,7 +117,7 @@ describe('Home with a month of receipts (design/screens/03-home.png)', () => {
   it.each([
     ['the note', 'invoice-note', '/assistant'],
     ['See all', 'recent-see-all', '/receipts'],
-    ['the wordmark', 'home-settings', '/settings'],
+    ['the account button', 'home-settings', '/settings'],
   ])('opens a screen from %s', async (_what, testID, path) => {
     const router = await renderHome(new FakeHomeRepository());
     await loaded();

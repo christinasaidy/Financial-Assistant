@@ -86,7 +86,7 @@ frontend/
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
     (tabs)/index.tsx           Home (features/home/ui/HomeScreen)
     (tabs)/receipts|scan|budgets|assistant.tsx   placeholders
-    settings.tsx               settings, pushed over the tabs from the wordmark (features/settings/ui/SettingsScreen)
+    settings.tsx               settings, pushed over the tabs from the account button (features/settings/ui/SettingsScreen)
   src/
     container.ts               composition root
     shared/

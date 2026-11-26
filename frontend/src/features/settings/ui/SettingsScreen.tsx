@@ -7,7 +7,7 @@ import { colors, radius, touchTarget } from '@/shared/theme';
 import { AppText, Button, LineIcon, PaperSheet } from '@/shared/ui';
 
 /**
- * Settings (D044), opened from the wordmark on Home. Not in the design, so it is built from its parts: the
+ * Settings (D044, D045), opened from the account button on Home. Not in the design, so it is built from its parts: the
  * receipt screen's top bar (Back, a cap title), a creased sheet with ACCOUNT, the name and the email, and an
  * outlined Sign out button.
  */

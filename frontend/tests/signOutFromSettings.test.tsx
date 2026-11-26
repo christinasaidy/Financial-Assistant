@@ -24,7 +24,7 @@ function replyWith(body: unknown) {
   return { ok: true, status: 200, text: async () => JSON.stringify(body) } as Response;
 }
 
-it('opens settings from the wordmark, signs out there, and signs in again', async () => {
+it('opens settings from the account button, signs out there, and signs in again', async () => {
   const fetchMock = jest.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input);
     if (url.includes('/auth/login')) return replyWith({ access_token: 'jwt', token_type: 'bearer', expires_in: 3600, user: christinaFromApi });

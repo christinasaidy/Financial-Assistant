@@ -624,7 +624,7 @@ considered, so the reasoning can be explained later.
     - **Forgot? and Continue with Apple** are left out until the backend supports them.
     - **Create account and Settings** are built from the design's parts. Create account is the sign-in frame
       with the four fields; gender uses the Assistant's segmented switch. Settings opens from the Fatourati
-      wordmark on Home (the design's header has only the bell): the receipt screen's top bar, an ACCOUNT sheet
+      wordmark on Home (the design's header has only the bell; D045 moves it to an account button): the receipt screen's top bar, an ACCOUNT sheet
       (name, email) and an outlined Sign out.
   - My calls, on her standing instruction to decide small details:
     - **Invoice number:** one invoice a month, counted from the month of the first receipt (Nº 0001 is that
@@ -642,6 +642,15 @@ considered, so the reasoning can be explained later.
 - **Consequences:** The fonts are Geist, Geist Mono and Noto Naskh Arabic (only the weights used are
   bundled). The crease needs `mixBlendMode`, which Expo SDK 58's New Architecture has. Loading and error looks
   are still not designed (a spinner, and a sentence with Try again).
+
+## D045: An account button by the bell opens Settings
+
+- **Status:** Accepted, 2026-11-26. Christina found Sign out hidden behind the wordmark (D044) and chose an
+  account icon by the bell (over a gear, or a Settings link at the bottom of Home).
+- **Decision:** Home's header has a person icon left of the bell, drawn in the design's line style (24 view
+  box, 1.7 stroke, 20 px in a 44 px button), labelled "Account and settings" for VoiceOver. It opens
+  Settings. The wordmark is no longer a button.
+- **Consequences:** One icon the design does not have; it follows the bell's style exactly.
 
 ## Open (not decided)
 

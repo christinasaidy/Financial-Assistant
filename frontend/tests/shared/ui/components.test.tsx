@@ -188,7 +188,7 @@ describe('paper', () => {
 describe('icons and wordmark', () => {
   it('draws every printed icon and every line icon', async () => {
     for (const name of iconNames) await render(<Icon name={name} />);
-    for (const name of ['bell', 'eye', 'arrow', 'back'] as const) await render(<LineIcon name={name} />);
+    for (const name of ['bell', 'eye', 'arrow', 'back', 'account'] as const) await render(<LineIcon name={name} />);
   });
 
   it('reads the wordmark as "Fatourati": Geist 600 18 with فاتورتي in Naskh, inkMuted', async () => {
