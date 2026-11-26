@@ -5,6 +5,7 @@ export { Icon, LineIcon, iconNames, type IconName, type IconProps, type LineIcon
 export { Crease, DashedLine, DoubleRule, PaperSheet, Perforation, TornEdge, tears, type PaperSheetProps, type Tear } from './paper';
 export { PlaceholderScreen } from './PlaceholderScreen';
 export { SegmentedChoice, type Choice } from './SegmentedChoice';
+export { ReceiptRow, type ReceiptRowProps } from './ReceiptRow';
 export { RouterTabBar, ScanHintProvider, TabBar, appTabs, useScanHint, type TabBarProps, type TabItem } from './TabBar';
 export { TextField, type TextFieldProps } from './TextField';
 export { TextLink } from './TextLink';

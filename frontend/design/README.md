@@ -16,4 +16,4 @@ Do not invent new colours, fonts or decorations. Ask if a screen is not designed
 3. Then tell Claude Code, for example:
    > Read design/DESIGN.md and build the Home screen (design/screens/03-home.png) in React Native using design/theme.ts. Start with the CreasedPaper and TornEdge components from §3.
 
-Contents: `DESIGN.md` (spec), `theme.ts` (tokens), `screens/` (8 PNGs at 2×), `reference/` (exact HTML of each screen), `assets/crease.jpg`.
+Contents: `DESIGN.md` (spec), `theme.ts` (tokens), `screens/` (13 PNGs at 2×), `reference/` (exact HTML of each screen), `assets/crease.jpg`.

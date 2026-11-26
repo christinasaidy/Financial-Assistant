@@ -54,7 +54,11 @@ export function HomeScreen({ service }: Props) {
               firstName={user?.firstName}
               onNote={() => router.navigate(state.overview.budgets.length > 0 ? '/assistant' : '/budgets')}
             />
-            <RecentReceipts receipts={state.overview.recent} onSeeAll={() => router.navigate('/receipts')} />
+            <RecentReceipts
+              receipts={state.overview.recent}
+              onSeeAll={() => router.navigate('/receipts')}
+              onOpen={(id) => router.navigate({ pathname: '/receipt/[id]', params: { id: String(id) } })}
+            />
           </>
         ) : null}
       </ScrollView>

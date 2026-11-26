@@ -16,6 +16,8 @@ import { ApiBudgetsRepository } from './features/budgets/data/apiBudgetsReposito
 import { ApiAuthRepository } from './features/auth/data/apiAuthRepository';
 import { SecureTokenStore } from './features/auth/data/secureTokenStore';
 import { HomeService } from './features/home/application/homeService';
+import { ReceiptsService } from './features/receipts/application/receiptsService';
+import { ApiReceiptsRepository } from './features/receipts/data/apiReceiptsRepository';
 import { ApiHomeRepository } from './features/home/data/apiHomeRepository';
 
 /** The services screens may use. Repositories and the HTTP client stay inside this file. */
@@ -24,6 +26,7 @@ export type Container = {
   home: HomeService;
   budgets: BudgetsService;
   assistant: AssistantService;
+  receipts: ReceiptsService;
 };
 
 export function createContainer(): Container {
@@ -44,7 +47,9 @@ export function createContainer(): Container {
 
   const assistant = new AssistantService(new ApiAssistantRepository(http));
 
-  return { auth, home, budgets, assistant };
+  const receipts = new ReceiptsService(new ApiReceiptsRepository(http));
+
+  return { auth, home, budgets, assistant, receipts };
 }
 
 let instance: Container | null = null;

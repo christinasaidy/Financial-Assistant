@@ -42,7 +42,7 @@ export function Icon({ name, size = 22, color = 'ink', accessibilityLabel }: Ico
 /** The new design's line icons, copied from design/reference (24 × 24 view box). */
 const lineIcons = {
   bell: { strokeWidth: 1.7, paths: ['M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z', 'M10 20.5a2 2 0 0 0 4 0'] },
-  eye: { strokeWidth: 1.7, paths: ['M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z'], circle: true },
+  eye: { strokeWidth: 1.7, paths: ['M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z'], circle: { cx: 12, cy: 12, r: 2.6 } },
   arrow: { strokeWidth: 2, paths: ['M5 12h14M13 6l6 6-6 6'] },
   back: { strokeWidth: 1.8, paths: ['M19 12H5M11 6l-6 6 6 6'] },
   /** Budgets: previous and next month (18 px). */
@@ -50,6 +50,11 @@ const lineIcons = {
   chevronRight: { strokeWidth: 2, paths: ['M9 6l6 6-6 6'] },
   /** Budgets: new budget, white on the black square (18 px). */
   plus: { strokeWidth: 2.2, paths: ['M12 5v14M5 12h14'] },
+  /** Receipts: search and change month (20 px). */
+  search: { strokeWidth: 1.8, paths: ['M16 16l4 4'], circle: { cx: 11, cy: 11, r: 6.5 } },
+  calendar: { strokeWidth: 1.8, paths: ['M4 10h16M9 3v4M15 3v4', 'M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z'] },
+  /** Receipt: share (20 px). */
+  share: { strokeWidth: 1.8, paths: ['M12 4v11M7 9l5-5 5 5M5 14v5h14v-5'] },
   /** Assistant: new conversation (20 px). */
   newConversation: { strokeWidth: 1.8, paths: ['M12 5v14M5 12h14'] },
   /** Assistant: send, white on cobalt (18 px). */
@@ -83,7 +88,7 @@ export function LineIcon({ name, size = 20, color = 'ink', accessibilityLabel }:
         {icon.paths.map((d) => (
           <Path key={d} d={d} />
         ))}
-        {'circle' in icon ? <Circle cx={12} cy={12} r={2.6} /> : null}
+        {'circle' in icon ? <Circle {...icon.circle} /> : null}
       </Svg>
     </View>
   );

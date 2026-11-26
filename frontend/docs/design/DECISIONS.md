@@ -725,6 +725,31 @@ considered, so the reasoning can be explained later.
   (the invoice is in dollars). Budgets and the budget form keep the full numbers.
 - **Consequences:** Only the invoice table shortens amounts; totals and receipts are exact everywhere.
 
+## D050: The Receipts tab and a receipt's page
+
+- **Status:** Accepted, 2026-11-26. Built from design/screens/13-receipts.png and 05-receipt-detail.png (the new
+  handoff in frontend/design). Christina asked for simple versions of the parts with no screen yet (search, the
+  month picker, Split items); the details are my calls.
+- **Decision:**
+  - **Receipts tab** (screen 13): the month and its total ("Total $447.80"; "N receipts shown" while narrowed),
+    the filter chips (All, the month's categories by number of receipts, Other for receipts with no category),
+    and one long creased roll grouped "This week" (since Monday) and "Earlier in November" ("In October" for a
+    month with nothing this week), ending with the month before and "Older receipts →". Only confirmed
+    receipts. Rows are the same as Home's (now one shared ReceiptRow), and open the receipt.
+  - **Search** (simple): the search button opens a field over the list, matching shops and categories.
+  - **Month** (simple): the calendar button opens the Budgets-style ‹ November 2026 › switcher.
+  - **A receipt's page** (screen 05): Back, RECEIPT, share (the receipt as text); the creased receipt with its
+    category and "18 Nov · 18:42" (the printed date, the time it was added), the shop and total, ITEM / QTY /
+    AMOUNT (QTY is the size when known, "1 kg", else the count), TOTAL · N ITEMS (the payment method is not
+    read, so "card" is left out), and "Groceries after this" when the category has a budget that month.
+  - **Change category** (a sheet): category chips; every item follows the new category.
+  - **Split items** (simple, a sheet): each item with a row of category chips; an item in the receipt's own
+    category is saved as following it. On the page, an item in another category shows that category in small
+    cobalt capitals under its name.
+  - Both save through the backend's confirm, which corrects a confirmed receipt; every value is kept.
+- **Consequences:** The list opens each receipt of the month to count its items (the list endpoint leaves items
+  out). Dashed lines are now drawn at 100% width, never from a measured width.
+
 ## Open (not decided)
 
 From Christina, to discuss later:

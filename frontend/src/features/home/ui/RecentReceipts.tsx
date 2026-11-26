@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { colors } from '@/shared/theme';
-import { AppText, DashedLine, Icon, TextLink } from '@/shared/ui';
+import { AppText, Icon, ReceiptRow, TextLink } from '@/shared/ui';
 
 import { receiptSubline } from '../domain/rules';
 import type { RecentReceipt } from '../domain/types';
@@ -10,6 +10,8 @@ import { receiptAmount, receiptApproxUsd, receiptDay } from './homeText';
 type Props = {
   receipts: RecentReceipt[];
   onSeeAll: () => void;
+  /** Opens a receipt's page. */
+  onOpen: (id: number) => void;
 };
 
 /**
@@ -17,7 +19,7 @@ type Props = {
  * rows with the date block, the shop over "Groceries · 9 items", and the amount (≈ dollars under pounds),
  * dashed rules between them. With no receipts: the dashed box of screen 04.
  */
-export function RecentReceipts({ receipts, onSeeAll }: Props) {
+export function RecentReceipts({ receipts, onSeeAll, onOpen }: Props) {
   if (receipts.length === 0) {
     return (
       <View style={styles.emptyPlace}>
@@ -48,62 +50,33 @@ export function RecentReceipts({ receipts, onSeeAll }: Props) {
       </View>
       <View style={styles.list}>
         {receipts.map((receipt) => (
-          <ReceiptRow key={receipt.id} receipt={receipt} />
+          <Row key={receipt.id} receipt={receipt} onOpen={onOpen} />
         ))}
       </View>
     </View>
   );
 }
 
-function ReceiptRow({ receipt }: { receipt: RecentReceipt }) {
+function Row({ receipt, onOpen }: { receipt: RecentReceipt; onOpen: (id: number) => void }) {
   const { day, month } = receiptDay(receipt);
-  const sub = receiptSubline(receipt.category, receipt.itemCount);
-  const approx = receiptApproxUsd(receipt);
   return (
-    <View testID={`recent-${receipt.id}`}>
-      <View style={styles.row}>
-        <View style={styles.date}>
-          <AppText font="mono" weight={500} size={18} style={styles.day}>
-            {day}
-          </AppText>
-          <AppText cap size={9.5}>
-            {month}
-          </AppText>
-        </View>
-        <View style={styles.middle}>
-          <AppText weight={500} size={15} numberOfLines={1}>
-            {receipt.shopName ?? 'Receipt'}
-          </AppText>
-          {sub ? (
-            <AppText size={12.5} color="inkMuted" numberOfLines={1}>
-              {sub}
-            </AppText>
-          ) : null}
-        </View>
-        <View style={styles.amount}>
-          <AppText font="mono" weight={500} size={15}>
-            {receiptAmount(receipt)}
-          </AppText>
-          {approx ? (
-            <AppText font="mono" size={11.5} color="inkMuted">
-              {approx}
-            </AppText>
-          ) : null}
-        </View>
-      </View>
-      <DashedLine color="dashedBg" />
-    </View>
+    <ReceiptRow
+      on="bg"
+      day={day}
+      month={month}
+      name={receipt.shopName ?? 'Receipt'}
+      sub={receiptSubline(receipt.category, receipt.itemCount)}
+      amount={receiptAmount(receipt)}
+      approx={receiptApproxUsd(receipt)}
+      onPress={() => onOpen(receipt.id)}
+      testID={`recent-${receipt.id}`}
+    />
   );
 }
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, marginHorizontal: 20, marginBottom: 2, minHeight: 36 },
   list: { marginHorizontal: 20, borderTopWidth: 1, borderTopColor: colors.ink },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 58 },
-  date: { width: 36, alignItems: 'center', gap: 3 },
-  day: { lineHeight: 18 },
-  middle: { flex: 1, minWidth: 0, gap: 3 },
-  amount: { alignItems: 'flex-end', gap: 3 },
   emptyPlace: { marginTop: 18, marginHorizontal: 20 },
   emptyBox: {
     marginTop: 10,

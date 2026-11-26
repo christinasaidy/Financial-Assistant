@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scan, camera</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+
+<style>
+/* Fonts: Geist, Geist Mono, Noto Naskh Arabic (Google Fonts) */
+body{margin:0}
+.crease{position:absolute;inset:0;background:url(../assets/crease.jpg) center/300px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+.tear{-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x}
+.m{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
+.ln{display:flex;justify-content:space-between;font:400 9.5px/1.7 'Geist Mono',monospace;color:#2a2a2a}
+.cb{position:absolute;width:28px;height:28px;border-color:#FFFFFF;border-style:solid;border-width:0}
+.ib{width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:#F2F2F0;display:grid;place-items:center;cursor:pointer}
+</style>
+
+<div style="position:relative;width:390px;height:844px;background:#161718;color:#F2F2F0;font-family:Geist,sans-serif;overflow:hidden;display:flex;flex-direction:column">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 8px 0">
+    <a href="A3-WhiteCrease.dc.html" class="ib" aria-label="Close scanner"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+    <span style="font-weight:600;font-size:16px">Scan receipt</span>
+    <button class="ib" aria-label="Flash off"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M13 3L5 14h6l-1 7 8-11h-6z"></path></svg></button>
+  </div>
+
+  <div style="position:relative;flex:1;display:grid;place-items:center">
+    <div style="position:absolute;inset:24px 18px;background:#232426;border-radius:4px"></div>
+
+    <div style="position:absolute;top:30px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;background:#F2F2F0;color:#1A1A1A;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:500;z-index:5;white-space:nowrap">
+      <span style="width:8px;height:8px;border-radius:50%;background:#2340C8"></span>Receipt found · hold steady
+    </div>
+
+    <div style="position:relative;width:250px;height:470px;margin-top:20px">
+      <span class="cb" style="left:-14px;top:-14px;border-left-width:3px;border-top-width:3px"></span>
+      <span class="cb" style="right:-14px;top:-14px;border-right-width:3px;border-top-width:3px"></span>
+      <span class="cb" style="left:-14px;bottom:-14px;border-left-width:3px;border-bottom-width:3px"></span>
+      <span class="cb" style="right:-14px;bottom:-14px;border-right-width:3px;border-bottom-width:3px"></span>
+      <div class="tear" style="position:absolute;inset:0;isolation:isolate;background:#EFEEEB;padding:22px 20px;transform:rotate(-2.5deg);filter:brightness(.9);display:flex;flex-direction:column;gap:2px">
+        <div class="m" style="text-align:center;font-weight:600;font-size:14px;color:#1a1a1a">SPINNEYS</div>
+        <div class="m" style="text-align:center;font-size:9.5px;color:#333">ACHRAFIEH · BEIRUT</div>
+        <div class="m" style="text-align:center;font-size:9.5px;color:#333">18/11/2026 18:42</div>
+        <div style="border-top:1px dashed #888;margin:8px 0"></div>
+        <div class="ln"><span>LABNEH 1KG</span><span>6.20</span></div>
+        <div class="ln"><span>KHUBZ ARABI</span><span>1.10</span></div>
+        <div class="ln"><span>TOMATOES 1.5KG</span><span>2.85</span></div>
+        <div class="ln"><span>CUCUMBERS 1KG</span><span>1.90</span></div>
+        <div class="ln"><span>HALLOUMI 250G</span><span>5.40</span></div>
+        <div class="ln"><span>OLIVE OIL 1L</span><span>14.50</span></div>
+        <div class="ln"><span>EGGS X12</span><span>3.95</span></div>
+        <div class="ln"><span>LEMONS 1KG</span><span>1.60</span></div>
+        <div class="ln"><span>MINT BUNCH</span><span>0.90</span></div>
+        <div style="border-top:1px dashed #888;margin:8px 0"></div>
+        <div class="ln" style="font-weight:600;font-size:12px"><span>TOTAL</span><span>38.40</span></div>
+        <div class="ln"><span>CARD</span><span>38.40</span></div>
+        <div class="m" style="text-align:center;font-size:9px;color:#444;margin-top:auto">THANK YOU · شكراً</div>
+        <div class="crease" style="opacity:0.6"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="m" style="text-align:center;font-size:11.5px;color:#A9AAAD;margin:10px 0 0">Fit the whole receipt inside the corners</div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;padding:18px 28px 34px">
+    <button style="justify-self:start;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;color:#F2F2F0;cursor:pointer;min-height:48px;font:500 12px Geist,sans-serif">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="M3 16l5-5 4 4 3-3 6 6"></path></svg>Upload</button>
+    <a href="A3-ScanReading.dc.html" aria-label="Take photo" style="justify-self:center;width:76px;height:76px;border-radius:50%;border:4px solid #F2F2F0;box-sizing:border-box;display:grid;place-items:center"><span style="width:60px;height:60px;border-radius:50%;background:#F2F2F0"></span></a>
+    <button style="justify-self:end;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;color:#F2F2F0;cursor:pointer;min-height:48px;font:500 12px Geist,sans-serif">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 3h8v18H8z"></path><path d="M11 7h2M11 11h2M11 15h2"></path></svg>Long receipt</button>
+  </div>
+</div>
+
+
+</body>
+</html>

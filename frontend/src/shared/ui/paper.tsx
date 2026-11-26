@@ -206,14 +206,12 @@ export function Perforation() {
  * one side of a border, so it is drawn.
  */
 export function DashedLine({ color = 'dashed', width = 1, style }: { color?: ColorName; width?: number; style?: StyleProp<ViewStyle> }) {
-  const [size, measure] = useSize();
+  // Drawn at 100% of its box, so it never depends on a measured width.
   return (
-    <View onLayout={measure} style={[{ height: width, alignSelf: 'stretch' }, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="dashed-line">
-      {size.width > 0 ? (
-        <Svg width={size.width} height={width}>
-          <Line x1={0} y1={width / 2} x2={size.width} y2={width / 2} stroke={colors[color]} strokeWidth={width} strokeDasharray={[3 * width, 3 * width]} />
-        </Svg>
-      ) : null}
+    <View style={[{ height: width, alignSelf: 'stretch' }, style]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="dashed-line">
+      <Svg width="100%" height={width}>
+        <Line x1={0} y1={width / 2} x2="100%" y2={width / 2} stroke={colors[color]} strokeWidth={width} strokeDasharray={[3 * width, 3 * width]} />
+      </Svg>
     </View>
   );
 }
