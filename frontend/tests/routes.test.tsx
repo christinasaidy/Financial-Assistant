@@ -26,7 +26,7 @@ afterEach(() => {
 it('sends a signed-out user from the launch route to sign in', async () => {
   const router = await renderRouter(APP_DIR, { initialUrl: '/' });
   await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
-  expect(screen.getByRole('header', { name: 'Sign in' })).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Let’s flatten these out.' })).toBeTruthy();
 });
 
 it('sends a signed-in user to Home, with the five tabs', async () => {
@@ -46,12 +46,12 @@ it('sends a signed-in user to Home, with the five tabs', async () => {
   } as Response);
 
   const router = await renderRouter(APP_DIR, { initialUrl: '/' });
-  await waitFor(() => expect(screen.getByText('Hello, Christina')).toBeTruthy());
+  await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy());
   expect(router.getSegments()).toEqual(['(tabs)']);
   expect(screen.getAllByRole('tab').map((tab) => tab.props.accessibilityLabel)).toEqual([
     'Home',
     'Receipts',
-    'Scan',
+    'Scan a receipt',
     'Budgets',
     'Assistant',
   ]);

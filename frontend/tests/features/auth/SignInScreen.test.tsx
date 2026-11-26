@@ -5,7 +5,7 @@ import { AuthService } from '@/features/auth/application/authService';
 import { AuthError, type AuthErrorCode } from '@/features/auth/domain/errors';
 import { SessionProvider } from '@/features/auth/ui/SessionProvider';
 import { SignInScreen } from '@/features/auth/ui/SignInScreen';
-import { colorTokens } from '@/shared/theme';
+import { colors } from '@/shared/theme';
 
 import { maya, renderAuthRoutes } from './authRoutes';
 import { FakeAuthRepository, FakeTokenStore } from './fakes';
@@ -37,14 +37,14 @@ async function pressSignIn() {
 describe('SignInScreen', () => {
   it('shows the approved layout: wordmark, title, sentence, two fields, the button and the link', async () => {
     await renderAuthRoutes('/sign-in');
-    expect(screen.getByTestId('paper-plain')).toBeTruthy();
     expect(screen.getByLabelText('Fatourati')).toBeTruthy();
-    expect(screen.getByTestId('highlight-swipe')).toBeTruthy();
-    expect(screen.getByRole('header', { name: 'Sign in' })).toBeTruthy();
+    // The eyebrow and the button both read "Sign in".
+    expect(screen.getAllByText('Sign in')).toHaveLength(2);
+    expect(screen.getByRole('header', { name: 'Let’s flatten these out.' })).toBeTruthy();
     expect(screen.getByText('Welcome back. Your receipts are where you left them.')).toBeTruthy();
     expect(screen.getByText('New to Fatourati?')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Create an account' })).toBeTruthy();
-    // Left out until the backend supports them (D040).
+    // Left out until the backend supports them (D044).
     expect(screen.queryByText(/apple/i)).toBeNull();
     expect(screen.queryByText(/forgot/i)).toBeNull();
   });
@@ -72,7 +72,6 @@ describe('SignInScreen', () => {
     await renderAuthRoutes('/sign-in');
     await fireEvent.press(screen.getByRole('button', { name: 'Show password' }));
     expect(screen.getByLabelText('Password').props.secureTextEntry).toBe(false);
-    expect(screen.getByText('Hide')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Hide password' }));
     expect(screen.getByLabelText('Password').props.secureTextEntry).toBe(true);
   });
@@ -85,7 +84,7 @@ describe('SignInScreen', () => {
     await pressSignIn();
     expect(screen.getByText('Enter an email like name@example.com.')).toBeTruthy();
     expect(screen.getByText('Enter your password.')).toBeTruthy();
-    expect(flat(screen.getByText('Enter your password.').props.style).color).toBe(colorTokens['limit-reached'].light);
+    expect(flat(screen.getByText('Enter your password.').props.style).color).toBe(colors.redText);
     expect(announce).toHaveBeenCalledWith('Enter an email like name@example.com.');
     expect(repository.calls).toEqual([]);
   });
@@ -207,6 +206,6 @@ describe('SignInScreen', () => {
     const { router } = await renderAuthRoutes('/sign-in');
     await fireEvent.press(screen.getByRole('link', { name: 'Create an account' }));
     await waitFor(() => expect(router.getPathname()).toBe('/sign-up'));
-    expect(screen.getByRole('header', { name: 'Create account' })).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Start a fresh invoice.' })).toBeTruthy();
   });
 });

@@ -1,26 +1,18 @@
 /**
- * Settings with a fake appearance store and a fake signed-in session, inside expo-router's test router, so
- * Back and the theme change can be checked as in the app.
+ * Settings with a fake signed-in session, inside expo-router's test router, so Back can be checked as in the
+ * app.
  */
 import { router as appRouter } from 'expo-router';
 import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 
 import { AuthService } from '@/features/auth/application/authService';
 import { SessionProvider } from '@/features/auth/ui/SessionProvider';
-import { SettingsService } from '@/features/settings/application/settingsService';
-import { AppearanceProvider } from '@/features/settings/ui/AppearanceProvider';
 import { SettingsScreen } from '@/features/settings/ui/SettingsScreen';
-import { colorTokens, useTheme } from '@/shared/theme';
 
 import { christina, FakeAuthRepository, FakeTokenStore } from '../auth/fakes';
-import { FakeAppearanceStore } from './fakes';
 
 jest.setTimeout(30_000);
-
-function flat(style: unknown) {
-  return StyleSheet.flatten(style as never) as Record<string, unknown>;
-}
 
 function signedIn() {
   const repository = new FakeAuthRepository();
@@ -30,65 +22,36 @@ function signedIn() {
   return new AuthService(repository, tokens);
 }
 
-/** Shows which theme the app is in, the way any screen reads it. */
-function SchemeProbe() {
-  const { scheme } = useTheme();
-  return <Text testID="scheme">{scheme}</Text>;
-}
-
-async function renderSettings(store = new FakeAppearanceStore(), auth = signedIn()) {
-  const settings = new SettingsService(store);
-  const wrap = (screenElement: React.ReactElement) => {
+async function renderSettings(auth = signedIn()) {
+  const wrap = (element: React.ReactElement) => {
     function Wrapped() {
-      return (
-        <SessionProvider authService={auth}>
-          <AppearanceProvider service={settings}>
-            <SchemeProbe />
-            {screenElement}
-          </AppearanceProvider>
-        </SessionProvider>
-      );
+      return <SessionProvider authService={auth}>{element}</SessionProvider>;
     }
     return Wrapped;
   };
-  const router = await renderRouter(
-    { index: wrap(<Text>Home</Text>), settings: wrap(<SettingsScreen />) },
-    { initialUrl: '/' },
-  );
+  const router = await renderRouter({ index: wrap(<Text>Home</Text>), settings: wrap(<SettingsScreen />) }, { initialUrl: '/' });
   await act(() => appRouter.push('/settings'));
   await waitFor(() => expect(screen.getByRole('header', { name: 'Settings' })).toBeTruthy());
-  return { router, store, auth };
+  return { router, auth };
 }
 
 describe('Settings', () => {
-  it('starts on Phone and switches the whole app to the chosen theme, saving it', async () => {
-    const { store } = await renderSettings();
-    expect(screen.getByRole('radio', { name: 'Phone' }).props.accessibilityState).toMatchObject({ checked: true });
-
-    await fireEvent.press(screen.getByRole('radio', { name: 'Dark' }));
-    await waitFor(() => expect(screen.getAllByTestId('scheme').every((probe) => probe.props.children === 'dark')).toBe(true));
-    expect(store.saved).toBe('dark');
-    expect(flat(screen.getByTestId('paper-plain').props.style).backgroundColor).toBe(colorTokens.paper.dark);
-    expect(screen.getByRole('radio', { name: 'Dark' }).props.accessibilityState).toMatchObject({ checked: true });
-
-    await fireEvent.press(screen.getByRole('radio', { name: 'Light' }));
-    await waitFor(() => expect(flat(screen.getByTestId('paper-plain').props.style).backgroundColor).toBe(colorTokens.paper.light));
-    expect(store.saved).toBe('light');
-  });
-
-  it('opens on the saved choice', async () => {
-    const store = new FakeAppearanceStore();
-    store.saved = 'dark';
-    await renderSettings(store);
-    await waitFor(() =>
-      expect(screen.getByRole('radio', { name: 'Dark' }).props.accessibilityState).toMatchObject({ checked: true }),
-    );
-  });
-
-  it('shows the account and signs out', async () => {
-    const { auth } = await renderSettings();
+  it('shows the account on a creased sheet: name and email', async () => {
+    await renderSettings();
+    expect(screen.getByText('Account')).toBeTruthy();
+    expect(screen.getByText(christina.firstName as string)).toBeTruthy();
     expect(screen.getByTestId('settings-email').props.children).toBe(christina.email);
-    await fireEvent.press(screen.getByRole('link', { name: 'Sign out' }));
+  });
+
+  it('has no appearance setting: the app is light only (D044)', async () => {
+    await renderSettings();
+    expect(screen.queryByText('Appearance')).toBeNull();
+    expect(screen.queryByRole('radio')).toBeNull();
+  });
+
+  it('signs out', async () => {
+    const { auth } = await renderSettings();
+    await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
     await waitFor(() => expect(auth.accessToken()).toBeNull());
   });
 

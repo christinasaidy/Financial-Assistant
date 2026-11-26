@@ -67,3 +67,8 @@ export function monthName(value: Date | string): string {
 export function toApiMonth(value: Date): string {
   return `${value.getFullYear()}-${twoDigits(value.getMonth() + 1)}`;
 }
+
+/** "Nov": a month's short name, for the invoice and the receipt list (shown in capitals by the cap style). */
+export function shortMonthName(value: Date | string): string {
+  return monthName(value).slice(0, 3);
+}

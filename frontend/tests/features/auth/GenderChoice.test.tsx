@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import type { Gender } from '@/features/auth/domain/types';
 import { GenderChoice } from '@/features/auth/ui/GenderChoice';
-import { ThemeOverride, colorTokens } from '@/shared/theme';
+import { colors, fonts } from '@/shared/theme';
 
 function flat(style: unknown) {
   return StyleSheet.flatten(style as never) as Record<string, unknown>;
@@ -47,51 +47,17 @@ describe('GenderChoice', () => {
     expect(onChange).toHaveBeenCalledWith('female');
   });
 
-  it('draws the chosen option with a 2 px pen-blue border and label, the others 1 px rule (D041)', async () => {
+  it('is the segmented switch: the chosen answer clean paper in ink 600, the others 500 (D044)', async () => {
     await render(<Choice initial="female" />);
-    expect(flat(screen.getByTestId('gender-female').props.style)).toMatchObject({
-      borderWidth: 2,
-      borderColor: colorTokens.primary.light,
-      minHeight: 48,
-      borderRadius: 0,
-    });
-    expect(flat(screen.getByTestId('gender-male').props.style)).toMatchObject({
-      borderWidth: 1,
-      borderColor: colorTokens.rule.light,
-      minHeight: 48,
-    });
-    expect(flat(screen.getByText('Female').props.style)).toMatchObject({
-      color: colorTokens.primary.light,
-      textTransform: 'uppercase',
-      fontSize: 12,
-    });
-    expect(flat(screen.getByText('Male').props.style).color).toBe(colorTokens['ink-2'].light);
-  });
-
-  it('keeps the label in the same place when the border thickens', async () => {
-    await render(<Choice initial="female" />);
-    const chosen = flat(screen.getByTestId('gender-female').props.style);
-    const other = flat(screen.getByTestId('gender-male').props.style);
-    expect((chosen.borderWidth as number) + (chosen.padding as number)).toBe(
-      (other.borderWidth as number) + (other.padding as number),
-    );
-  });
-
-  it('uses the dark tokens in dark mode', async () => {
-    await render(
-      <ThemeOverride scheme="dark">
-        <Choice initial="male" />
-      </ThemeOverride>,
-    );
-    expect(flat(screen.getByTestId('gender-male').props.style).borderColor).toBe(colorTokens.primary.dark);
-    expect(flat(screen.getByTestId('gender-female').props.style).borderColor).toBe(colorTokens.rule.dark);
+    expect(flat(screen.getByTestId('gender-female').props.style)).toMatchObject({ backgroundColor: colors.paperClean, minHeight: 44 });
+    expect(flat(screen.getByTestId('gender-male').props.style).backgroundColor).toBeUndefined();
+    expect(flat(screen.getByText('Female').props.style)).toMatchObject({ color: colors.ink, fontFamily: fonts.sans.semibold });
+    expect(flat(screen.getByText('Male').props.style)).toMatchObject({ color: colors.fieldLabel, fontFamily: fonts.sans.medium });
   });
 
   it('shows the error and gives it to VoiceOver on each option', async () => {
     await render(<GenderChoice value={null} onChange={jest.fn()} error="Choose Female, Male or Prefer not to say." />);
-    expect(flat(screen.getByText('Choose Female, Male or Prefer not to say.').props.style).color).toBe(
-      colorTokens['limit-reached'].light,
-    );
+    expect(flat(screen.getByText('Choose Female, Male or Prefer not to say.').props.style).color).toBe(colors.redText);
     expect(screen.getByRole('radio', { name: 'Female' }).props.accessibilityHint).toBe(
       'Choose Female, Male or Prefer not to say.',
     );

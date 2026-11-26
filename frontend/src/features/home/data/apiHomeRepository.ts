@@ -52,6 +52,8 @@ export type ReceiptSummaryDto = {
   created_at: string;
 };
 
+export type CategoryDto = { id: number; name: string; is_shared: boolean };
+
 export type ReceiptDto = ReceiptSummaryDto & {
   lines: unknown[];
   lines_total: string;
@@ -86,6 +88,11 @@ export function toMonthSpending(dto: MonthlySummaryDto): MonthSpending {
     lbpPart: part('LBP'),
     lbpPerUsd: decimal(dto.current_lbp_per_usd),
     awaitingReview: dto.awaiting_review,
+    categories: dto.combined.categories.map((item) => ({
+      categoryId: item.category_id,
+      name: item.name,
+      amount: decimal(item.amount),
+    })),
   };
 }
 
@@ -112,6 +119,8 @@ export function toReceiptListing(dto: ReceiptSummaryDto): ReceiptListing {
     receiptDate: dto.receipt_date,
     currency: toCurrency(dto.currency),
     total: dto.total === null ? null : decimal(dto.total),
+    categoryId: dto.primary_category_id,
+    lbpPerUsd: dto.lbp_per_usd === null ? null : decimal(dto.lbp_per_usd),
     createdAt: dto.created_at,
   };
 }
@@ -126,8 +135,9 @@ export function toHomeError(error: unknown): HomeError {
 }
 
 /**
- * HomeRepository against the Fatourati backend: GET /spending/summary, GET /budgets, GET /receipts and
- * GET /receipts/{id} (for the item count, which the list leaves out).
+ * HomeRepository against the Fatourati backend: GET /spending/summary, GET /budgets, GET /receipts,
+ * GET /categories (the receipts' category names) and GET /receipts/{id} (for the item count, which the list
+ * leaves out).
  */
 export class ApiHomeRepository implements HomeRepository {
   private readonly http: HttpClient;
@@ -146,6 +156,10 @@ export class ApiHomeRepository implements HomeRepository {
 
   receipts(): Promise<ReceiptListing[]> {
     return this.get('/receipts', undefined, (dtos: ReceiptSummaryDto[]) => dtos.map(toReceiptListing));
+  }
+
+  categoryNames(): Promise<Map<number, string>> {
+    return this.get('/categories', undefined, (dtos: CategoryDto[]) => new Map(dtos.map((dto) => [dto.id, dto.name])));
   }
 
   itemCount(receiptId: number): Promise<number> {

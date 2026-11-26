@@ -1,69 +1,71 @@
-import { useId, type ComponentRef, type Ref } from 'react';
+import { useId, useState, type ComponentRef, type Ref } from 'react';
 import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
-import { fontFamilies, rounded, sizes, spacing, textStyles, useTheme } from '../theme';
+import { colors, fonts, touchTarget } from '../theme';
 import { AppText } from './AppText';
-
-export type TextFieldAction = {
-  /** Normal case ("Show"); shown in capitals in pen blue (D040). */
-  label: string;
-  onPress: () => void;
-  /** What VoiceOver says, if the label alone is not enough ("Show password"). */
-  accessibilityLabel?: string;
-};
+import { LineIcon } from './Icon';
 
 export type TextFieldProps = Omit<TextInputProps, 'style' | 'placeholderTextColor'> & {
-  /** The caption above the line, written in normal case ("Email"); shown as a section label. */
+  /** The capital label above the field, written in normal case ("Email"). */
   label: string;
-  /** Shown under the line in the limit-reached colour; also read by VoiceOver with the field. */
+  /** Shown under the line; also read by VoiceOver with the field. */
   error?: string | null;
-  /** A pen-blue text action at the end of the line, such as SHOW / HIDE for a password. */
-  trailingAction?: TextFieldAction;
+  /** A password field: the eye button inside the field shows or hides it. */
+  password?: boolean;
   ref?: Ref<ComponentRef<typeof TextInput>>;
 };
 
-/** Height of the value row, from the sign-in mockup (D040). */
-const ROW_HEIGHT = 40;
-
 /**
- * A fill-in line (D040), like "Signature: ____" on a receipt: a section-label caption, the value in the
- * receipt-line style, a single 1 px ink line under it, no box, square everything.
+ * A field of the sign-in form (design/reference/02-sign-in.html): a cap label, a 46 px field with a 1 px
+ * line under it (2 px cobalt while focused), Geist 16 text, and for a password an eye button inside.
  */
-export function TextField({ label, error, trailingAction, accessibilityLabel, ref, ...inputProps }: TextFieldProps) {
-  const { colors } = useTheme();
+export function TextField({ label, error, password = false, accessibilityLabel, ref, onFocus, onBlur, ...inputProps }: TextFieldProps) {
   const errorId = useId();
+  const [focused, setFocused] = useState(false);
+  const [shown, setShown] = useState(false);
   return (
-    <View style={styles.field}>
-      <AppText variant="section-label" importantForAccessibility="no" accessibilityElementsHidden>
+    <View>
+      <AppText cap color="fieldLabel" importantForAccessibility="no" accessibilityElementsHidden>
         {label}
       </AppText>
-      <View style={[styles.row, { borderBottomColor: colors.ink }]}>
+      <View
+        style={[
+          styles.row,
+          focused ? { borderBottomWidth: 2, borderBottomColor: colors.cobalt } : { borderBottomWidth: 1, borderBottomColor: colors.fieldLine },
+        ]}
+      >
         <TextInput
           ref={ref}
           {...inputProps}
+          secureTextEntry={password && !shown}
           accessibilityLabel={accessibilityLabel ?? label}
           accessibilityHint={error ?? inputProps.accessibilityHint}
           aria-describedby={error ? errorId : undefined}
-          placeholderTextColor={colors['ink-2']}
-          selectionColor={colors.primary}
-          style={[styles.input, { color: colors.ink }]}
+          placeholderTextColor={colors.placeholder}
+          selectionColor={colors.cobalt}
+          onFocus={(event) => {
+            setFocused(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            onBlur?.(event);
+          }}
+          style={styles.input}
         />
-        {trailingAction ? (
+        {password ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={trailingAction.accessibilityLabel ?? trailingAction.label}
-            onPress={trailingAction.onPress}
-            hitSlop={{ top: (sizes.touchTarget - ROW_HEIGHT) / 2, bottom: (sizes.touchTarget - ROW_HEIGHT) / 2 }}
-            style={styles.action}
+            accessibilityLabel={shown ? 'Hide password' : 'Show password'}
+            onPress={() => setShown((value) => !value)}
+            style={styles.eye}
           >
-            <AppText variant="section-label" color="primary">
-              {trailingAction.label}
-            </AppText>
+            <LineIcon name="eye" color="capOnForm" />
           </Pressable>
         ) : null}
       </View>
       {error ? (
-        <AppText variant="sentence" color="limit-reached" nativeID={errorId}>
+        <AppText size={13} color="redText" nativeID={errorId} style={styles.error}>
           {error}
         </AppText>
       ) : null}
@@ -72,21 +74,17 @@ export function TextField({ label, error, trailingAction, accessibilityLabel, re
 }
 
 const styles = StyleSheet.create({
-  field: { gap: spacing.xs },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: ROW_HEIGHT,
-    borderBottomWidth: sizes.hairline,
-    borderRadius: rounded.none,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', minHeight: 46 },
   input: {
     flex: 1,
     minWidth: 0,
-    minHeight: ROW_HEIGHT,
-    padding: 0,
-    fontFamily: fontFamilies.mono,
-    fontSize: textStyles['receipt-line'].fontSize,
+    minHeight: 45,
+    paddingVertical: 0,
+    paddingLeft: 2,
+    fontFamily: fonts.sans.regular,
+    fontSize: 16,
+    color: colors.ink,
   },
-  action: { minHeight: ROW_HEIGHT, justifyContent: 'center', paddingLeft: spacing.md },
+  eye: { width: touchTarget, height: touchTarget, alignItems: 'center', justifyContent: 'center' },
+  error: { marginTop: 6 },
 });

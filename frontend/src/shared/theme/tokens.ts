@@ -1,71 +1,45 @@
 /**
- * Design tokens, copied by hand from docs/design/DESIGN.md (front matter). DESIGN.md is the source of truth:
- * change a value there first (with its DECISIONS.md entry), then here. tokens.test.ts checks that the two match.
+ * Design tokens. design/theme.ts (from the design handoff) is the source: its values are re-exported here
+ * untouched, so the app cannot drift from it. The few colours the reference screens use that theme.ts does
+ * not name are added below, each with the screen it comes from (design/reference/*.html).
+ *
+ * The app is light only (design/DESIGN.md has no dark colours).
  */
+import { colors as designColors, crease, fonts, radius, shadow, tornEdge } from '../../../design/theme';
 
-/** Colours (D022, D023, D038, D039, D042). Each has a light and a dark value (D003). */
-export const colorTokens = {
-  primary: { light: '#2443a8', dark: '#9db0ff' },
-  paper: { light: '#ffffff', dark: '#17181b' },
-  ink: { light: '#1c1d21', dark: '#e6e6e1' },
-  'ink-2': { light: '#575a60', dark: '#a2a4a8' },
-  rule: { light: '#c3c6c2', dark: '#3a3c40' },
-  track: { light: '#dfe1dd', dark: '#2a2c30' },
-  'near-limit': { light: '#8a5a00', dark: '#e0a43a' },
-  'limit-reached': { light: '#b0241b', dark: '#e0524f' },
-  highlight: { light: '#f5e54a', dark: '#e8d84a' },
+export { crease, fonts, radius, shadow, tornEdge };
+
+export const colors = {
+  ...designColors,
+  /** Sign in: small capital labels on the form sheet, the eye icon. */
+  capOnForm: '#6A6964',
+  /** Sign in: the field labels (EMAIL, PASSWORD). Launch: the tagline. */
+  fieldLabel: '#45443F',
+  /** Sign in: the line under a field; 2 px cobalt when focused. */
+  fieldLine: '#BDBFC4',
+  /** Sign in: placeholder text. */
+  placeholder: '#8A8984',
+  /** Sign in: the sentence under the heading, "New to Fatourati?". */
+  formSoft: '#5A5954',
+  /** Sign in: the second line of a receipt slip. Launch: USD · LBP. */
+  slipSoft: '#3F3E3A',
+  /** Sign in: OVER BUDGET on the Transport slip. */
+  slipRed: '#8E1B14',
+  /** Home: the note's text. */
+  noteText: '#3A3934',
+  /** Launch: INVOICE Nº 0001. */
+  launchCobalt: '#1F37AE',
+  /** Launch: the screen behind the sheet. */
+  white: '#FFFFFF',
+  /** Home, empty: the dashed blanks in the table. */
+  blank: 'rgba(0,0,0,0.25)',
+  /** Assistant: the segmented switch's track (used for choices such as gender). */
+  segmentTrack: 'rgba(0,0,0,0.06)',
+  /** Empty Home: the faint ring around Scan. */
+  scanRing: 'rgba(35,64,200,0.14)',
 } as const;
 
-export type ColorToken = keyof typeof colorTokens;
+export type ColorName = keyof typeof colors;
 
-/** Text on the yellow highlight is always light-mode ink, in both themes (D038). */
-export const inkOnHighlight = colorTokens.ink.light;
-
-/** The launch screen is yellow paper in both themes (D039). */
-export const launchBackground = colorTokens.highlight.light;
-
-/** Spacing (D031): a 4 px scale, nothing in between, and 20 px screen margins. */
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  '2xl': 32,
-  '3xl': 48,
-  'screen-margin': 20,
-} as const;
-
-export type SpacingToken = keyof typeof spacing;
-
-/** Shapes (D032): square corners everywhere. */
-export const rounded = { none: 0 } as const;
-
-/** Font family names as registered with expo-font in app/_layout.tsx (D006). */
-export const fontFamilies = {
-  mono: 'DejaVuSansMono',
-  monoBold: 'DejaVuSansMono-Bold',
-  sans: 'DejaVuSans',
-  sansBold: 'DejaVuSans-Bold',
-} as const;
-
-/** Component sizes recorded in DESIGN.md "Components" (D027, D033, D037). */
-export const sizes = {
-  /** An icon on its own (D027). */
-  icon: 24,
-  /** Apple's minimum touch area for an icon on its own (D027). */
-  touchTarget: 44,
-  /** Main button height (D037). */
-  button: 48,
-  /** Icon inside the main button (D037). */
-  buttonIcon: 16,
-  /** Tab bar height above the home indicator (D033). */
-  tabBar: 64,
-  /** The Scan tab's pen-blue square (D033). */
-  scanSquare: 44,
-  /** Rules (D032). */
-  hairline: 1,
-  /** Dashed rule: 4 on, 3 off (D032). */
-  dashOn: 4,
-  dashOff: 3,
-} as const;
+/** Apple's minimum touch area (DESIGN.md §2: touch targets ≥ 44px). */
+export const touchTarget = 44;

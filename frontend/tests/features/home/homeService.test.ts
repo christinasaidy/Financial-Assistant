@@ -10,6 +10,7 @@ import {
   fuel,
   groceries,
   november,
+  septemberReceipt,
   spinneys,
   transport,
   zaatar,
@@ -21,13 +22,17 @@ describe('HomeService.loadOverview', () => {
   it('asks for the given month and puts the overview together', async () => {
     const repository = new FakeHomeRepository();
     repository.budgetList = [fuel, groceries, transport, eatingOut];
-    repository.receiptList = [awaiting, spinneys, zaatar, abouRami];
+    repository.receiptList = [awaiting, spinneys, zaatar, abouRami, septemberReceipt];
 
     const overview = await new HomeService(repository).loadOverview(NOVEMBER_18);
 
-    expect(repository.calls.slice(0, 3)).toEqual(['summary 2026-11', 'budgets 2026-11', 'receipts']);
+    expect(repository.calls.slice(0, 4)).toEqual(['summary 2026-11', 'budgets 2026-11', 'receipts', 'categories']);
     expect(overview.spending).toEqual(november);
     expect(overview.budgets.map((budget) => budget.name)).toEqual(['Transport', 'Eating out', 'Groceries']);
+    // The design's sample: the four rows add up to $447.80.
+    expect(overview.everythingElse).toBe('126.90');
+    expect(overview.invoiceNumber).toBe(3);
+    expect(overview.olderMonths).toEqual(['2026-09-01', '2026-10-01']);
     expect(overview.recent).toEqual([
       {
         id: 31,
@@ -37,6 +42,8 @@ describe('HomeService.loadOverview', () => {
         currency: 'USD',
         total: '38.40',
         itemCount: 9,
+        category: 'Groceries',
+        lbpPerUsd: november.lbpPerUsd,
       },
       {
         id: 30,
@@ -46,6 +53,8 @@ describe('HomeService.loadOverview', () => {
         currency: 'LBP',
         total: '450000.00',
         itemCount: 2,
+        category: 'Eating out',
+        lbpPerUsd: '89500.00',
       },
       {
         id: 29,
@@ -55,6 +64,8 @@ describe('HomeService.loadOverview', () => {
         currency: 'USD',
         total: '6.60',
         itemCount: 1,
+        category: null,
+        lbpPerUsd: november.lbpPerUsd,
       },
     ]);
   });
@@ -78,7 +89,14 @@ describe('HomeService.loadOverview', () => {
 
     const overview = await new HomeService(repository).loadOverview(NOVEMBER_18);
 
-    expect(overview).toEqual({ spending: emptyMonth, budgets: [], recent: [] });
+    expect(overview).toEqual({
+      spending: emptyMonth,
+      invoiceNumber: 1,
+      budgets: [],
+      everythingElse: '0.00',
+      olderMonths: [],
+      recent: [],
+    });
     expect(repository.calls).not.toContainEqual(expect.stringMatching(/^receipt /));
   });
 

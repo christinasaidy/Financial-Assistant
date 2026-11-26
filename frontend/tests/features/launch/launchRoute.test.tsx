@@ -28,10 +28,10 @@ it('shows the launch screen until the saved session is checked, then goes to sig
 
   const router = await renderRouter(APP_DIR, { initialUrl: '/' });
   expect(router.getPathname()).toBe('/');
-  expect(screen.getByTestId('paper-yellow')).toBeTruthy();
-  expect(screen.getByLabelText('Fatourati')).toBeTruthy();
+  expect(screen.getByTestId('launch-screen')).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'Fatourati' })).toBeTruthy();
 
   await act(async () => finishReading(null));
   await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
-  expect(screen.queryByTestId('paper-yellow')).toBeNull();
+  expect(screen.queryByTestId('launch-screen')).toBeNull();
 });

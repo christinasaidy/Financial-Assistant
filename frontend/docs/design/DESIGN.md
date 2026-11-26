@@ -96,6 +96,11 @@ spacing:
   screen-margin: 20px
 ---
 
+> **Superseded (D044, 2026-11-26).** The app now follows the invoice design in `frontend/design/`
+> (`DESIGN.md`, `theme.ts`, `screens/`, `reference/`). This file is kept as the record of the first design;
+> only Christina's five tab icons (Home, Receipts, Scan, Budgets, Assistant) carry over from it.
+
+
 # Fatourati design system
 
 Figma file (icons, wordmark, design work):

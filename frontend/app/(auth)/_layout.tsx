@@ -1,9 +1,8 @@
 import { Stack } from 'expo-router';
 
-import { useTheme } from '@/shared/theme';
+import { colors } from '@/shared/theme';
 
-/** The signed-out screens: sign in and create account (D040). */
+/** The signed-out screens: sign in and create account. */
 export default function AuthLayout() {
-  const { colors } = useTheme();
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }} />;
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />;
 }

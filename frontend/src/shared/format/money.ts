@@ -82,3 +82,30 @@ export function formatCombinedLine(usdPart: Amount, lbpPart: Amount, lbpPerUsd: 
   const rate = roundDecimal(lbpPerUsd, 0);
   return `${formatUsd(usdPart)} + ${formatLbp(lbpPart)} at ${groupThousands(rate.whole)} LBP per $`;
 }
+
+/**
+ * A table cell of the invoice (DESIGN.md §5): no currency sign. Dollars with two decimals ("63.00",
+ * "1,250.00"), pounds grouped without decimals ("450,000").
+ */
+export function formatCell(amount: Amount, currency: Currency): string {
+  const { negative, whole, fraction } = roundDecimal(amount, currency === 'USD' ? 2 : 0);
+  return `${negative ? '-' : ''}${groupThousands(whole)}${currency === 'USD' ? `.${fraction}` : ''}`;
+}
+
+/** A budget's limit in the invoice table: whole dollars without decimals ("60"), else like a cell ("62.50"). */
+export function formatLimitCell(amount: Amount, currency: Currency): string {
+  const cents = roundDecimal(amount, 2);
+  if (currency === 'USD' && cents.fraction !== '00') return formatCell(amount, currency);
+  return `${cents.negative ? '-' : ''}${groupThousands(roundDecimal(amount, 0).whole)}`;
+}
+
+/** The line under a mixed invoice total (DESIGN.md §4): "$412.60 + 3,150,000 LBP · 89,500". */
+export function formatInvoiceLine(usdPart: Amount, lbpPart: Amount, lbpPerUsd: Amount): string {
+  return `${formatUsd(usdPart)} + ${formatLbp(lbpPart)} · ${groupThousands(roundDecimal(lbpPerUsd, 0).whole)}`;
+}
+
+/** Under a pound amount, its dollar value at the receipt's rate (DESIGN.md §5): "≈ $5.03". */
+export function formatApproxUsd(lbpAmount: Amount, lbpPerUsd: Amount): string {
+  const usd = Number(lbpAmount) / Number(lbpPerUsd);
+  return `≈ ${formatUsd(Number.isFinite(usd) ? usd : 0)}`;
+}

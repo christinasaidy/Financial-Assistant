@@ -13,6 +13,8 @@ export interface HomeRepository {
   budgets(month: string): Promise<BudgetUse[]>;
   /** All the user's receipts, newest first, without their lines. */
   receipts(): Promise<ReceiptListing[]>;
+  /** The user's categories by id, for the names under the receipts. */
+  categoryNames(): Promise<Map<number, string>>;
   /** How many lines (items) a receipt has. */
   itemCount(receiptId: number): Promise<number>;
 }

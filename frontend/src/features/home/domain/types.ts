@@ -1,5 +1,5 @@
 /**
- * What the Home screen shows (D035-D037). Plain types: no React, no HTTP.
+ * What the Home screen shows: this month's invoice (design/screens/03-home.png). Plain types: no React, no HTTP.
  *
  * Amounts stay decimal strings exactly as the backend sends them ("412.60", "3150000.00"); they are only
  * turned into text on screen, through shared/format.
@@ -23,7 +23,11 @@ export type MonthSpending = {
   lbpPerUsd: string;
   /** Receipts read but not confirmed yet; not counted in the total. */
   awaitingReview: number;
+  /** The total split by category, in dollars; `categoryId` null is spending with no category. */
+  categories: CategoryAmount[];
 };
+
+export type CategoryAmount = { categoryId: number | null; name: string; amount: string };
 
 /** The backend's budget states: ok below 80%, near from 80%, limit_reached at 100% or more. */
 export type BudgetState = 'ok' | 'near' | 'limit_reached';
@@ -49,6 +53,10 @@ export type ReceiptListing = {
   receiptDate: string | null;
   currency: HomeCurrency | null;
   total: string | null;
+  /** The receipt's main category, or null. */
+  categoryId: number | null;
+  /** LBP per USD saved with the receipt, or null. */
+  lbpPerUsd: string | null;
   /** When it was added to the app (a date-time). */
   createdAt: string;
 };
@@ -63,13 +71,23 @@ export type RecentReceipt = {
   total: string;
   /** Lines on the receipt. */
   itemCount: number;
+  /** The receipt's category name ("Groceries"), or null. */
+  category: string | null;
+  /** The rate for "≈ $5.03" under a pound amount: the receipt's own, else today's. */
+  lbpPerUsd: string;
 };
 
 /** Everything Home needs for one month. */
 export type HomeOverview = {
   spending: MonthSpending;
+  /** The invoice's number: the month's place since the user's first receipt (0001 is the first month). */
+  invoiceNumber: number;
   /** The budgets closest to their limit, closest first (at most three). */
   budgets: BudgetUse[];
+  /** The rest of the month's spending in dollars: the total minus the budgets shown ("Everything else"). */
+  everythingElse: string;
+  /** The older months peeking behind the invoice, oldest first ("2026-09-01", "2026-10-01"); empty for a new user. */
+  olderMonths: string[];
   /** The newest confirmed receipts, newest first. */
   recent: RecentReceipt[];
 };

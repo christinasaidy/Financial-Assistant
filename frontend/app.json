@@ -5,7 +5,7 @@
     "scheme": "fatourati",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false
     },
@@ -16,14 +16,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#f5e54a",
-          "image": "./assets/splash/wordmark-large.png",
-          "imageWidth": 284,
-          "resizeMode": "contain",
-          "dark": {
-            "backgroundColor": "#f5e54a",
-            "image": "./assets/splash/wordmark-large.png"
-          }
+          "backgroundColor": "#FFFFFF"
         }
       ],
       "expo-asset"

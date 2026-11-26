@@ -1,78 +1,78 @@
 /**
- * Home's numbers and dates as text, always through shared/format (D034 money, dd/mm/yyyy and 24 h dates).
- * Written in normal case: the text styles add capitals (D012).
+ * Home's numbers and dates as text, always through shared/format (DESIGN.md §5). Written in normal case:
+ * the cap style adds capitals.
  */
-import { formatDate, formatTime, monthName, parseApiDate } from '@/shared/format/dates';
-import { formatCombinedLine, formatLbp, formatMoney, formatUsd } from '@/shared/format/money';
+import { parseApiDate, shortMonthName } from '@/shared/format/dates';
+import { formatApproxUsd, formatCell, formatInvoiceLine, formatLbp, formatLimitCell, formatMoney, formatUsd } from '@/shared/format/money';
 
-import { budgetStateWords, isMonthEmpty, itemCountWords } from '../domain/rules';
-import type { BudgetUse, HomeCurrency, MonthSpending, RecentReceipt } from '../domain/types';
+import { budgetRemainder, isMonthEmpty } from '../domain/rules';
+import type { BudgetUse, MonthSpending, RecentReceipt } from '../domain/types';
 
-/** "This month · November" (D035), from the month the backend summed. */
-export function monthLabel(spending: MonthSpending): string {
-  return `This month · ${monthName(parseApiDate(spending.month))}`;
+/** "Invoice Nº 0447". */
+export function invoiceLabel(invoiceNumber: number): string {
+  return `Invoice Nº ${String(invoiceNumber).padStart(4, '0')}`;
 }
 
-/** The month total in dollars: "$447.80", "$0.00". */
+/** "Nov 2026", from the month the backend summed. */
+export function monthLabel(spending: MonthSpending): string {
+  const month = parseApiDate(spending.month);
+  return `${shortMonthName(month)} ${month.getFullYear()}`;
+}
+
+/** "Sep", for a sheet peeking behind the invoice. */
+export function olderMonthLabel(firstOfMonth: string): string {
+  return shortMonthName(parseApiDate(firstOfMonth));
+}
+
+/** The total in dollars: "$447.80", "$0.00". */
 export function monthTotal(spending: MonthSpending): string {
   return formatUsd(spending.total);
 }
 
 /**
- * The line under the total (D034, D037), with only the parts that exist:
- * - nothing confirmed this month: "No receipts yet this month";
- * - dollars and pounds: "$412.60 + 3,150,000 LBP at 89,500 LBP per $";
- * - pounds only: "3,150,000 LBP at 89,500 LBP per $";
+ * The line under the total, with only the parts that exist (DESIGN.md §4, screen 04):
+ * - nothing confirmed this month: the blank invoice's sentence;
+ * - dollars and pounds: "$412.60 + 3,150,000 LBP · 89,500";
+ * - pounds only: "3,150,000 LBP · 89,500";
  * - dollars only: no line (the total already is the dollar amount).
  */
-export function monthCaption(spending: MonthSpending): string | null {
-  if (isMonthEmpty(spending)) return 'No receipts yet this month';
+export function invoiceLine(spending: MonthSpending): { text: string; blank: boolean } | null {
+  if (isMonthEmpty(spending)) return { text: 'A blank invoice. It fills itself in as you scan.', blank: true };
   const { usdPart, lbpPart, lbpPerUsd } = spending;
   if (lbpPart === null) return null;
-  if (usdPart === null) return `${formatLbp(lbpPart)} at ${formatLbp(lbpPerUsd)} per $`;
-  return formatCombinedLine(usdPart, lbpPart, lbpPerUsd);
+  if (usdPart === null) return { text: `${formatLbp(lbpPart)} · ${formatCell(lbpPerUsd, 'LBP')}`, blank: false };
+  return { text: formatInvoiceLine(usdPart, lbpPart, lbpPerUsd), blank: false };
 }
 
-/**
- * A budget's limit. Limits are round numbers people choose, so a whole dollar limit reads "$60" as in the
- * Home mockup; one with cents keeps them ("$62.50"). Pounds never have decimals anyway.
- */
-export function formatLimit(amount: string, currency: HomeCurrency): string {
-  const text = formatMoney(amount, currency);
-  return currency === 'USD' ? text.replace(/\.00$/, '') : text;
+/** A budget's LIMIT cell: "60", "62.50", "3,000,000". */
+export function limitCell(budget: BudgetUse): string {
+  return formatLimitCell(budget.limit, budget.currency);
 }
 
-/** "$63.00 / $60". */
-export function budgetAmounts(budget: BudgetUse): string {
-  return `${formatMoney(budget.spent, budget.currency)} / ${formatLimit(budget.limit, budget.currency)}`;
+/** A budget's SPENT cell: "63.00". */
+export function spentCell(budget: BudgetUse): string {
+  return formatCell(budget.spent, budget.currency);
 }
 
-/** What VoiceOver reads for a budget row: "Transport, $63.00 of $60, Limit reached · 105%". */
-export function budgetAccessibilityLabel(budget: BudgetUse): string {
-  const words = budgetStateWords(budget);
-  const amounts = `${formatMoney(budget.spent, budget.currency)} of ${formatLimit(budget.limit, budget.currency)}`;
-  return [budget.name, amounts, words].filter(Boolean).join(', ');
+/** Under the spent amount: "8.50 left" or "+3.00 over". */
+export function remainderText(budget: BudgetUse): string {
+  const { kind, amount } = budgetRemainder(budget);
+  const cell = formatCell(amount, budget.currency);
+  return kind === 'over' ? `+${cell} over` : `${cell} left`;
 }
 
-/** The shop as printed, or a plain stand-in for a receipt confirmed without one. */
-export function shopName(receipt: RecentReceipt): string {
-  return receipt.shopName ?? 'Shop not named';
+/** The date block of a receipt row: "18" over "Nov". */
+export function receiptDay(receipt: RecentReceipt): { day: string; month: string } {
+  const date = parseApiDate(receipt.receiptDate);
+  return { day: String(date.getDate()), month: shortMonthName(date) };
 }
 
-/** "$38.40", "450,000 LBP". */
-export function receiptTotal(receipt: RecentReceipt): string {
+/** A receipt's amount: "$38.40", "450,000 LBP". */
+export function receiptAmount(receipt: RecentReceipt): string {
   return formatMoney(receipt.total, receipt.currency);
 }
 
-/**
- * "18/11/2026 · 18:42 · 9 items". The date is the one printed on the receipt. The backend keeps no printed
- * time, so the time is when the receipt was added, shown only when that was the same day (otherwise it would
- * pair one day's date with another day's time). The item count is left out for a receipt without lines.
- */
-export function receiptMeta(receipt: RecentReceipt): string {
-  const date = formatDate(receipt.receiptDate);
-  const addedSameDay = formatDate(receipt.createdAt) === date;
-  return [date, addedSameDay ? formatTime(receipt.createdAt) : null, itemCountWords(receipt.itemCount)]
-    .filter(Boolean)
-    .join(' · ');
+/** Under a pound amount: "≈ $5.03" at the receipt's rate; nothing for dollars. */
+export function receiptApproxUsd(receipt: RecentReceipt): string | null {
+  return receipt.currency === 'LBP' ? formatApproxUsd(receipt.total, receipt.lbpPerUsd) : null;
 }

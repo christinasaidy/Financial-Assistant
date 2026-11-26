@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction A3, creased invoice</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+
+<style>
+/* Fonts: Geist, Geist Mono, Noto Naskh Arabic (Google Fonts) */
+body{margin:0}
+a{color:#2340C8}a:hover{color:#182E96}
+.crease{position:absolute;inset:0;background:url(../assets/crease.jpg) center/300px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+.tear{-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x}
+.m{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
+.cap{font:500 10.5px/1 'Geist Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#4A4944}
+.tr{display:grid;grid-template-columns:minmax(0,1fr) 60px 84px;min-height:46px}
+.tr>*{display:flex;flex-direction:column;justify-content:center}
+.tr>*+*{border-left:1px solid rgba(0,0,0,.13);align-items:flex-end;padding-right:2px}
+.tr>*:first-child{padding-right:14px}
+.bar{height:3px;background:rgba(0,0,0,.12);margin-top:6px}
+.bar>i{display:block;height:3px;background:#1A1A1A}
+.perf{height:10px;background:radial-gradient(circle,#C9CBCF 2.5px,transparent 3px) center/12px 10px repeat-x}
+.sheet{position:absolute;left:0;right:0;top:0;height:60px;border-radius:2px;display:flex;justify-content:flex-end;padding:7px 12px;box-sizing:border-box}
+</style>
+
+<div style="width:390px;height:844px;box-sizing:border-box;background:#E3E4E6;color:#1A1A1A;font-family:Geist,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 12px 4px 20px">
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span style="font-weight:600;font-size:18px;letter-spacing:-.01em">Fatourati</span>
+      <span lang="ar" style="font:600 15px 'Noto Naskh Arabic',serif;color:#55544F">فاتورتي</span>
+    </div>
+    <button aria-label="Notifications" style="width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:#1A1A1A;display:grid;place-items:center;cursor:pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg>
+    </button>
+  </div>
+
+  <div style="position:relative;margin:4px 14px 0;padding-top:30px">
+    <a href="#" class="sheet" aria-label="September invoice" style="margin:0 22px;background:#D2D4D8;transform:rotate(-1.6deg);text-decoration:none"><span class="cap">Sep</span></a>
+    <a href="#" class="sheet" aria-label="October invoice" style="top:14px;margin:0 10px;background:#F4F4F3;box-shadow:0 1px 2px rgba(0,0,0,.08);transform:rotate(1deg);text-decoration:none"><span class="cap">Oct</span></a>
+
+    <div style="position:relative;filter:drop-shadow(0 0 0.5px rgba(30,30,35,.35)) drop-shadow(0 12px 18px rgba(30,30,35,.13))">
+      <div class="tear" style="position:relative;isolation:isolate;background:#EFEEEB;padding:16px 18px 22px">
+        <div style="display:flex;justify-content:space-between"><span class="cap" style="color:#2340C8">Invoice Nº 0447</span><span class="cap">Nov 2026</span></div>
+        <div style="font-size:14px;color:#46453F;margin-top:12px">Billed to Christina</div>
+        <div class="m" style="font-weight:500;font-size:52px;line-height:1.05;letter-spacing:-.04em;margin-top:2px">$447.80</div>
+        <div class="m" style="font-size:12px;color:#46453F;margin-top:4px">$412.60 + 3,150,000 LBP · 89,500</div>
+
+        <div style="margin-top:16px;border-top:1px solid #1A1A1A">
+          <div class="tr" style="min-height:28px"><span class="cap">Budget</span><span class="cap">Limit</span><span class="cap">Spent</span></div>
+          <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)">
+            <div><span style="font-weight:500;font-size:15px">Transport</span><div class="bar"><i style="width:100%;background:#B3261E"></i></div></div>
+            <span class="m" style="font-size:14px;color:#46453F">60</span>
+            <div><span class="m" style="font-size:15px;color:#B3261E;font-weight:500">63.00</span><span class="m" style="font-size:11px;color:#B3261E">+3.00 over</span></div>
+          </div>
+          <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)">
+            <div><span style="font-weight:500;font-size:15px">Eating out</span><div class="bar"><i style="width:89%"></i></div></div>
+            <span class="m" style="font-size:14px;color:#46453F">80</span>
+            <div><span class="m" style="font-size:15px">71.50</span><span class="m" style="font-size:11px;color:#46453F">8.50 left</span></div>
+          </div>
+          <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)">
+            <div><span style="font-weight:500;font-size:15px">Groceries</span><div class="bar"><i style="width:75%"></i></div></div>
+            <span class="m" style="font-size:14px;color:#46453F">250</span>
+            <div><span class="m" style="font-size:15px">186.40</span><span class="m" style="font-size:11px;color:#46453F">63.60 left</span></div>
+          </div>
+          <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)">
+            <div><span style="font-weight:500;font-size:15px">Everything else</span></div>
+            <span class="m" style="font-size:14px;color:#46453F">—</span>
+            <div><span class="m" style="font-size:15px">126.90</span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:3px double #1A1A1A;padding-top:9px;margin-top:2px">
+            <span class="cap" style="color:#1A1A1A">Total</span><span class="m" style="font-size:17px;font-weight:600">$447.80</span>
+          </div>
+        </div>
+
+        <a href="#" style="margin-top:14px;display:flex;align-items:center;gap:10px;min-height:44px;padding-top:10px;border-top:1px dashed rgba(0,0,0,.28);text-decoration:none;color:#1A1A1A">
+          <span class="cap" style="color:#2340C8">Note</span>
+          <span style="flex:1;font-size:14px;color:#3A3934">Ask me — <span style="color:#1A1A1A;font-weight:500">“addeh sraft 3al akl?”</span></span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2340C8" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </a>
+        <div class="crease" style="opacity:0.6"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin:14px 20px 2px">
+    <span class="cap" style="color:#1A1A1A">Recent receipts</span>
+    <a href="#" style="font-weight:500;font-size:14px;min-height:36px;display:flex;align-items:center;text-decoration:none">See all</a>
+  </div>
+  <div style="margin:0 20px;border-top:1px solid #1A1A1A">
+    <a href="A3-Receipt.dc.html" style="display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:14px;align-items:center;min-height:58px;border-bottom:1px dashed #B3B5BA;text-decoration:none;color:#1A1A1A">
+      <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><span class="m" style="font-size:18px;font-weight:500;line-height:1">18</span><span class="cap" style="font-size:9.5px">Nov</span></span>
+      <span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:500;font-size:15px">Spinneys Achrafieh</span><span style="font-size:12.5px;color:#55544F">Groceries · 9 items</span></span>
+      <span class="m" style="font-size:15px;font-weight:500">$38.40</span>
+    </a>
+    <a href="#" style="display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:14px;align-items:center;min-height:58px;border-bottom:1px dashed #B3B5BA;text-decoration:none;color:#1A1A1A">
+      <span style="display:flex;flex-direction:column;align-items:center;gap:3px"><span class="m" style="font-size:18px;font-weight:500;line-height:1">17</span><span class="cap" style="font-size:9.5px">Nov</span></span>
+      <span style="display:flex;flex-direction:column;gap:3px"><span style="font-weight:500;font-size:15px">Zaatar w Zeit</span><span style="font-size:12.5px;color:#55544F">Eating out · 2 items</span></span>
+      <span style="display:flex;flex-direction:column;align-items:flex-end;gap:3px"><span class="m" style="font-size:15px;font-weight:500">450,000 LBP</span><span class="m" style="font-size:11.5px;color:#55544F">≈ $5.03</span></span>
+    </a>
+  </div>
+
+  <div style="margin-top:auto;background:#F6F6F5">
+    <div class="perf"></div>
+    <nav style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;padding:2px 6px 12px">
+      <a href="#" style="min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:#1A1A1A">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 11l8-6 8 6v8H4z"></path><path d="M10 19v-5h4v5"></path></svg>
+        <span style="font-size:11.5px;font-weight:600">Home</span></a>
+      <a href="#" style="min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:#55544F">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg>
+        <span style="font-size:11.5px;font-weight:500">Receipts</span></a>
+      <a href="#" aria-label="Scan a receipt" style="justify-self:center;width:56px;height:56px;border-radius:16px;background:#2340C8;color:#fff;display:grid;place-items:center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"></path></svg></a>
+      <a href="#" style="min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:#55544F">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 18a8 8 0 1 1 16 0"></path><path d="M12 18l4-5"></path></svg>
+        <span style="font-size:11.5px;font-weight:500">Budgets</span></a>
+      <a href="#" style="min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-decoration:none;color:#55544F">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path><path d="M8 10h8"></path></svg>
+        <span style="font-size:11.5px;font-weight:500">Assistant</span></a>
+    </nav>
+  </div>
+</div>
+
+
+</body>
+</html>

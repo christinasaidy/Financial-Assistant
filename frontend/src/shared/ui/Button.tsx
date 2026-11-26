@@ -1,35 +1,27 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
-import { rounded, sizes, spacing, useTheme } from '../theme';
+import { colors, radius } from '../theme';
 import { AppText } from './AppText';
-import { Icon, type IconName } from './Icon';
 
 export type ButtonProps = {
-  /** Written in normal case; the total-line style shows it in capitals (D012). */
   label: string;
   onPress: () => void;
-  /** 16 px, one Mono character (0.6 em) before the label (D027, D037). */
-  icon?: IconName;
+  /** primary: cobalt fill, white label. secondary: 1 px ink outline (DESIGN.md §4). */
+  kind?: 'primary' | 'secondary';
   disabled?: boolean;
-  /** Read by VoiceOver while the action runs (e.g. signing in); presses are ignored meanwhile. */
+  /** While the action runs (signing in): a spinner instead of the label, and presses are ignored. */
   busy?: boolean;
   accessibilityHint?: string;
   testID?: string;
 };
 
-/** The label's gap to the icon: one Mono character at the total-line size, 0.6 em of 16 px (D027). */
-const ICON_GAP = 0.6 * 16;
-
 /**
- * The main button (D037): full width, 48 px, square, pen-blue fill, paper-coloured label in the
- * total-line style. One per screen.
- *
- * Pressed, disabled and busy LOOKS are not designed yet (see README "Open questions"): for now they only
- * change behaviour and what VoiceOver says.
+ * A button of DESIGN.md §4: full width, 52 px, radius 12, Geist 600 16. Primary is cobalt and turns
+ * `cobaltPressed` while pressed; secondary is outlined in ink.
  */
-export function Button({ label, onPress, icon, disabled = false, busy = false, accessibilityHint, testID }: ButtonProps) {
-  const { colors } = useTheme();
+export function Button({ label, onPress, kind = 'primary', disabled = false, busy = false, accessibilityHint, testID }: ButtonProps) {
   const inactive = disabled || busy;
+  const primary = kind === 'primary';
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,18 +31,20 @@ export function Button({ label, onPress, icon, disabled = false, busy = false, a
       disabled={inactive}
       onPress={onPress}
       testID={testID}
-      style={[styles.button, { backgroundColor: colors.primary }]}
+      style={({ pressed }) => [
+        styles.button,
+        primary
+          ? { backgroundColor: pressed ? colors.cobaltPressed : colors.cobalt }
+          : { borderWidth: 1, borderColor: colors.ink, backgroundColor: pressed ? colors.segmentTrack : 'transparent' },
+      ]}
     >
-      <View style={styles.content}>
-        {icon ? (
-          <View style={styles.icon}>
-            <Icon name={icon} size={sizes.buttonIcon} color="paper" />
-          </View>
-        ) : null}
-        <AppText variant="total-line" color="paper" style={styles.label}>
+      {busy ? (
+        <ActivityIndicator color={primary ? colors.white : colors.ink} />
+      ) : (
+        <AppText weight={600} size={16} color={primary ? 'white' : 'ink'} style={styles.label}>
           {label}
         </AppText>
-      </View>
+      )}
     </Pressable>
   );
 }
@@ -58,13 +52,11 @@ export function Button({ label, onPress, icon, disabled = false, busy = false, a
 const styles = StyleSheet.create({
   button: {
     alignSelf: 'stretch',
-    minHeight: sizes.button,
-    borderRadius: rounded.none,
-    justifyContent: 'center',
+    minHeight: 52,
+    borderRadius: radius.button,
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
-  content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  icon: { marginRight: ICON_GAP },
-  label: { textAlign: 'center', flexShrink: 1 },
+  label: { textAlign: 'center' },
 });

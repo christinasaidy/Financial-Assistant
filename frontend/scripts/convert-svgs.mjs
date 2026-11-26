@@ -1,4 +1,4 @@
-// Converts the Figma-exported SVGs in assets/icons and assets/wordmark into plain data that
+// Converts the Figma-exported SVGs in assets/icons into plain data that
 // src/shared/ui/art/ArtSvg.tsx draws with react-native-svg.
 //
 // Run it again whenever an SVG changes:  npm run convert-svgs
@@ -91,17 +91,4 @@ export const iconArt: Record<IconName, { clean: ArtNode; printed: ArtNode }> = $
 `,
 );
 
-// Wordmark: large (48 px type, launch and sign in) and small (20 px type, the Home header) (D029).
-const wordmarkDir = join(root, 'assets/wordmark');
-const wordmarks = {
-  large: load(join(wordmarkDir, 'fatourati-large.svg')),
-  small: load(join(wordmarkDir, 'fatourati-small.svg')),
-};
-writeFileSync(
-  join(outDir, 'wordmarkArt.generated.ts'),
-  `${HEADER}
-export const wordmarkArt: Record<'large' | 'small', ArtNode> = ${JSON.stringify(wordmarks, null, 1)};
-`,
-);
-
-console.log(`Converted ${iconNames.length} icons (clean + printed) and 2 wordmarks into ${outDir}`);
+console.log(`Converted ${iconNames.length} icons (clean + printed) into ${outDir}`);

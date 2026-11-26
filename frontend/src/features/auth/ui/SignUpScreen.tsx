@@ -1,7 +1,6 @@
 import { useRef, useState, type ComponentRef } from 'react';
 import { AccessibilityInfo, Keyboard, StyleSheet, View, type TextInput } from 'react-native';
 
-import { spacing } from '@/shared/theme';
 import { AppText, TextField } from '@/shared/ui';
 
 import type { Gender } from '../domain/types';
@@ -32,7 +31,6 @@ export function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [gender, setGender] = useState<Gender | null>(null);
-  const [passwordShown, setPasswordShown] = useState(false);
   const [errors, setErrors] = useState<Errors>(noErrors);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -45,7 +43,6 @@ export function SignUpScreen() {
     submitting.current = false;
     setBusy(false);
     setPassword('');
-    setPasswordShown(false);
   });
 
   function clear(field: Field) {
@@ -99,9 +96,9 @@ export function SignUpScreen() {
 
   return (
     <AuthScreenLayout
-      title="Create account"
+      eyebrow="Create account"
+      heading="Start a fresh invoice."
       sentence="Keep every receipt in one place, in dollars and pounds."
-      top="2xl"
       formError={formError}
       submitLabel="Create account"
       onSubmit={() => void submit()}
@@ -148,7 +145,7 @@ export function SignUpScreen() {
           onChangeText={edit('password', setPassword)}
           error={errors.password}
           accessibilityHint={passwordHint}
-          secureTextEntry={!passwordShown}
+          password
           textContentType="newPassword"
           passwordRules={PASSWORD_RULES}
           autoComplete="new-password"
@@ -159,14 +156,9 @@ export function SignUpScreen() {
           // closes the keyboard so the options can be seen.
           returnKeyType={gender ? 'go' : 'done'}
           onSubmitEditing={() => (gender ? void submit() : Keyboard.dismiss())}
-          trailingAction={{
-            label: passwordShown ? 'Hide' : 'Show',
-            accessibilityLabel: passwordShown ? 'Hide password' : 'Show password',
-            onPress: () => setPasswordShown((shown) => !shown),
-          }}
         />
         {errors.password ? null : (
-          <AppText variant="meta" importantForAccessibility="no" accessibilityElementsHidden>
+          <AppText size={13} color="formSoft" importantForAccessibility="no" accessibilityElementsHidden>
             {passwordHint}
           </AppText>
         )}
@@ -184,5 +176,5 @@ export function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
-  passwordField: { gap: spacing.xs },
+  passwordField: { gap: 6 },
 });

@@ -13,7 +13,7 @@ type Errors = { email: string | null; password: string | null };
 const noErrors: Errors = { email: null, password: null };
 
 /**
- * Sign in (D040, mockup SignInCreased). The fields are checked when SIGN IN is pressed, not while typing;
+ * Sign in (design/screens/02-sign-in.png; Forgot? and Continue with Apple wait for the backend, D044). The fields are checked when SIGN IN is pressed, not while typing;
  * a field's message goes away as soon as it is edited. Once signed in, the session moves to the tabs by
  * itself (app/_layout.tsx).
  */
@@ -21,7 +21,6 @@ export function SignInScreen() {
   const { signIn } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordShown, setPasswordShown] = useState(false);
   const [errors, setErrors] = useState<Errors>(noErrors);
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -33,7 +32,6 @@ export function SignInScreen() {
     submitting.current = false;
     setBusy(false);
     setPassword('');
-    setPasswordShown(false);
   });
 
   function edit(field: keyof Errors, setValue: (value: string) => void) {
@@ -76,9 +74,9 @@ export function SignInScreen() {
 
   return (
     <AuthScreenLayout
-      title="Sign in"
+      eyebrow="Sign in"
+      heading="Let’s flatten these out."
       sentence="Welcome back. Your receipts are where you left them."
-      top="3xl"
       formError={formError}
       submitLabel="Sign in"
       onSubmit={() => void submit()}
@@ -108,7 +106,7 @@ export function SignInScreen() {
         value={password}
         onChangeText={edit('password', setPassword)}
         error={errors.password}
-        secureTextEntry={!passwordShown}
+        password
         textContentType="password"
         autoComplete="current-password"
         autoCapitalize="none"
@@ -116,11 +114,6 @@ export function SignInScreen() {
         spellCheck={false}
         returnKeyType="go"
         onSubmitEditing={() => void submit()}
-        trailingAction={{
-          label: passwordShown ? 'Hide' : 'Show',
-          accessibilityLabel: passwordShown ? 'Hide password' : 'Show password',
-          onPress: () => setPasswordShown((shown) => !shown),
-        }}
       />
     </AuthScreenLayout>
   );

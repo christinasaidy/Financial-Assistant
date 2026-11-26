@@ -3,78 +3,63 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSession } from '@/features/auth/ui/SessionProvider';
-import { sizes, spacing } from '@/shared/theme';
-import { AppText, DashedRule, Icon, OptionRow, Paper, TextLink } from '@/shared/ui';
-
-import type { Appearance } from '../domain/appearance';
-import { useAppearance } from './AppearanceProvider';
-
-/** Written in normal case; shown in capitals by the section-label style (D012, D043). */
-const appearanceOptions: readonly { value: Appearance; label: string }[] = [
-  { value: 'phone', label: 'Phone' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-];
+import { colors, radius, touchTarget } from '@/shared/theme';
+import { AppText, Button, LineIcon, PaperSheet } from '@/shared/ui';
 
 /**
- * Settings (D043), opened from the gear on Home: APPEARANCE (Phone, Light, Dark) and the account with
- * SIGN OUT, on plain paper, laid out like Home: a 44 px header with Back, the screen title, sections 24 px
- * apart with a dashed rule between them.
+ * Settings (D044), opened from the wordmark on Home. Not in the design, so it is built from its parts: the
+ * receipt screen's top bar (Back, a cap title), a creased sheet with ACCOUNT, the name and the email, and an
+ * outlined Sign out button.
  */
 export function SettingsScreen() {
-  const { appearance, setAppearance } = useAppearance();
   const { user, signOut } = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
-    <Paper variant="plain">
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + spacing.xl }}
-        testID="settings-scroll"
-      >
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            onPress={() => router.back()}
-            style={styles.back}
-            testID="settings-back"
-          >
-            <Icon name="back" />
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 24 }} testID="settings-scroll">
+        <View style={styles.bar}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} style={styles.iconButton} testID="settings-back">
+            <LineIcon name="back" />
           </Pressable>
-        </View>
-        <View style={styles.main}>
-          <AppText variant="screen-title" accessibilityRole="header">
+          <AppText cap color="ink" accessibilityRole="header">
             Settings
           </AppText>
-          <OptionRow
-            caption="Appearance"
-            options={appearanceOptions}
-            value={appearance}
-            onChange={setAppearance}
-            testIDPrefix="appearance"
-          />
-          <DashedRule />
-          <View style={styles.account}>
-            <AppText variant="section-label">Account</AppText>
-            {user ? (
-              <AppText variant="meta" testID="settings-email">
-                {user.email}
-              </AppText>
-            ) : null}
-            <TextLink label="Sign out" onPress={() => void signOut()} testID="settings-sign-out" />
-          </View>
+          <View style={styles.iconButton} />
+        </View>
+
+        <PaperSheet on="bg" outerStyle={styles.sheetPlace} style={styles.sheet}>
+          <AppText cap color="cobalt">
+            Account
+          </AppText>
+          {user?.firstName ? (
+            <AppText weight={600} size={24} tracking={-0.02} style={styles.name}>
+              {user.firstName}
+            </AppText>
+          ) : null}
+          {user ? (
+            <AppText size={14} color="inkSoft" style={styles.email} testID="settings-email">
+              {user.email}
+            </AppText>
+          ) : null}
+        </PaperSheet>
+
+        <View style={styles.actions}>
+          <Button kind="secondary" label="Sign out" onPress={() => void signOut()} testID="settings-sign-out" />
         </View>
       </ScrollView>
-    </Paper>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // The mirror of Home's header: 12 px padding, so Back's 24 px icon sits about 20 px from the edge.
-  header: { minHeight: sizes.touchTarget, paddingLeft: spacing.md, flexDirection: 'row', alignItems: 'center' },
-  back: { width: sizes.touchTarget, height: sizes.touchTarget, alignItems: 'center', justifyContent: 'center' },
-  main: { paddingTop: spacing.lg, paddingHorizontal: spacing['screen-margin'], gap: spacing.xl },
-  account: { gap: spacing.sm },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, paddingHorizontal: 8, paddingBottom: 4 },
+  iconButton: { width: touchTarget, height: touchTarget, borderRadius: radius.button, alignItems: 'center', justifyContent: 'center' },
+  sheetPlace: { marginTop: 6, marginHorizontal: 14 },
+  sheet: { paddingTop: 18, paddingHorizontal: 18, paddingBottom: 24 },
+  name: { marginTop: 14, lineHeight: 26.5 },
+  email: { marginTop: 2 },
+  actions: { marginTop: 20, marginHorizontal: 14 },
 });

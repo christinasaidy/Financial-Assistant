@@ -81,6 +81,7 @@ describe('DTO mapping', () => {
       lbpPart: '3150000.00',
       lbpPerUsd: '89500.00',
       awaitingReview: 2,
+      categories: [{ categoryId: 1, name: 'Groceries', amount: '186.40' }],
     });
   });
 
@@ -114,6 +115,8 @@ describe('DTO mapping', () => {
       receiptDate: '2026-11-18',
       currency: 'USD',
       total: '38.40',
+      categoryId: 1,
+      lbpPerUsd: '89500.00',
       createdAt: '2026-11-18T16:42:10.123456Z',
     });
     const blank = {
@@ -156,6 +159,22 @@ describe('ApiHomeRepository', () => {
       'http://192.168.1.23:8000/receipts',
       'http://192.168.1.23:8000/receipts/31',
     ]);
+  });
+
+  it('reads the category names by id', async () => {
+    const { repository, requests } = repositoryWith({
+      status: 200,
+      body: [
+        { id: 1, name: 'Groceries', is_shared: true },
+        { id: 7, name: 'Pharmacy', is_shared: false },
+      ],
+    });
+    const names = await repository.categoryNames();
+    expect([...names]).toEqual([
+      [1, 'Groceries'],
+      [7, 'Pharmacy'],
+    ]);
+    expect(requests[0]?.url).toBe('http://192.168.1.23:8000/categories');
   });
 
   it('turns an unreachable server into a network error', async () => {

@@ -573,7 +573,7 @@ considered, so the reasoning can be explained later.
 
 ## D042: Plain white paper, no crease
 
-- **Status:** Accepted, 2026-11-25. Asked for by Christina after trying the app on her iPhone ("remove the creasing
+- **Status:** Accepted, 2026-11-25; replaced by D044 (the invoice design). Asked for by Christina after trying the app on her iPhone ("remove the creasing
   and make it just white, all pages"). Replaces the lightly creased paper of D039.
 - **Decision:**
   - Sign in, create account, Home and every other app screen sit on flat paper: **#ffffff** in light mode, the
@@ -586,7 +586,7 @@ considered, so the reasoning can be explained later.
 
 ## D043: Settings: appearance and sign out, from a gear on Home
 
-- **Status:** Accepted, 2026-11-25. Christina chose where settings open from and what the appearance setting
+- **Status:** Accepted, 2026-11-25; replaced by D044 (light only, settings from the wordmark). Christina chose where settings open from and what the appearance setting
   offers, after finding no way to leave dark mode or to sign out on her iPhone. The rest are my calls, on her
   standing instruction to decide small details myself.
 - **Options considered:** the gear in Home's header (chosen), a SETTINGS link at the bottom of Home, or tapping the
@@ -603,6 +603,45 @@ considered, so the reasoning can be explained later.
       needs no confirmation and goes straight to sign in.
   - The temporary SIGN OUT link at the bottom of Home is removed.
 - **Consequences:** D003 ("follow the phone") stays the default, with an override. The bell still does nothing.
+
+## D044: The invoice design replaces the first design
+
+- **Status:** Accepted, 2026-11-26. Christina brought a new design (`frontend/design/`, from her design handoff)
+  and asked to follow it absolutely, keeping only her five tab icons from the first design.
+- **Decision:**
+  - `frontend/design/` is the source of truth: `DESIGN.md` (the spec), `theme.ts` (the tokens, re-exported by
+    `src/shared/theme/tokens.ts` untouched), `screens/` and `reference/` (exact values). Colours the reference
+    screens use that `theme.ts` does not name are added in `tokens.ts`, each with its screen; a test checks
+    each one appears in `reference/`.
+  - Kept from the first design: the printed icons for Home, Receipts, Scan, Budgets and Assistant (tab bar,
+    and the empty Recent box). Everything else (DejaVu, pen blue, yellow, the wordmark artwork, plain paper,
+    the yellow launch, D002-D043's looks) gives way to the invoice design.
+  - Christina's answers (2026-11-26):
+    - This round rebuilds the screens that exist: launch, sign in, create account, Home and empty Home, the tab
+      bar, settings. Receipt detail, Budgets and the two Assistant screens come next, as their own features.
+    - **Light only.** The design has no dark colours, so dark mode and the Phone / Light / Dark setting of D043
+      are removed; the status bar is always dark.
+    - **Forgot? and Continue with Apple** are left out until the backend supports them.
+    - **Create account and Settings** are built from the design's parts. Create account is the sign-in frame
+      with the four fields; gender uses the Assistant's segmented switch. Settings opens from the Fatourati
+      wordmark on Home (the design's header has only the bell): the receipt screen's top bar, an ACCOUNT sheet
+      (name, email) and an outlined Sign out.
+  - My calls, on her standing instruction to decide small details:
+    - **Invoice number:** one invoice a month, counted from the month of the first receipt (Nº 0001 is that
+      month, and a new user's).
+    - **The table** lists the three budgets closest to their limit, then "Everything else" = the dollar total
+      minus those three categories, so the rows add up to TOTAL. A budget is red once spent passes its limit.
+    - **The older months** behind the invoice are the two months before this one, shown once the user has a
+      receipt from before this month. They are not tappable yet (switching months is not designed).
+    - **The note** says "Set your first monthly budget" (opens Budgets) until there is a budget, then
+      "Ask me — “addeh sraft 3al akl?”" (opens the Assistant).
+    - Create account's heading: "Start a fresh invoice."; field errors are 13 px `redText` under the line;
+      the button shows a spinner while busy and turns `cobaltPressed` while pressed.
+    - The torn teeth are part of the creased sheet (the gaps are painted in the colour behind), as the
+      design's CSS mask does; slips lying on other slips keep plain teeth under them.
+- **Consequences:** The fonts are Geist, Geist Mono and Noto Naskh Arabic (only the weights used are
+  bundled). The crease needs `mixBlendMode`, which Expo SDK 58's New Architecture has. Loading and error looks
+  are still not designed (a spinner, and a sentence with Try again).
 
 ## Open (not decided)
 

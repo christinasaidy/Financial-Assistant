@@ -2,12 +2,11 @@ import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { spacing } from '../theme';
+import { colors } from '../theme';
 import { AppText } from './AppText';
-import { Paper } from './Paper';
 
 type Props = {
-  /** The screen's name, normal case ("Receipts"). */
+  /** The screen's name ("Receipts"). */
   title: string;
   /** The feature folder that will replace this placeholder (shown, so nobody mistakes it for a design). */
   owner: string;
@@ -16,26 +15,26 @@ type Props = {
 
 /**
  * TEMPORARY. Stands in for a screen that is not built yet, so the routes and the tab bar can be tried.
- * Each feature replaces its placeholder with its own screen from src/features/<feature>/ui.
+ * The title is the screen title of DESIGN.md (Geist 600 20) on the grey background.
  */
 export function PlaceholderScreen({ title, owner, children }: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <Paper variant="plain">
-      <View style={[styles.content, { paddingTop: insets.top + spacing.xl }]}>
-        <AppText variant="screen-title" accessibilityRole="header">
-          {title}
-        </AppText>
-        <AppText variant="sentence" color="ink-2">
-          This screen is not built yet.
-        </AppText>
-        <AppText variant="caption">To do: src/features/{owner}</AppText>
-        {children}
-      </View>
-    </Paper>
+    <View style={[styles.screen, { paddingTop: insets.top + 14 }]}>
+      <AppText weight={600} size={20} tracking={-0.01} accessibilityRole="header">
+        {title}
+      </AppText>
+      <AppText size={15} color="inkMuted">
+        This screen is not built yet.
+      </AppText>
+      <AppText font="mono" size={12} color="inkMuted">
+        To do: src/features/{owner}
+      </AppText>
+      {children}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: spacing['screen-margin'], gap: spacing.sm },
+  screen: { flex: 1, backgroundColor: colors.bg, paddingHorizontal: 20, gap: 8 },
 });

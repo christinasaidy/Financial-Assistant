@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fatourati sign in, invoice</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+
+<style>
+/* Fonts: Geist, Geist Mono, Noto Naskh Arabic (Google Fonts) */
+body{margin:0}
+a{color:#2340C8}a:hover{color:#182E96}
+.crease{position:absolute;inset:0;background:url(../assets/crease.jpg) center/360px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+.tearb{-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 5px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/10px 5px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 5px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/10px 5px repeat-x}
+.teart{-webkit-mask:linear-gradient(#000 0 0) bottom/100% calc(100% - 7px) no-repeat,conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/14px 7px repeat-x;mask:linear-gradient(#000 0 0) bottom/100% calc(100% - 7px) no-repeat,conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/14px 7px repeat-x}
+.cap{font:500 10.5px/1 'Geist Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#6A6964}
+.slip{position:absolute;isolation:isolate;background:#EFEEEB;padding:12px 14px 16px;display:flex;flex-direction:column;gap:4px;font-family:'Geist Mono',monospace;color:#1A1A1A;box-shadow:0 6px 14px -6px rgba(30,30,35,.35)}
+.field{width:100%;box-sizing:border-box;height:46px;border:0;border-bottom:1px solid #BDBFC4;background:transparent;font:400 16px Geist,sans-serif;color:#1A1A1A;padding:0 44px 0 2px;outline:none}
+.field:focus{border-bottom:2px solid #2340C8}
+.field::placeholder{color:#8A8984}
+.shade{position:absolute;inset:0;background:url(../assets/crease.jpg) center/300px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+</style>
+
+<div style="position:relative;width:390px;height:844px;background:#E3E4E6;overflow:hidden;font-family:Geist,sans-serif;color:#1A1A1A">
+
+  <div style="position:absolute;left:0;right:0;top:0;height:330px">
+    <div style="position:absolute;left:20px;top:22px;display:flex;align-items:baseline;gap:8px;z-index:3">
+      <span style="font-weight:600;font-size:18px;letter-spacing:-.01em">Fatourati</span>
+      <span lang="ar" style="font:600 15px 'Noto Naskh Arabic',serif;color:#56555F">فاتورتي</span>
+    </div>
+
+    <div class="slip tearb" style="left:18px;top:86px;width:150px;transform:rotate(-9deg)">
+      <span style="font-size:11px;font-weight:600">SPINNEYS</span><span style="font-size:10px;color:#3F3E3A">18/11 · 9 ITEMS</span><span style="font-size:17px;font-weight:600;margin-top:6px">$38.40</span>
+      <span class="shade" style="opacity:.69;"></span>
+    </div>
+    <div class="slip tearb" style="left:150px;top:62px;width:132px;transform:rotate(7deg)">
+      <span style="font-size:11px;font-weight:600">ZAATAR W ZEIT</span><span style="font-size:10px;color:#3F3E3A">17/11 · 2 ITEMS</span><span style="font-size:15px;font-weight:600;margin-top:6px">450,000 LBP</span>
+      <span class="shade" style="opacity:.69;background-position:40% 20%"></span>
+    </div>
+    <div class="slip tearb" style="left:236px;top:150px;width:136px;transform:rotate(-4deg)">
+      <span style="font-size:11px;font-weight:600">TRANSPORT</span><span style="font-size:10px;color:#8E1B14">OVER BUDGET</span><span style="font-size:17px;font-weight:600;margin-top:6px">63.00 / 60</span>
+      <span class="shade" style="opacity:.69;background-position:70% 50%"></span>
+    </div>
+    <div class="slip tearb" style="left:64px;top:182px;width:142px;transform:rotate(12deg)">
+      <span style="font-size:11px;font-weight:600">GROCERIES</span><span style="font-size:10px;color:#3F3E3A">NOVEMBER</span><span style="font-size:17px;font-weight:600;margin-top:6px">186.40</span>
+      <span class="shade" style="opacity:.69;background-position:10% 80%"></span>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;top:282px;filter:drop-shadow(0 -8px 16px rgba(30,30,35,.16))">
+    <form style="position:absolute;inset:0;isolation:isolate;background:#FCFBF8;padding:30px 22px 22px;box-sizing:border-box;display:flex;flex-direction:column;margin:0">
+      <div style="display:flex;justify-content:space-between"><span class="cap" style="color:#2340C8">Sign in</span><span class="cap">Nº ————</span></div>
+      <h1 style="margin:14px 0 4px;font-weight:600;font-size:25px;letter-spacing:-.02em;line-height:1.1">Let’s flatten these out.</h1>
+      <p style="margin:0 0 14px;font-size:15px;line-height:1.4;color:#5A5954">Welcome back. Your receipts are where you left them.</p>
+      <label for="em" class="cap" style="color:#45443F">Email</label>
+      <input id="em" class="field" type="email" placeholder="name@example.com" autocomplete="email">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <label for="pw" class="cap" style="color:#45443F">Password</label>
+        <a href="#" style="font-size:13px;font-weight:500;text-decoration:none;min-height:32px;display:flex;align-items:center">Forgot?</a>
+      </div>
+      <div style="position:relative">
+        <input id="pw" class="field" type="password" autocomplete="current-password">
+        <button type="button" aria-label="Show password" style="position:absolute;right:0;top:1px;width:44px;height:44px;border:0;background:none;color:#6A6964;display:grid;place-items:center;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path><circle cx="12" cy="12" r="2.6"></circle></svg></button>
+      </div>
+      <button type="submit" style="margin-top:20px;height:52px;border:0;border-radius:12px;background:#2340C8;color:#fff;font:600 16px Geist,sans-serif;cursor:pointer">Sign in</button>
+      <button type="button" style="margin-top:10px;height:52px;border:1px solid #1A1A1A;border-radius:12px;background:transparent;color:#1A1A1A;font:600 16px Geist,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.8-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.7zM14.2 5.6c.6-.8 1.1-1.8 1-2.9-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.8 1 .1 2.1-.5 2.7-1.3z"></path></svg>
+        Continue with Apple
+      </button>
+      <p style="margin:auto 0 0;text-align:center;font-size:14.5px;color:#5A5954">New to Fatourati? <a href="#" style="font-weight:600;text-decoration:none">Create an account</a></p>
+      <div class="crease" style="opacity:0.15;background-size:520px auto"></div>
+    </form>
+  </div>
+</div>
+
+
+</body>
+</html>

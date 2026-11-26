@@ -1,108 +1,107 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { sizes, spacing, useTheme } from '../theme';
+import { colors, radius } from '../theme';
 import { AppText } from './AppText';
-import { HighlightSwipe } from './HighlightSwipe';
 import { Icon, type IconName } from './Icon';
+import { Perforation } from './paper';
 
 export type TabItem = {
   /** The route file's name inside app/(tabs)/ ("index" is Home). */
   route: string;
-  /** Normal case; shown as a section label in capitals. */
   label: string;
   icon: IconName;
-  /** The main action, drawn as a pen-blue square (Scan, D033). */
+  /** Scan: the cobalt square, no label (DESIGN.md §4). */
   main?: boolean;
 };
 
-/** The five tabs, in order (D033). */
+/** The five tabs, in order (DESIGN.md §4). The icons are Christina's own (D044). */
 export const appTabs: readonly TabItem[] = [
   { route: 'index', label: 'Home', icon: 'home' },
   { route: 'receipts', label: 'Receipts', icon: 'receipts' },
-  { route: 'scan', label: 'Scan', icon: 'scan', main: true },
+  { route: 'scan', label: 'Scan a receipt', icon: 'scan', main: true },
   { route: 'budgets', label: 'Budgets', icon: 'budgets' },
   { route: 'assistant', label: 'Assistant', icon: 'assistant' },
 ];
+
+/** Whether Scan wears its faint cobalt ring: the empty Home asks for it (DESIGN.md §6, screen 04). */
+const ScanHintContext = createContext<{ on: boolean; set: (on: boolean) => void }>({ on: false, set: () => undefined });
+
+export function ScanHintProvider({ children }: { children: ReactNode }) {
+  const [on, set] = useState(false);
+  const value = useMemo(() => ({ on, set }), [on]);
+  return <ScanHintContext.Provider value={value}>{children}</ScanHintContext.Provider>;
+}
+
+/** A screen asks for the ring around Scan while `on` is true. */
+export function useScanHint(on: boolean) {
+  const { set } = useContext(ScanHintContext);
+  useEffect(() => {
+    set(on);
+    return () => set(false);
+  }, [on, set]);
+}
 
 export type TabBarProps = {
   tabs: readonly TabItem[];
   selectedRoute: string;
   onSelect: (route: string) => void;
-  /** The home-indicator area, added under the 64 px bar. */
+  /** The home-indicator area; the bar keeps at least 12 px under its labels. */
   bottomInset: number;
+  scanHint?: boolean;
 };
 
 /**
- * The tab bar (D033, D038): five equal tabs on paper with a solid 1 px top rule, 64 px plus the home
- * indicator. Each tab is a printed icon over a section-label caption. The selected tab is ink, with the
- * yellow highlighter swipe behind its label (ink text on it); the others are ink-2. Scan is a 44 px
- * pen-blue square with a paper-coloured icon and its label in ink.
+ * The tab bar (DESIGN.md §4): `tabBar` background with the perforation on top, five slots. Active tab is ink
+ * with a 600 label, the others `inkMuted` 500; icons 22 px. Scan is a 56 px cobalt square, radius 16, with
+ * a white icon.
  */
-export function TabBar({ tabs, selectedRoute, onSelect, bottomInset }: TabBarProps) {
-  const { colors } = useTheme();
+export function TabBar({ tabs, selectedRoute, onSelect, bottomInset, scanHint = false }: TabBarProps) {
   return (
-    <View
-      accessibilityRole="tablist"
-      style={[
-        styles.bar,
-        { backgroundColor: colors.paper, borderTopColor: colors.rule, paddingBottom: bottomInset },
-      ]}
-    >
-      {tabs.map((tab, index) => {
-        const selected = tab.route === selectedRoute;
-        return (
-          <Pressable
-            key={tab.route}
-            accessibilityRole="tab"
-            accessibilityLabel={tab.label}
-            accessibilityHint={`Tab ${index + 1} of ${tabs.length}`}
-            accessibilityState={{ selected }}
-            onPress={() => onSelect(tab.route)}
-            style={styles.tab}
-            testID={`tab-${tab.route}`}
-          >
-            {tab.main ? (
-              <View style={[styles.mainSquare, { backgroundColor: colors.primary }]}>
-                <Icon name={tab.icon} color="paper" />
+    <View style={styles.bar}>
+      <Perforation />
+      <View accessibilityRole="tablist" style={[styles.row, { paddingBottom: Math.max(12, bottomInset) }]}>
+        {tabs.map((tab, index) => {
+          const selected = tab.route === selectedRoute;
+          const a11y = {
+            accessibilityRole: 'tab' as const,
+            accessibilityLabel: tab.label,
+            accessibilityHint: `Tab ${index + 1} of ${tabs.length}`,
+            accessibilityState: { selected },
+            onPress: () => onSelect(tab.route),
+            testID: `tab-${tab.route}`,
+          };
+          if (tab.main) {
+            return (
+              <View key={tab.route} style={styles.slot}>
+                {scanHint ? <View style={styles.ring} testID="scan-ring" /> : null}
+                <Pressable {...a11y} style={({ pressed }) => [styles.scan, { backgroundColor: pressed ? colors.cobaltPressed : colors.cobalt }]}>
+                  <Icon name={tab.icon} size={24} color="white" />
+                </Pressable>
               </View>
-            ) : (
-              <Icon name={tab.icon} color={selected ? 'ink' : 'ink-2'} />
-            )}
-            <TabLabel label={tab.label} selected={selected} ink={tab.main === true} />
-          </Pressable>
-        );
-      })}
+            );
+          }
+          return (
+            <Pressable key={tab.route} {...a11y} style={styles.tab}>
+              <Icon name={tab.icon} color={selected ? 'ink' : 'inkMuted'} />
+              <AppText weight={selected ? 600 : 500} size={11.5} color={selected ? 'ink' : 'inkMuted'} numberOfLines={1}>
+                {tab.label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
-function TabLabel({ label, selected, ink }: { label: string; selected: boolean; ink: boolean }) {
-  const text = (
-    <AppText
-      variant="section-label"
-      color={selected ? 'on-highlight' : ink ? 'ink' : 'ink-2'}
-      numberOfLines={1}
-      adjustsFontSizeToFit
-    >
-      {label}
-    </AppText>
-  );
-  // Only the selected label carries padding: it makes room for the yellow swipe (mockups: 0 4px). Unselected
-  // labels get the tab's full width, so "ASSISTANT" fits a fifth of the screen.
-  if (!selected) return <View style={styles.label}>{text}</View>;
-  return (
-    <HighlightSwipe shape="tab" style={[styles.label, styles.swipe]}>
-      {text}
-    </HighlightSwipe>
-  );
-}
-
 /**
- * TabBar wired to expo-router: pass it as `<Tabs tabBar={(props) => <RouterTabBar {...props} />}>`.
- * It keeps React Navigation's tab-press event, so a screen can still listen for a second tap.
+ * TabBar wired to expo-router: pass it as `<Tabs tabBar={(props) => <RouterTabBar {...props} />}>`, inside
+ * ScanHintProvider. It keeps React Navigation's tab-press event.
  */
 export function RouterTabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
+  const { on } = useContext(ScanHintContext);
   const focused = state.routes[state.index];
   const shown = appTabs.filter((tab) => state.routes.some((route) => route.name === tab.route));
   return (
@@ -110,6 +109,7 @@ export function RouterTabBar({ state, emitter, navigateToTab, insets }: BottomTa
       tabs={shown}
       selectedRoute={focused?.name ?? ''}
       bottomInset={insets.bottom}
+      scanHint={on}
       onSelect={(name) => {
         const route = state.routes.find((candidate) => candidate.name === name);
         if (!route) return;
@@ -121,23 +121,16 @@ export function RouterTabBar({ state, emitter, navigateToTab, insets }: BottomTa
 }
 
 const styles = StyleSheet.create({
-  bar: {
-    flexDirection: 'row',
-    borderTopWidth: sizes.hairline,
+  bar: { backgroundColor: colors.tabBar },
+  row: { flexDirection: 'row', alignItems: 'center', paddingTop: 2, paddingHorizontal: 6 },
+  tab: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  slot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  scan: { width: 56, height: 56, borderRadius: radius.scan, alignItems: 'center', justifyContent: 'center' },
+  ring: {
+    position: 'absolute',
+    width: 66,
+    height: 66,
+    borderRadius: radius.scan + 5,
+    backgroundColor: colors.scanRing,
   },
-  tab: {
-    flex: 1,
-    minHeight: sizes.tabBar,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  mainSquare: {
-    width: sizes.scanSquare,
-    height: sizes.scanSquare,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: { maxWidth: '100%' },
-  swipe: { paddingHorizontal: spacing.xs },
 });

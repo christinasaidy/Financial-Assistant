@@ -1,18 +1,19 @@
 /**
  * The Home screen with a fake Home backend and a fake signed-in session, inside expo-router's test router
- * (so the tab links and the reload on focus work as in the app). Run in light and in dark.
+ * (so the links and the reload on focus work as in the app), against design/screens/03 and 04.
  */
-import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen, waitFor, within } from 'expo-router/testing-library';
 import { StyleSheet, Text } from 'react-native';
 
 import { AuthService } from '@/features/auth/application/authService';
 import { SessionProvider } from '@/features/auth/ui/SessionProvider';
 import { HomeService } from '@/features/home/application/homeService';
 import { HomeScreen } from '@/features/home/ui/HomeScreen';
-import { colorTokens, ThemeOverride, type ColorScheme } from '@/shared/theme';
+import { colors } from '@/shared/theme';
+import { RouterTabBar, ScanHintProvider, appTabs } from '@/shared/ui';
 
 import { christina, FakeAuthRepository, FakeTokenStore } from '../auth/fakes';
-import { abouRami, emptyMonth, FakeHomeRepository, november, spinneys, transport, zaatar } from './fakes';
+import { abouRami, emptyMonth, FakeHomeRepository, november, septemberReceipt, spinneys, zaatar } from './fakes';
 
 jest.setTimeout(30_000);
 
@@ -29,130 +30,158 @@ function signedIn(firstName: string | null = 'Christina') {
   return new AuthService(repository, tokens);
 }
 
-async function renderHome(scheme: ColorScheme, home: FakeHomeRepository, auth = signedIn()) {
+async function renderHome(home: FakeHomeRepository, auth = signedIn()) {
   const service = new HomeService(home);
   const Home = () => (
-    <ThemeOverride scheme={scheme}>
-      <SessionProvider authService={auth}>
+    <SessionProvider authService={auth}>
+      <ScanHintProvider>
         <HomeScreen service={service} />
-      </SessionProvider>
-    </ThemeOverride>
+        <Ring />
+      </ScanHintProvider>
+    </SessionProvider>
   );
-  const router = await renderRouter(
+  return renderRouter(
     {
       index: Home,
       budgets: () => <Text>Budgets tab</Text>,
-      scan: () => <Text>Scan tab</Text>,
+      receipts: () => <Text>Receipts tab</Text>,
+      assistant: () => <Text>Assistant tab</Text>,
       settings: () => <Text>Settings screen</Text>,
     },
     { initialUrl: '/' },
   );
-  return router;
 }
 
-describe.each<ColorScheme>(['light', 'dark'])('Home in %s', (scheme) => {
-  const color = (token: keyof typeof colorTokens) => colorTokens[token][scheme];
+/** The real tab bar, which reads Home's request for the ring around Scan. */
+function Ring() {
+  const props = {
+    state: { index: 0, routes: appTabs.map((tab) => ({ key: tab.route, name: tab.route })) },
+    emitter: { emit: () => ({ defaultPrevented: false }) },
+    navigateToTab: () => undefined,
+    insets: { top: 0, bottom: 0, left: 0, right: 0 },
+  } as unknown as Parameters<typeof RouterTabBar>[0];
+  return <RouterTabBar {...props} />;
+}
 
-  it('shows the month, the three budgets closest to their limit and the newest receipts', async () => {
+async function loaded() {
+  await waitFor(() => expect(screen.getByTestId('invoice-total')).toBeTruthy());
+}
+
+describe('Home with a month of receipts (design/screens/03-home.png)', () => {
+  it('shows the invoice: number, month, billed to, total and the combined line', async () => {
     const home = new FakeHomeRepository();
-    home.receiptList = [spinneys, zaatar, abouRami];
-    await renderHome(scheme, home);
+    home.receiptList = [spinneys, zaatar, septemberReceipt];
+    await renderHome(home);
+    await loaded();
 
-    await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
-    expect(screen.getByTestId('paper-plain')).toBeTruthy();
-    expect(screen.getByLabelText('Fatourati')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Notifications' })).toBeTruthy();
-    expect(screen.getByText('Hello, Christina')).toBeTruthy();
-    expect(screen.getByText('This month · November')).toBeTruthy();
-    expect(screen.getByText('$412.60 + 3,150,000 LBP at 89,500 LBP per $')).toBeTruthy();
-
-    // Budgets, closest first, with the state in words in its colour.
-    expect(screen.getByRole('link', { name: 'See all' })).toBeTruthy();
-    expect(screen.getByText('$63.00 / $60')).toBeTruthy();
-    const reached = screen.getByText('Limit reached · 105%');
-    expect(flat(reached.props.style)).toMatchObject({ color: color('limit-reached'), textTransform: 'uppercase' });
-    expect(flat(screen.getByText('Near limit · 89%').props.style).color).toBe(color('near-limit'));
-    expect(screen.getByText('$186.40 / $250')).toBeTruthy();
-    expect(screen.queryByText(/Groceries.*%/)).toBeNull();
-    expect(flat(screen.getByTestId(`home-budget-bar-${transport.categoryId}`).props.style)).toMatchObject({
-      width: '100%',
-      backgroundColor: color('limit-reached'),
-    });
-    expect(flat(screen.getByTestId('home-budget-bar-3').props.style)).toMatchObject({
-      width: '74.6%',
-      backgroundColor: color('ink'),
-    });
-
-    // Recent, newest first.
-    expect(screen.getByText('Spinneys Achrafieh')).toBeTruthy();
-    expect(screen.getByText('$38.40')).toBeTruthy();
-    expect(screen.getByText('18/11/2026 · 18:42 · 9 items')).toBeTruthy();
-    expect(screen.getByText('450,000 LBP')).toBeTruthy();
-    expect(screen.getByText('17/11/2026 · 13:05 · 2 items')).toBeTruthy();
-    expect(screen.getByText('Abou Rami')).toBeTruthy();
-
-    // No empty-state text when there is data.
-    expect(screen.queryByText('No receipts yet this month')).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Scan a receipt' })).toBeNull();
+    expect(screen.getByText('Invoice Nº 0003')).toBeTruthy();
+    expect(screen.getByText('Nov 2026')).toBeTruthy();
+    expect(screen.getByText('Billed to Christina')).toBeTruthy();
+    expect(screen.getByTestId('invoice-total').props.children).toBe('$447.80');
+    expect(flat(screen.getByTestId('invoice-total').props.style).color).toBe(colors.ink);
+    expect(screen.getByText('$412.60 + 3,150,000 LBP · 89,500')).toBeTruthy();
+    expect(screen.getAllByText('$447.80')).toHaveLength(2);
+    // Older months peek behind the invoice.
+    const older = within(screen.getByTestId('older-months', { includeHiddenElements: true }));
+    expect(older.getByText('Sep', { includeHiddenElements: true })).toBeTruthy();
+    expect(older.getByText('Oct', { includeHiddenElements: true })).toBeTruthy();
   });
 
-  it('before any receipts: $0.00, the scan prompt and what Budgets and Recent will show', async () => {
+  it('fills the table: limits, spent, what is left, the over-budget row in red, and Everything else', async () => {
+    await renderHome(new FakeHomeRepository());
+    await loaded();
+
+    expect(screen.getByText('Transport')).toBeTruthy();
+    expect(screen.getByText('60')).toBeTruthy();
+    expect(flat(screen.getByText('63.00').props.style).color).toBe(colors.red);
+    expect(flat(screen.getByText('+3.00 over').props.style).color).toBe(colors.red);
+    expect(flat(screen.getByTestId('budget-bar-1').props.style)).toMatchObject({ width: '100%', backgroundColor: colors.red });
+    expect(screen.getByText('8.50 left')).toBeTruthy();
+    expect(flat(screen.getByTestId('budget-bar-2').props.style)).toMatchObject({ width: '89.4%', backgroundColor: colors.ink });
+    expect(screen.getByText('63.60 left')).toBeTruthy();
+    expect(screen.getByText('Everything else')).toBeTruthy();
+    expect(screen.getByText('126.90')).toBeTruthy();
+  });
+
+  it('lists the recent receipts with category, item count and dollars under pounds', async () => {
+    await renderHome(new FakeHomeRepository());
+    await loaded();
+    expect(screen.getByText('Spinneys Achrafieh')).toBeTruthy();
+    expect(screen.getByText('Groceries · 9 items')).toBeTruthy();
+    expect(screen.getByText('$38.40')).toBeTruthy();
+    expect(screen.getByText('450,000 LBP')).toBeTruthy();
+    expect(screen.getByText('≈ $5.03')).toBeTruthy();
+    expect(screen.getByText('Eating out · 2 items')).toBeTruthy();
+  });
+
+  it.each([
+    ['the note', 'invoice-note', '/assistant'],
+    ['See all', 'recent-see-all', '/receipts'],
+    ['the wordmark', 'home-settings', '/settings'],
+  ])('opens a screen from %s', async (_what, testID, path) => {
+    const router = await renderHome(new FakeHomeRepository());
+    await loaded();
+    await fireEvent.press(screen.getByTestId(testID));
+    await waitFor(() => expect(router.getPathname()).toBe(path));
+  });
+
+  it('does not ring Scan', async () => {
+    await renderHome(new FakeHomeRepository());
+    await loaded();
+    expect(screen.queryByTestId('scan-ring')).toBeNull();
+  });
+});
+
+describe('Home before anything (design/screens/04-home-empty.png)', () => {
+  function blank() {
     const home = new FakeHomeRepository();
     home.spending = emptyMonth;
     home.budgetList = [];
     home.receiptList = [];
-    await renderHome(scheme, home);
+    return home;
+  }
 
-    await waitFor(() => expect(screen.getByText('$0.00')).toBeTruthy());
-    expect(screen.getByText('No receipts yet this month')).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Take a photo of a receipt. Fatourati reads the shop, the items and the total, in dollars or pounds.',
-      ),
-    ).toBeTruthy();
-    const scan = screen.getByRole('button', { name: 'Scan a receipt' });
-    expect(flat(scan.props.style).backgroundColor).toBe(color('primary'));
-    const budgetsSentence = screen.getByText(
-      'Set a monthly limit for groceries, fuel or eating out, and see how close you are.',
-    );
-    expect(flat(budgetsSentence.props.style).color).toBe(color('ink-2'));
-    expect(flat(screen.getByText('Set a budget').props.style).color).toBe(color('primary'));
+  it('is a blank invoice: Nº 0001, a grey $0.00, the sentence, blank rows and no older months', async () => {
+    await renderHome(blank());
+    await loaded();
+    expect(screen.getByText('Invoice Nº 0001')).toBeTruthy();
+    expect(flat(screen.getByTestId('invoice-total').props.style).color).toBe(colors.zeroAmount);
+    expect(screen.getByText('A blank invoice. It fills itself in as you scan.')).toBeTruthy();
+    expect(screen.getByLabelText('No budgets yet')).toBeTruthy();
+    expect(screen.queryByText('Everything else')).toBeNull();
+    expect(screen.queryByTestId('older-months', { includeHiddenElements: true })).toBeNull();
+  });
+
+  it('invites a first budget from the note and a first scan, and rings Scan', async () => {
+    const router = await renderHome(blank());
+    await loaded();
+    expect(screen.getByText('Set your first monthly budget')).toBeTruthy();
+    expect(screen.getByText('No receipts yet')).toBeTruthy();
+    expect(screen.getByText('Tap Scan below to add your first one.')).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'See all' })).toBeNull();
-    expect(screen.getByText('Receipts you scan show up here, newest first.')).toBeTruthy();
+    await waitFor(() => expect(screen.getByTestId('scan-ring')).toBeTruthy());
+
+    await fireEvent.press(screen.getByTestId('invoice-note'));
+    await waitFor(() => expect(router.getPathname()).toBe('/budgets'));
   });
 
-  it('shows each empty part on its own: receipts but no budgets', async () => {
-    const home = new FakeHomeRepository();
-    home.budgetList = [];
-    await renderHome(scheme, home);
-
-    await waitFor(() => expect(screen.getByText('Spinneys Achrafieh')).toBeTruthy());
-    expect(screen.getByText('$447.80')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Set a budget' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Scan a receipt' })).toBeNull();
-    expect(screen.queryByText('Receipts you scan show up here, newest first.')).toBeNull();
-  });
-
-  it('shows each empty part on its own: budgets and older receipts, nothing this month', async () => {
-    const home = new FakeHomeRepository();
-    home.spending = emptyMonth;
-    await renderHome(scheme, home);
-
-    await waitFor(() => expect(screen.getByText('No receipts yet this month')).toBeTruthy());
-    expect(screen.getByRole('button', { name: 'Scan a receipt' })).toBeTruthy();
-    expect(screen.getByText('Limit reached · 105%')).toBeTruthy();
-    expect(screen.getByText('Spinneys Achrafieh')).toBeTruthy();
+  it('shows receipts from earlier months under a blank invoice', async () => {
+    const home = blank();
+    home.receiptList = [abouRami];
+    await renderHome(home);
+    await loaded();
+    expect(screen.getByText('Abou Rami')).toBeTruthy();
   });
 });
 
-describe('Home', () => {
-  it('says just Hello for an account with no first name', async () => {
-    await renderHome('light', new FakeHomeRepository(), signedIn(null));
-    await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
-    expect(screen.getByText('Hello')).toBeTruthy();
+describe('Home loading and failing', () => {
+  it('bills "you" for an account with no first name', async () => {
+    await renderHome(new FakeHomeRepository(), signedIn(null));
+    await loaded();
+    expect(screen.getByText('Billed to you')).toBeTruthy();
   });
 
-  it('shows Loading… under the greeting until the figures arrive', async () => {
+  it('shows a spinner until the figures arrive', async () => {
     const home = new FakeHomeRepository();
     let release: () => void = () => undefined;
     const gate = new Promise<void>((resolve) => {
@@ -163,79 +192,42 @@ describe('Home', () => {
       await gate;
       return original(month);
     };
-    await renderHome('light', home);
+    await renderHome(home);
 
-    expect(screen.getByText('Loading…')).toBeTruthy();
+    expect(screen.getByLabelText('Loading')).toBeTruthy();
     await act(async () => release());
-    await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
-    expect(screen.queryByText('Loading…')).toBeNull();
+    await loaded();
+    expect(screen.queryByLabelText('Loading')).toBeNull();
   });
 
   it('says why it could not load, and loads on Try again', async () => {
     const home = new FakeHomeRepository();
     home.offline = true;
-    await renderHome('light', home);
+    await renderHome(home);
 
     await waitFor(() => expect(screen.getByTestId('home-error')).toBeTruthy());
-    expect(
-      screen.getByText(
-        'Fatourati could not reach the server, so this month’s spending is not shown. Check the connection.',
-      ),
-    ).toBeTruthy();
-    expect(screen.queryByText('$0.00')).toBeNull();
+    expect(screen.getByText('Fatourati could not reach the server, so this month’s invoice is not shown. Check the connection.')).toBeTruthy();
+    expect(screen.queryByTestId('invoice')).toBeNull();
 
     home.offline = false;
     await fireEvent.press(screen.getByRole('link', { name: 'Try again' }));
-    await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
+    await loaded();
     expect(screen.queryByTestId('home-error')).toBeNull();
   });
 
-  it('reloads on pull-to-refresh, keeping the figures if the reload fails', async () => {
+  it('reloads on pull-to-refresh, keeping the invoice if the reload fails', async () => {
     const home = new FakeHomeRepository();
-    await renderHome('light', home);
-    await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
+    await renderHome(home);
+    await loaded();
 
     home.spending = { ...november, total: '460.00' };
     const refresh = () => screen.getByTestId('home-scroll').props.refreshControl.props.onRefresh();
     await act(async () => refresh());
-    await waitFor(() => expect(screen.getByText('$460.00')).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId('invoice-total').props.children).toBe('$460.00'));
 
     home.offline = true;
     await act(async () => refresh());
     await waitFor(() => expect(screen.getByTestId('home-error')).toBeTruthy());
-    expect(screen.getByText('$460.00')).toBeTruthy();
-  });
-
-  it('opens the Budgets tab from See all', async () => {
-    const router = await renderHome('light', new FakeHomeRepository());
-    await waitFor(() => expect(screen.getByText('$447.80')).toBeTruthy());
-    await fireEvent.press(screen.getByRole('link', { name: 'See all' }));
-    await waitFor(() => expect(router.getPathname()).toBe('/budgets'));
-  });
-
-  it('opens the Scan tab from the main button', async () => {
-    const home = new FakeHomeRepository();
-    home.spending = emptyMonth;
-    const router = await renderHome('light', home);
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Scan a receipt' })).toBeTruthy());
-    await fireEvent.press(screen.getByRole('button', { name: 'Scan a receipt' }));
-    await waitFor(() => expect(router.getPathname()).toBe('/scan'));
-  });
-
-  it('opens the Budgets tab from Set a budget', async () => {
-    const home = new FakeHomeRepository();
-    home.budgetList = [];
-    const router = await renderHome('light', home);
-    await waitFor(() => expect(screen.getByRole('link', { name: 'Set a budget' })).toBeTruthy());
-    await fireEvent.press(screen.getByRole('link', { name: 'Set a budget' }));
-    await waitFor(() => expect(router.getPathname()).toBe('/budgets'));
-  });
-
-  it('opens settings from the gear, and has no sign out of its own (it moved to settings, D043)', async () => {
-    const router = await renderHome('light', new FakeHomeRepository());
-    await waitFor(() => expect(screen.getByText('Hello, Christina')).toBeTruthy());
-    expect(screen.queryByRole('link', { name: 'Sign out' })).toBeNull();
-    await fireEvent.press(screen.getByRole('button', { name: 'Settings' }));
-    await waitFor(() => expect(router.getPathname()).toBe('/settings'));
+    expect(screen.getByTestId('invoice-total').props.children).toBe('$460.00');
   });
 });

@@ -1,133 +1,91 @@
 import {
   barWidthPercent,
-  budgetStateWords,
-  budgetTone,
+  billedTo,
+  budgetRemainder,
   closestToLimit,
-  greeting,
+  everythingElse,
+  invoiceNumber,
   isMonthEmpty,
+  isOver,
   itemCountWords,
   newestConfirmed,
-  wholePercent,
+  olderMonths,
+  receiptSubline,
 } from '@/features/home/domain/rules';
 
-import {
-  abouRami,
-  awaiting,
-  budget,
-  eatingOut,
-  emptyMonth,
-  fuel,
-  groceries,
-  listing,
-  november,
-  spinneys,
-  transport,
-  zaatar,
-} from './fakes';
+import { awaiting, eatingOut, emptyMonth, fuel, groceries, november, septemberReceipt, spinneys, transport, zaatar } from './fakes';
 
-describe('greeting', () => {
-  it('greets by first name, or just Hello when there is none', () => {
-    expect(greeting('Christina')).toBe('Hello, Christina');
-    expect(greeting('  Maya ')).toBe('Hello, Maya');
-    expect(greeting(null)).toBe('Hello');
-    expect(greeting(undefined)).toBe('Hello');
-    expect(greeting('   ')).toBe('Hello');
+const nov = new Date(2026, 10, 25);
+
+describe('the invoice header', () => {
+  it('bills the user by first name, or "you"', () => {
+    expect(billedTo('Christina')).toBe('Billed to Christina');
+    expect(billedTo('  ')).toBe('Billed to you');
+    expect(billedTo(null)).toBe('Billed to you');
   });
-});
 
-describe('isMonthEmpty', () => {
-  it('is empty only when no receipt was counted this month', () => {
+  it('numbers one invoice a month from the first receipt: Nº 0001 for a new user', () => {
+    expect(invoiceNumber(nov, [])).toBe(1);
+    expect(invoiceNumber(nov, [spinneys, zaatar])).toBe(1);
+    expect(invoiceNumber(nov, [spinneys, septemberReceipt])).toBe(3);
+    // A receipt still being checked does not count.
+    expect(invoiceNumber(nov, [{ ...septemberReceipt, status: 'needs_review' }, spinneys])).toBe(1);
+  });
+
+  it('peeks the two months before once there are older receipts, and none for a new user', () => {
+    expect(olderMonths(nov, [spinneys, septemberReceipt])).toEqual(['2026-09-01', '2026-10-01']);
+    expect(olderMonths(nov, [spinneys, zaatar])).toEqual([]);
+    expect(olderMonths(new Date(2027, 0, 5), [spinneys])).toEqual(['2026-11-01', '2026-12-01']);
+  });
+
+  it('knows a month with nothing confirmed is blank', () => {
     expect(isMonthEmpty(emptyMonth)).toBe(true);
     expect(isMonthEmpty(november)).toBe(false);
-    // Receipts awaiting review are not counted, so the month still reads empty.
-    expect(isMonthEmpty({ ...emptyMonth, awaitingReview: 2 })).toBe(true);
   });
 });
 
-describe('closestToLimit', () => {
-  it('keeps the three with the highest percent used, closest first', () => {
-    expect(closestToLimit([fuel, groceries, transport, eatingOut]).map((b) => b.name)).toEqual([
+describe('the budget table', () => {
+  it('lists the three budgets closest to their limit, over-budget first', () => {
+    expect(closestToLimit([groceries, fuel, transport, eatingOut]).map((budget) => budget.name)).toEqual([
       'Transport',
       'Eating out',
       'Groceries',
     ]);
   });
 
-  it('compares percentages as numbers, not as text', () => {
-    const nine = budget(5, 'Gifts', '9.00', '100.00', '9.0', 'ok');
-    const eighty = budget(6, 'Pharmacy', '80.00', '100.00', '80.0', 'near');
-    const hundredTen = budget(7, 'Phone', '110.00', '100.00', '110.0', 'limit_reached');
-    expect(closestToLimit([nine, eighty, hundredTen]).map((b) => b.name)).toEqual(['Phone', 'Pharmacy', 'Gifts']);
+  it('says what is left, or by how much a budget is over (DESIGN.md §4)', () => {
+    expect(budgetRemainder(eatingOut)).toEqual({ kind: 'left', amount: '8.50' });
+    expect(budgetRemainder(transport)).toEqual({ kind: 'over', amount: '3.00' });
+    expect(isOver(transport)).toBe(true);
+    expect(isOver(eatingOut)).toBe(false);
+    expect(isOver({ spent: '60.00', limit: '60.00' })).toBe(false);
   });
 
-  it('breaks ties by name and does not change the list it is given', () => {
-    const a = budget(5, 'Water', '50.00', '100.00', '50.0', 'ok');
-    const b = budget(6, 'Bakery', '25.00', '50.00', '50.0', 'ok');
-    const input = [a, b];
-    expect(closestToLimit(input).map((item) => item.name)).toEqual(['Bakery', 'Water']);
-    expect(input).toEqual([a, b]);
+  it('fills the bar up to its limit, never past it', () => {
+    expect(barWidthPercent('89.4')).toBe(89.4);
+    expect(barWidthPercent('105.0')).toBe(100);
+    expect(barWidthPercent('nonsense')).toBe(0);
   });
 
-  it('returns fewer when there are fewer, and nothing for no budgets', () => {
-    expect(closestToLimit([groceries])).toEqual([groceries]);
-    expect(closestToLimit([])).toEqual([]);
-    expect(closestToLimit([groceries, fuel], 0)).toEqual([]);
-  });
-});
-
-describe('percentages and bars', () => {
-  it('rounds the shown percentage down, so near never reads 100%', () => {
-    expect(wholePercent('89.4')).toBe(89);
-    expect(wholePercent('99.9')).toBe(99);
-    expect(wholePercent('105.0')).toBe(105);
-    expect(wholePercent('0.0')).toBe(0);
-    expect(wholePercent('not a number')).toBe(0);
-  });
-
-  it('fills the bar up to 100% and never past it', () => {
-    expect(barWidthPercent('74.6')).toBe(74.6);
-    expect(barWidthPercent('100.0')).toBe(100);
-    expect(barWidthPercent('250.0')).toBe(100);
-    expect(barWidthPercent('0.0')).toBe(0);
-    expect(barWidthPercent('-3')).toBe(0);
+  it('puts the rest of the total under "Everything else", so the rows add up to TOTAL', () => {
+    const shown = [transport, eatingOut, groceries];
+    expect(everythingElse(november.total, november.categories, shown)).toBe('126.90');
+    // A budget that is not shown falls into Everything else too.
+    expect(everythingElse(november.total, november.categories, [transport])).toBe('384.80');
+    expect(everythingElse('0.00', [], [])).toBe('0.00');
   });
 });
 
-describe('budget states', () => {
-  it('colours fine budgets ink, near ochre and reached red', () => {
-    expect(budgetTone('ok')).toBe('ink');
-    expect(budgetTone('near')).toBe('near-limit');
-    expect(budgetTone('limit_reached')).toBe('limit-reached');
+describe('recent receipts', () => {
+  it('lists only confirmed receipts, newest first', () => {
+    expect(newestConfirmed([awaiting, spinneys, zaatar]).map((receipt) => receipt.id)).toEqual([31, 30]);
   });
 
-  it('says the state in words when it needs attention', () => {
-    expect(budgetStateWords(eatingOut)).toBe('Near limit · 89%');
-    expect(budgetStateWords(transport)).toBe('Limit reached · 105%');
-    expect(budgetStateWords(groceries)).toBeNull();
-    expect(budgetStateWords({ state: 'near', percentUsed: '99.9' })).toBe('Near limit · 99%');
-  });
-});
-
-describe('newestConfirmed', () => {
-  it('keeps the backend order and only confirmed receipts with a date and total', () => {
-    const processing = listing(33, null, '2026-11-20', '0', 'USD', spinneys.createdAt, 'processing');
-    const noTotal = { ...listing(34, 'Bliss House', '2026-11-20', '0', 'USD', spinneys.createdAt), total: null };
-    const older = { ...abouRami, id: 28, receiptDate: '2026-11-02' };
-    const all = [awaiting, processing, noTotal, spinneys, zaatar, abouRami, older];
-    expect(newestConfirmed(all).map((receipt) => receipt.id)).toEqual([31, 30, 29]);
-  });
-
-  it('returns what there is', () => {
-    expect(newestConfirmed([zaatar])).toEqual([zaatar]);
-    expect(newestConfirmed([])).toEqual([]);
-    expect(newestConfirmed([awaiting])).toEqual([]);
-  });
-});
-
-describe('itemCountWords', () => {
-  it('counts items, singular for one, nothing for none', () => {
-    expect(itemCountWords(9)).toBe('9 items');
-    expect(itemCountWords(1)).toBe('1 item');
-    expect(itemCountWords(0)).toBeNull();
+  it('writes "Groceries · 9 items", with only the parts it knows', () => {
+    expect(receiptSubline('Groceries', 9)).toBe('Groceries · 9 items');
+    expect(receiptSubline(null, 1)).toBe('1 item');
+    expect(receiptSubline('Groceries', 0)).toBe('Groceries');
+    expect(receiptSubline(null, 0)).toBeNull();
+    expect(itemCountWords(2)).toBe('2 items');
   });
 });

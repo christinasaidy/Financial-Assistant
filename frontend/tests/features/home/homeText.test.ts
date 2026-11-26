@@ -1,86 +1,72 @@
 import type { RecentReceipt } from '@/features/home/domain/types';
 import {
-  budgetAccessibilityLabel,
-  budgetAmounts,
-  formatLimit,
-  monthCaption,
+  invoiceLabel,
+  invoiceLine,
+  limitCell,
   monthLabel,
   monthTotal,
-  receiptMeta,
-  receiptTotal,
-  shopName,
+  olderMonthLabel,
+  receiptAmount,
+  receiptApproxUsd,
+  receiptDay,
+  remainderText,
+  spentCell,
 } from '@/features/home/ui/homeText';
 
-import { budget, emptyMonth, groceries, localIso, november, transport } from './fakes';
+import { budget, eatingOut, emptyMonth, november, transport } from './fakes';
 
-function recent(overrides: Partial<RecentReceipt> = {}): RecentReceipt {
+function recent(overrides: Partial<RecentReceipt>): RecentReceipt {
   return {
-    id: 31,
-    shopName: 'Spinneys Achrafieh',
-    receiptDate: '2026-11-18',
-    createdAt: localIso(2026, 11, 18, 18, 42),
-    currency: 'USD',
-    total: '38.40',
-    itemCount: 9,
+    id: 1,
+    shopName: 'Zaatar w Zeit',
+    receiptDate: '2026-11-17',
+    createdAt: '2026-11-17T11:05:00Z',
+    currency: 'LBP',
+    total: '450000.00',
+    itemCount: 2,
+    category: 'Eating out',
+    lbpPerUsd: '89500.00',
     ...overrides,
   };
 }
 
-describe('the month', () => {
-  it('names the month the backend summed and shows the total in dollars', () => {
-    expect(monthLabel(november)).toBe('This month · November');
+describe('the invoice in words (design/screens/03-home.png)', () => {
+  it('numbers and dates the invoice', () => {
+    expect(invoiceLabel(447)).toBe('Invoice Nº 0447');
+    expect(invoiceLabel(1)).toBe('Invoice Nº 0001');
+    expect(monthLabel(november)).toBe('Nov 2026');
+    expect(olderMonthLabel('2026-09-01')).toBe('Sep');
     expect(monthTotal(november)).toBe('$447.80');
-    expect(monthTotal(emptyMonth)).toBe('$0.00');
   });
 
-  it('says how dollars and pounds were combined, with only the parts that exist (D034)', () => {
-    expect(monthCaption(november)).toBe('$412.60 + 3,150,000 LBP at 89,500 LBP per $');
-    expect(monthCaption({ ...november, total: '35.20', usdPart: null })).toBe('3,150,000 LBP at 89,500 LBP per $');
-    expect(monthCaption({ ...november, total: '412.60', lbpPart: null })).toBeNull();
+  it('writes the line under the total with only the parts that exist', () => {
+    expect(invoiceLine(november)).toEqual({ text: '$412.60 + 3,150,000 LBP · 89,500', blank: false });
+    expect(invoiceLine({ ...november, usdPart: null })).toEqual({ text: '3,150,000 LBP · 89,500', blank: false });
+    expect(invoiceLine({ ...november, lbpPart: null })).toBeNull();
+    expect(invoiceLine(emptyMonth)).toEqual({ text: 'A blank invoice. It fills itself in as you scan.', blank: true });
   });
 
-  it('says there is nothing yet before the first receipt (D037)', () => {
-    expect(monthCaption(emptyMonth)).toBe('No receipts yet this month');
-  });
-});
-
-describe('budgets', () => {
-  it('shows spent and limit, dropping .00 from a whole dollar limit', () => {
-    expect(budgetAmounts(transport)).toBe('$63.00 / $60');
-    expect(budgetAmounts(groceries)).toBe('$186.40 / $250');
-    expect(formatLimit('62.50', 'USD')).toBe('$62.50');
-    expect(formatLimit('1000.00', 'USD')).toBe('$1,000');
-  });
-
-  it('shows pound budgets in pounds', () => {
-    const gas = { ...budget(9, 'Fuel', '1350000.00', '2000000.00', '67.5', 'ok'), currency: 'LBP' as const };
-    expect(budgetAmounts(gas)).toBe('1,350,000 LBP / 2,000,000 LBP');
-  });
-
-  it('reads a budget row to VoiceOver without the slash', () => {
-    expect(budgetAccessibilityLabel(transport)).toBe('Transport, $63.00 of $60, Limit reached · 105%');
-    expect(budgetAccessibilityLabel(groceries)).toBe('Groceries, $186.40 of $250');
+  it('fills the table cells without a currency sign', () => {
+    expect(limitCell(transport)).toBe('60');
+    expect(limitCell(budget(9, 'Coffee', '10.00', '62.50', '16.0', 'ok'))).toBe('62.50');
+    expect(spentCell(eatingOut)).toBe('71.50');
+    expect(remainderText(eatingOut)).toBe('8.50 left');
+    expect(remainderText(transport)).toBe('+3.00 over');
+    const pounds = { ...budget(9, 'Bakery', '1250000.00', '3000000.00', '41.7', 'ok' as const), currency: 'LBP' as const };
+    expect(limitCell(pounds)).toBe('3,000,000');
+    expect(remainderText(pounds)).toBe('1,750,000 left');
   });
 });
 
-describe('recent receipts', () => {
-  it('shows the total in its own currency', () => {
-    expect(receiptTotal(recent())).toBe('$38.40');
-    expect(receiptTotal(recent({ currency: 'LBP', total: '450000.00' }))).toBe('450,000 LBP');
+describe('a recent receipt in words', () => {
+  it('splits the date into the day and the month', () => {
+    expect(receiptDay(recent({}))).toEqual({ day: '17', month: 'Nov' });
   });
 
-  it('shows date, time and items when the receipt was added the day it is dated', () => {
-    expect(receiptMeta(recent())).toBe('18/11/2026 · 18:42 · 9 items');
-    expect(receiptMeta(recent({ itemCount: 1 }))).toBe('18/11/2026 · 18:42 · 1 item');
-  });
-
-  it('leaves out a time from another day and a count of no items', () => {
-    expect(receiptMeta(recent({ createdAt: localIso(2026, 11, 20, 9, 0) }))).toBe('18/11/2026 · 9 items');
-    expect(receiptMeta(recent({ itemCount: 0 }))).toBe('18/11/2026 · 18:42');
-  });
-
-  it('has a plain stand-in for a receipt confirmed without a shop name', () => {
-    expect(shopName(recent())).toBe('Spinneys Achrafieh');
-    expect(shopName(recent({ shopName: null }))).toBe('Shop not named');
+  it('shows pounds with their dollar value at the receipt’s rate, and dollars alone', () => {
+    expect(receiptAmount(recent({}))).toBe('450,000 LBP');
+    expect(receiptApproxUsd(recent({}))).toBe('≈ $5.03');
+    expect(receiptAmount(recent({ currency: 'USD', total: '38.40' }))).toBe('$38.40');
+    expect(receiptApproxUsd(recent({ currency: 'USD', total: '38.40' }))).toBeNull();
   });
 });

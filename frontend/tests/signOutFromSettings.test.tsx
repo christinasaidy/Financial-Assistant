@@ -24,7 +24,7 @@ function replyWith(body: unknown) {
   return { ok: true, status: 200, text: async () => JSON.stringify(body) } as Response;
 }
 
-it('opens settings from the gear, signs out there, and signs in again', async () => {
+it('opens settings from the wordmark, signs out there, and signs in again', async () => {
   const fetchMock = jest.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
     const url = String(input);
     if (url.includes('/auth/login')) return replyWith({ access_token: 'jwt', token_type: 'bearer', expires_in: 3600, user: christinaFromApi });
@@ -40,13 +40,13 @@ it('opens settings from the gear, signs out there, and signs in again', async ()
     await fireEvent.changeText(screen.getByLabelText('Email'), 'christina@example.com');
     await fireEvent.changeText(screen.getByLabelText('Password'), 'password123');
     await fireEvent.press(screen.getByRole('button', { name: 'Sign in' }));
-    await waitFor(() => expect(screen.getByText('Hello, Christina')).toBeTruthy());
+    await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy());
   };
   await signInOnce();
 
-  await fireEvent.press(screen.getByRole('button', { name: 'Settings' }));
+  await fireEvent.press(screen.getByTestId('home-settings'));
   await waitFor(() => expect(router.getPathname()).toBe('/settings'));
-  await fireEvent.press(screen.getByRole('link', { name: 'Sign out' }));
+  await fireEvent.press(screen.getByRole('button', { name: 'Sign out' }));
   await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
 
   const before = fetchMock.mock.calls.filter(([u]) => String(u).includes('/auth/login')).length;
@@ -55,5 +55,5 @@ it('opens settings from the gear, signs out there, and signs in again', async ()
   const button = screen.getByRole('button', { name: 'Sign in' });
   await fireEvent.press(button);
   await waitFor(() => expect(fetchMock.mock.calls.filter(([u]) => String(u).includes('/auth/login')).length).toBe(before + 1));
-  await waitFor(() => expect(screen.getByText('Hello, Christina')).toBeTruthy());
+  await waitFor(() => expect(screen.getByTestId('home-settings')).toBeTruthy());
 });

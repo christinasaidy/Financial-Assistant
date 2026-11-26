@@ -1,6 +1,5 @@
 import type { ArtNode } from '@/shared/ui/art/ArtSvg';
 import * as iconArt from '@/shared/ui/art/iconArt.generated';
-import * as wordmarkArt from '@/shared/ui/art/wordmarkArt.generated';
 
 function gradients(node: ArtNode): ArtNode[] {
   const own = node.tag === 'linearGradient' ? [node] : [];
@@ -20,7 +19,7 @@ function allArt(module: Record<string, unknown>): ArtNode[] {
 }
 
 describe('converted artwork keeps each fade running top to bottom', () => {
-  const art = [...allArt(iconArt), ...allArt(wordmarkArt)];
+  const art = allArt(iconArt);
   const fades = art.flatMap(gradients);
 
   it('finds the printed fades', () => {

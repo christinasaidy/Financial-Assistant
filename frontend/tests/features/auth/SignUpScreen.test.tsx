@@ -31,9 +31,8 @@ async function pressCreate() {
 describe('SignUpScreen', () => {
   it('shows the approved layout with the gender choice and no Apple button', async () => {
     await renderAuthRoutes('/sign-up');
-    expect(screen.getByTestId('paper-plain')).toBeTruthy();
     expect(screen.getByLabelText('Fatourati')).toBeTruthy();
-    expect(screen.getByRole('header', { name: 'Create account' })).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Start a fresh invoice.' })).toBeTruthy();
     expect(screen.getByText('Keep every receipt in one place, in dollars and pounds.')).toBeTruthy();
     // Shown under the line; VoiceOver reads it as the field's hint instead, so it is not read twice.
     expect(screen.getByText('At least 8 characters', { includeHiddenElements: true })).toBeTruthy();
@@ -171,6 +170,6 @@ describe('SignUpScreen', () => {
     const { router } = await renderAuthRoutes('/sign-up');
     await fireEvent.press(screen.getByRole('link', { name: 'Sign in' }));
     await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
-    expect(screen.getByRole('header', { name: 'Sign in' })).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Let’s flatten these out.' })).toBeTruthy();
   });
 });

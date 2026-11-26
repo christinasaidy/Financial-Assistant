@@ -1,51 +1,39 @@
 import { render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { LaunchScreen } from '@/features/launch/ui/LaunchScreen';
-import { ThemeOverride, inkOnHighlight, type ColorScheme } from '@/shared/theme';
-
-// The status bar draws nothing in the tree; record the style the screen asks for instead.
-jest.mock('expo-status-bar', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    StatusBar: ({ style }: { style?: string }) => <View testID="status-bar" accessibilityHint={style} />,
-  };
-});
+import { colors, fonts } from '@/shared/theme';
 
 function flat(style: unknown) {
   return StyleSheet.flatten(style as never) as Record<string, unknown>;
 }
 
-describe.each<ColorScheme>(['light', 'dark'])('LaunchScreen in the %s theme', (scheme) => {
-  beforeEach(async () => {
+describe('LaunchScreen (design/screens/01-launch.png)', () => {
+  it('is one creased launch sheet on white', async () => {
     await render(
-      <ThemeOverride scheme={scheme}>
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 59, bottom: 34, left: 0, right: 0 } }}>
         <LaunchScreen />
-      </ThemeOverride>,
+      </SafeAreaProvider>,
+    );
+    expect(flat(screen.getByTestId('launch-screen').props.style).backgroundColor).toBe(colors.white);
+    expect(flat(screen.getByText('Fatourati').parent?.parent?.props.style).backgroundColor).toBe(colors.launchPaper);
+    expect(screen.getByTestId('crease', { includeHiddenElements: true }).props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ opacity: 0.69 })]),
     );
   });
 
-  it('is yellow paper with its grain, the same in both themes (D039)', () => {
-    expect(flat(screen.getByTestId('paper-yellow').props.style).backgroundColor).toBe('#f5e54a');
-    expect(screen.queryByTestId('paper-plain')).toBeNull();
-  });
-
-  it('shows only the large wordmark, in ink, read as "Fatourati", centred', () => {
-    const wordmark = screen.getByLabelText('Fatourati');
-    expect(wordmark.props.accessibilityRole).toBe('image');
-    expect(flat(wordmark.props.style)).toMatchObject({ width: 284, height: 59 });
-    const drawing = wordmark.children[0];
-    expect(typeof drawing === 'object' ? drawing.props.color : null).toBe(inkOnHighlight);
-    // The wordmark sits in a box that shrinks to it, in a box that fills the paper and centres it.
-    expect(flat(wordmark.parent?.parent?.props.style)).toMatchObject({
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    });
-    expect(screen.queryAllByText(/./)).toHaveLength(0);
-  });
-
-  it('keeps the status bar dark on the yellow', () => {
-    expect(screen.getByTestId('status-bar').props.accessibilityHint).toBe('dark');
+  it('carries the invoice header, the huge فاتورتي, the name, the zero total and the tagline', async () => {
+    await render(
+      <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 59, bottom: 34, left: 0, right: 0 } }}>
+        <LaunchScreen />
+      </SafeAreaProvider>,
+    );
+    expect(flat(screen.getByText('Invoice Nº 0001').props.style).color).toBe(colors.launchCobalt);
+    expect(screen.getByText('USD · LBP')).toBeTruthy();
+    expect(flat(screen.getByText('فاتورتي').props.style)).toMatchObject({ fontFamily: fonts.arabic.bold, fontSize: 108 });
+    expect(screen.getByRole('header', { name: 'Fatourati' })).toBeTruthy();
+    expect(screen.getByText('Total · $0.00')).toBeTruthy();
+    expect(screen.getByText('Every crumpled receipt, flattened out and accounted for.')).toBeTruthy();
   });
 });

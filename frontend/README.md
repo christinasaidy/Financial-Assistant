@@ -1,9 +1,9 @@
 # Fatourati (mobile app)
 
 React Native with Expo SDK 58, TypeScript (strict) and Expo Router. Designed and tested on an iPhone with
-Expo Go (D004). The design system is in [docs/design/DESIGN.md](docs/design/DESIGN.md) (values) and
-[docs/design/DECISIONS.md](docs/design/DECISIONS.md) (reasons); the approved screens are in
-[docs/design/mockups/](docs/design/mockups/README.md).
+Expo Go (D004). The design is in [design/DESIGN.md](design/DESIGN.md), with its tokens in
+[design/theme.ts](design/theme.ts), the screens in [design/screens/](design/screens/) and their exact markup in
+[design/reference/](design/reference/) (D044). The reasons are in [docs/design/DECISIONS.md](docs/design/DECISIONS.md).
 
 ## Run it on the iPhone (Expo Go)
 
@@ -21,11 +21,9 @@ Expo Go (D004). The design system is in [docs/design/DESIGN.md](docs/design/DESI
 
 To check the phone can reach the backend, open `http://<laptop-IP>:8000/docs` in Safari on the iPhone.
 
-**Splash screen.** `app.json` configures the native splash as the yellow launch (`#f5e54a` and the large
-wordmark, `assets/splash/wordmark-large.png`, D039), but **Expo Go shows its own splash** (the Expo Go icon);
-the configured one appears only in a development or store build. The yellow launch route (`app/index.tsx`)
-shows right after, while the saved session is checked. The native splash is plain yellow: a splash image cannot
-tile the grain.
+**Splash screen.** `app.json` configures a plain white native splash, like the launch screen's background,
+but **Expo Go shows its own splash** (the Expo Go icon); the configured one appears only in a development or store
+build. The launch route (`app/index.tsx`) shows right after, while the saved session is checked.
 
 ## Commands
 
@@ -80,32 +78,34 @@ violations to prove it catches them.
 ```
 frontend/
   app/                         Expo Router routes only
-    _layout.tsx                fonts, splash, SessionProvider, AppearanceProvider, status bar, who sees which routes
+    _layout.tsx                fonts, splash, SessionProvider, status bar, who sees which routes
     index.tsx                  launch route: LaunchScreen while the session is checked, then redirects
     (auth)/sign-in.tsx         sign in (features/auth/ui/SignInScreen)
     (auth)/sign-up.tsx         create account (features/auth/ui/SignUpScreen)
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
     (tabs)/index.tsx           Home (features/home/ui/HomeScreen)
     (tabs)/receipts|scan|budgets|assistant.tsx   placeholders
-    settings.tsx               settings, pushed over the tabs (features/settings/ui/SettingsScreen)
+    settings.tsx               settings, pushed over the tabs from the wordmark (features/settings/ui/SettingsScreen)
   src/
     container.ts               composition root
     shared/
-      theme/                   tokens.ts (from DESIGN.md), textStyles.ts, useTheme() (light/dark)
-      ui/                      AppText, Paper, Wordmark, Icon, Button, TextField, TextLink, OptionRow,
-                               DashedRule, TabBar, HighlightSwipe, PlaceholderScreen; art/ = converted SVGs
+      theme/                   tokens.ts: design/theme.ts re-exported, plus the reference screens' extra colours
+      ui/                      AppText, paper (PaperSheet, Crease, TornEdge, Perforation, DashedLine, DoubleRule),
+                               Wordmark, Icon + LineIcon, Button, TextField, SegmentedChoice, TextLink, TabBar,
+                               PlaceholderScreen; art/ = the five tab icons, converted
       api/httpClient.ts        fetch wrapper: base URL, JSON, bearer token, ApiError, NetworkError
-      storage/tokenStore.ts    one value in the Keychain (expo-secure-store): the session, the appearance
+      storage/tokenStore.ts    one value in the Keychain (expo-secure-store): the session
       format/                  money.ts (D034), dates.ts (dd/mm/yyyy, 24 h)
     features/
       auth/{domain,application,data,ui}
-      launch/ui                LaunchScreen (yellow paper, large wordmark); no other layers
-      home/{domain,application,data,ui}     Home
-      settings/{domain,application,data,ui} Settings: the appearance (Phone / Light / Dark) and sign out
+      launch/ui                LaunchScreen (the creased launch sheet); no other layers
+      home/{domain,application,data,ui}     Home: the month's invoice and recent receipts
+      settings/ui              Settings: the account and sign out
   tests/                       mirrors src/; plus architecture.test.ts and routes.test.tsx
-  assets/                      fonts (+ DejaVu LICENSE), icons, wordmark, paper textures, splash
+  assets/                      icons (the five kept), paper/crease.jpg (fonts come from @expo-google-fonts)
   scripts/convert-svgs.mjs     SVG → react-native-svg data
-  docs/design/                 the design system
+  design/                      THE DESIGN (D044): DESIGN.md, theme.ts, screens/, reference/, assets/
+  docs/design/                 DECISIONS.md, and the first design (superseded)
 ```
 
 ### How a feature adds a screen
@@ -136,11 +136,14 @@ Signed-out routes go in `app/(auth)/`, signed-in ones in `app/(tabs)/` or a new 
 
 ## Shared pieces, in short
 
-- **Theme**: `useTheme()` returns `{ scheme, colors }` for the phone's light or dark setting (D003).
-  `colors` has every DESIGN.md colour token by name (`colors['ink-2']`). Spacing, sizes and fonts are in
-  `@/shared/theme` (`spacing.lg`, `spacing['screen-margin']`, `sizes.button`).
-- **Text**: always `AppText` with one of the nine `variant`s (D014); write text in normal case, the variant adds
-  capitals (D012). Text follows the iPhone's text-size setting (D013).
+- **Design**: follow `design/DESIGN.md`; open the screen's image in `design/screens/` and, for exact values,
+  `design/reference/<screen>.html`. Light only (D044).
+- **Theme**: `colors`, `fonts`, `radius`, `crease`, `tornEdge`, `shadow` from `@/shared/theme` (design/theme.ts
+  plus the reference screens' extra colours). Spacing is the reference's own px values.
+- **Text**: always `AppText`: `font` (sans, mono, arabic), `weight`, `size`, `color`, `tracking` (em), or `cap`
+  for the small capital labels. Numbers in mono (tabular). Text follows the iPhone's text-size setting.
+- **Paper**: `PaperSheet` (crease on top of the content, torn edge, shadow; pass `on` with the colour behind so
+  the teeth are creased too).
 - **Session**: `useSession()` from `@/features/auth/ui/SessionProvider` gives
   `{ status, user, signIn, signUp, signOut }`. The routes follow `status` by themselves: no manual navigation
   after signing in or out.
@@ -149,26 +152,11 @@ Signed-out routes go in `app/(auth)/`, signed-in ones in `app/(tabs)/` or a new 
 
 ## Open questions
 
-Values the foundation needed that DESIGN.md does not record yet. Each uses the closest recorded value or the
-approved mockup, and should be decided with Christina and recorded in DECISIONS.md:
+Not designed yet (D044), built simply until Christina decides:
 
-- **Main button states**: pressed, disabled and busy have no look yet (only behaviour and VoiceOver). Its side
-  padding when a long label wraps at large text sizes uses `spacing.lg` (16). The label uses the `paper` token
-  (#ffffff / #17181b, D042); the mockups still show the old #f3f4f1.
-- **Fill-in field** (D040): the 40 px value row, the 4 px caption gap and the 12 px gap before SHOW come from the
-  sign-in mockup. Error text style and place are not decided (built as a `sentence` in `limit-reached` under the
-  line); placeholder colour (`ink-2`), focus look and whether the line changes colour on error are not decided.
-- **Sign in and create account** (D040, D041): the mockups' off-scale gaps are rounded to the 4 px scale: 24 px
-  between fields (mockup 20), 32 px above the first field and above the button (mockup 28 on create account,
-  and the space Forgot password? left on sign in). The top is the safe area plus 48 px (sign in) or 32 px (create
-  account), close to the mockups' 112 and 96 px from the top of the screen. The password hint is `meta` 4 px
-  under the line (mockup 6 px) and gives way to the error. Messages about the whole form (wrong password, no
-  connection) sit 24 px above the button in the field-error style. Gender: 8 px between the caption and the
-  options and between options, unchosen labels `ink-2`. None of these is in DESIGN.md yet.
-- **Tab bar**: 4 px between icon and label (the mockup's Scan tab uses 2 px, which is off the 4 px scale) and
-  4 px padding inside the yellow swipe. At very large text sizes the labels shrink to fit one line
-  (ASSISTANT barely fits a fifth of the screen); not decided.
-- **Dark mode on yellow**: the selected tab's label is ink #1c1d21 as D038 says (the dark mockup uses #17181b).
-  Dark paper is #17181b as D039 says (the dark mockup uses #1a1b1e).
-- **Printed look for text** (D011, still open in DECISIONS.md): text is drawn clean for now.
+- **Loading and errors**: a spinner under the header; a sentence with Try again.
+- **Switching months** on Home: the older sheets behind the invoice show, but do not open their month yet.
+- **The bell** does nothing (no notifications screen).
+- **Receipt rows** on Home do not open a receipt yet (receipt detail is the next feature).
+- **Large text sizes**: the invoice table's columns are fixed (60 and 84 px) as in the design.
 - **App icon**: not designed, so `app.json` has none (Expo's default icon is used).

@@ -5,22 +5,28 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { SessionProvider, useSession } from '@/features/auth/ui/SessionProvider';
-import { AppearanceProvider } from '@/features/settings/ui/AppearanceProvider';
-import { fontFamilies, useTheme } from '@/shared/theme';
+import { colors, fonts } from '@/shared/theme';
 
 // Keep the native splash up until the fonts are ready, so no text flashes in the system font.
 void SplashScreen.preventAutoHideAsync();
 
-/** DejaVu 2.37, Book and Bold of Sans Mono and Sans (D006). Licence: assets/fonts/LICENSE. */
-const fonts = {
-  [fontFamilies.mono]: require('../assets/fonts/DejaVuSansMono.ttf'),
-  [fontFamilies.monoBold]: require('../assets/fonts/DejaVuSansMono-Bold.ttf'),
-  [fontFamilies.sans]: require('../assets/fonts/DejaVuSans.ttf'),
-  [fontFamilies.sansBold]: require('../assets/fonts/DejaVuSans-Bold.ttf'),
+/**
+ * Geist, Geist Mono (400, 500, 600) and Noto Naskh Arabic (600, 700), DESIGN.md §2. Only the weights the
+ * design uses are bundled; the names are the ones design/theme.ts gives.
+ */
+const fontFiles = {
+  [fonts.sans.regular]: require('@expo-google-fonts/geist/400Regular/Geist_400Regular.ttf'),
+  [fonts.sans.medium]: require('@expo-google-fonts/geist/500Medium/Geist_500Medium.ttf'),
+  [fonts.sans.semibold]: require('@expo-google-fonts/geist/600SemiBold/Geist_600SemiBold.ttf'),
+  [fonts.mono.regular]: require('@expo-google-fonts/geist-mono/400Regular/GeistMono_400Regular.ttf'),
+  [fonts.mono.medium]: require('@expo-google-fonts/geist-mono/500Medium/GeistMono_500Medium.ttf'),
+  [fonts.mono.semibold]: require('@expo-google-fonts/geist-mono/600SemiBold/GeistMono_600SemiBold.ttf'),
+  [fonts.arabic.semibold]: require('@expo-google-fonts/noto-naskh-arabic/600SemiBold/NotoNaskhArabic_600SemiBold.ttf'),
+  [fonts.arabic.bold]: require('@expo-google-fonts/noto-naskh-arabic/700Bold/NotoNaskhArabic_700Bold.ttf'),
 };
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts(fonts);
+  const [fontsLoaded, fontError] = useFonts(fontFiles);
   const ready = fontsLoaded || fontError !== null;
 
   useEffect(() => {
@@ -31,30 +37,23 @@ export default function RootLayout() {
 
   return (
     <SessionProvider>
-      <AppearanceProvider>
-        <ThemedStatusBar />
-        <Routes />
-      </AppearanceProvider>
+      {/* Light only (D044): dark status-bar text everywhere. */}
+      <StatusBar style="dark" />
+      <Routes />
     </SessionProvider>
   );
 }
 
-/** Dark status-bar text on light paper and light text on dark, following the app's theme (D043). */
-function ThemedStatusBar() {
-  const { scheme } = useTheme();
-  return <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />;
-}
-
 /**
  * Who may see which routes. While the saved session is checked, only the launch route (index) exists.
- * Signed out: the (auth) screens. Signed in: the (tabs), and settings pushed over them from Home's gear. When the session ends (sign out, or a 401), the
- * (tabs) disappear and the router goes back to index, which sends the user to sign in.
+ * Signed out: the (auth) screens. Signed in: the (tabs), and settings pushed over them from the wordmark.
+ * When the session ends (sign out, or a 401), the signed-in routes disappear and the router goes back to
+ * index, which sends the user to sign in.
  */
 function Routes() {
   const { status } = useSession();
-  const { colors } = useTheme();
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Screen name="index" />
       <Stack.Protected guard={status === 'signedOut'}>
         <Stack.Screen name="(auth)" />
