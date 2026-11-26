@@ -8,6 +8,8 @@ type Props = {
   onPress: () => void;
   /** Chosen: ink with light text, like the user's chat bubble (D046). */
   selected?: boolean;
+  /** 'radio' when it is a choice (the default), 'button' when it does something (the Assistant's suggestions). */
+  role?: 'radio' | 'button';
   testID?: string;
 };
 
@@ -15,12 +17,12 @@ type Props = {
  * The suggestion chip of the Assistant screen (design/reference/07): 40 px tall, radius 20, 1 px outline,
  * Geist 500 14. Used as a choice (the budget form's categories), so it is a radio for VoiceOver.
  */
-export function Chip({ label, onPress, selected = false, testID }: Props) {
+export function Chip({ label, onPress, selected = false, role = 'radio', testID }: Props) {
   return (
     <Pressable
-      accessibilityRole="radio"
+      accessibilityRole={role}
       accessibilityLabel={label}
-      accessibilityState={{ checked: selected }}
+      accessibilityState={role === 'radio' ? { checked: selected } : undefined}
       onPress={onPress}
       testID={testID}
       style={({ pressed }) => [

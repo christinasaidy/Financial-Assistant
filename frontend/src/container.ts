@@ -8,6 +8,8 @@
 import { apiBaseUrl, createHttpClient } from '@/shared/api/httpClient';
 import { SESSION_KEY, secureValue } from '@/shared/storage/tokenStore';
 
+import { AssistantService } from './features/assistant/application/assistantService';
+import { ApiAssistantRepository } from './features/assistant/data/apiAssistantRepository';
 import { AuthService } from './features/auth/application/authService';
 import { BudgetsService } from './features/budgets/application/budgetsService';
 import { ApiBudgetsRepository } from './features/budgets/data/apiBudgetsRepository';
@@ -21,6 +23,7 @@ export type Container = {
   auth: AuthService;
   home: HomeService;
   budgets: BudgetsService;
+  assistant: AssistantService;
 };
 
 export function createContainer(): Container {
@@ -39,7 +42,9 @@ export function createContainer(): Container {
 
   const budgets = new BudgetsService(new ApiBudgetsRepository(http));
 
-  return { auth, home, budgets };
+  const assistant = new AssistantService(new ApiAssistantRepository(http));
+
+  return { auth, home, budgets, assistant };
 }
 
 let instance: Container | null = null;

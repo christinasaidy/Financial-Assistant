@@ -26,6 +26,8 @@ export type RequestOptions = {
   signal?: AbortSignal;
   /** How long to wait for the whole answer before giving up as unreachable; the client's default otherwise. */
   timeoutMs?: number;
+  /** Extra headers, e.g. the assistant's Idempotency-Key. */
+  headers?: Record<string, string>;
 };
 
 /**
@@ -104,7 +106,7 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
   return {
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
       const { method = 'GET', body, query, auth = 'session', signal, timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS } = options;
-      const headers: Record<string, string> = { Accept: 'application/json' };
+      const headers: Record<string, string> = { Accept: 'application/json', ...options.headers };
 
       const token = auth === 'session' ? config.getToken() : auth === 'none' ? null : auth;
       if (token) headers.Authorization = `Bearer ${token}`;

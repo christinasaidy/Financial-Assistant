@@ -86,7 +86,8 @@ frontend/
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
     (tabs)/index.tsx           Home (features/home/ui/HomeScreen)
     (tabs)/budgets.tsx         Budgets (features/budgets/ui/BudgetsScreen)
-    (tabs)/receipts|scan|assistant.tsx   placeholders
+    (tabs)/assistant.tsx       the Assistant, both modes (features/assistant/ui/AssistantScreen)
+    (tabs)/receipts|scan.tsx   placeholders
     budget-form.tsx            the budget form, a sheet over Budgets (features/budgets/ui/BudgetFormScreen)
     settings.tsx               settings, pushed over the tabs from the account button (features/settings/ui/SettingsScreen)
   src/
@@ -104,6 +105,7 @@ frontend/
       launch/ui                LaunchScreen (the creased launch sheet); no other layers
       home/{domain,application,data,ui}     Home: the month's invoice and recent receipts
       budgets/{domain,application,data,ui}  Budgets and the budget form
+      assistant/{domain,application,data,ui} the Assistant: Standard (Sonnet) and Arabizi Beta (Qwen)
       settings/ui              Settings: the account and sign out
   tests/                       mirrors src/; plus architecture.test.ts and routes.test.tsx
   assets/                      icons (the five kept), paper/crease.jpg (fonts come from @expo-google-fonts)

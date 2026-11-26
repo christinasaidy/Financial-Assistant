@@ -37,6 +37,12 @@ export const colors = {
   segmentTrack: 'rgba(0,0,0,0.06)',
   /** Assistant: the outline of a suggestion chip (also the category chips of the budget form). */
   chipBorder: '#B7B9BE',
+  /** Assistant: the message field's outline. */
+  inputBorder: '#CDCFD3',
+  /** Assistant, Beta: the dashed note and the outline of Was this right?'s buttons. */
+  betaLine: '#A9ABB0',
+  /** Assistant, Beta: the query's text on its dark block. */
+  codeText: '#E9E9E6',
   /** Empty Home: the faint ring around Scan. */
   scanRing: 'rgba(35,64,200,0.14)',
 } as const;

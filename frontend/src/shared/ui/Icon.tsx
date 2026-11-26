@@ -50,6 +50,15 @@ const lineIcons = {
   chevronRight: { strokeWidth: 2, paths: ['M9 6l6 6-6 6'] },
   /** Budgets: new budget, white on the black square (18 px). */
   plus: { strokeWidth: 2.2, paths: ['M12 5v14M5 12h14'] },
+  /** Assistant: new conversation (20 px). */
+  newConversation: { strokeWidth: 1.8, paths: ['M12 5v14M5 12h14'] },
+  /** Assistant: send, white on cobalt (18 px). */
+  send: { strokeWidth: 2.2, paths: ['M12 19V5M6 11l6-6 6 6'] },
+  /** Assistant, Beta: Show / Hide query (14 px; turned for Hide). */
+  chevronDown: { strokeWidth: 2.2, paths: ['M6 9l6 6 6-6'] },
+  /** Assistant, Beta: Was this right? (16 px). */
+  check: { strokeWidth: 2.2, paths: ['M5 12l5 5L20 7'] },
+  cross: { strokeWidth: 2.2, paths: ['M6 6l12 12M18 6L6 18'] },
   /** Not in the design: drawn in its line style for the account button by the bell (D045). */
   account: { strokeWidth: 1.7, paths: ['M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M4.5 20.5c1.3-3.6 4.2-5.5 7.5-5.5s6.2 1.9 7.5 5.5'] },
 } as const;

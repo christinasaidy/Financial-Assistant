@@ -677,6 +677,33 @@ considered, so the reasoning can be explained later.
 - **Consequences:** New icons in the design's line style: the month chevrons and the + (copied from reference 06).
   Creating a category from the form is not designed yet.
 
+## D047: The Assistant, with text answer cards for now
+
+- **Status:** Accepted, 2026-11-26. Built from design/screens/07 and 08 on the two assistant modes merged from main
+  (Standard with Claude Sonnet, Beta with the fine-tuned Qwen). Christina chose text cards for now; the rest are
+  my calls.
+- **Decision:**
+  - The screen follows 07 / 08: title and + (new conversation), the two-line segmented switch (Assistant ·
+    Claude Sonnet / Arabizi BETA · Fine-tuned Qwen), day separators ("Today · 26 Nov"), ink question bubbles
+    (Arabizi questions in Geist Mono), creased answer cards with ASSISTANT or ARABIZI · BETA, and the message
+    field with the cobalt send button and each mode's placeholder.
+  - **Answer cards are text for now:** the answer's sentence with amounts in bold Geist Mono (Markdown **bold**
+    kept as bold), or its table when the backend sends one. The design's budget bar and Beta's category header
+    with a big amount wait until the backend sends what an answer is about.
+  - **Beta:** the dashed BETA note; Show / Hide query on answers with SQL; "Was this right?" ✓ / ✗ on the
+    latest data answer, stored as the answer's rating (training data); a chosen button turns ink with a white
+    mark; choosing it again clears it.
+  - Each mode opens its newest conversation and keeps it while switching; + starts an empty one (created by its
+    first question).
+  - **Asking:** the question shows at once, then a card with a spinner ("Thinking…", Beta "Reading your
+    receipts…"). If the backend refuses (today's Standard limit, still answering), its sentence shows above the
+    field and the question goes back into the field. Answers may take up to 90 s.
+  - **Suggestions** in Standard only, under the conversation: "Where can I cut back?" and "Compare to <last
+    month>", asked with one tap.
+  - When a mode cannot answer (not set up, today's limit, the monthly cap), a sentence says so and Send is off.
+- **Consequences:** New line icons from the reference: send, the query chevron, ✓, ✗, and + for a new
+  conversation. Conversation history (older conversations) is not designed yet.
+
 ## Open (not decided)
 
 From Christina, to discuss later:
