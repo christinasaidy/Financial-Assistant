@@ -35,6 +35,8 @@ export const colors = {
   blank: 'rgba(0,0,0,0.25)',
   /** Assistant: the segmented switch's track (used for choices such as gender). */
   segmentTrack: 'rgba(0,0,0,0.06)',
+  /** Assistant: the outline of a suggestion chip (also the category chips of the budget form). */
+  chipBorder: '#B7B9BE',
   /** Empty Home: the faint ring around Scan. */
   scanRing: 'rgba(35,64,200,0.14)',
 } as const;

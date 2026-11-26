@@ -46,7 +46,8 @@ export default function RootLayout() {
 
 /**
  * Who may see which routes. While the saved session is checked, only the launch route (index) exists.
- * Signed out: the (auth) screens. Signed in: the (tabs), and settings pushed over them from the wordmark.
+ * Signed out: the (auth) screens. Signed in: the (tabs), settings pushed over them from the account button,
+ * and the budget form as a sheet over Budgets.
  * When the session ends (sign out, or a 401), the signed-in routes disappear and the router goes back to
  * index, which sends the user to sign in.
  */
@@ -61,6 +62,7 @@ function Routes() {
       <Stack.Protected guard={status === 'signedIn'}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="budget-form" options={{ presentation: 'modal' }} />
       </Stack.Protected>
     </Stack>
   );

@@ -9,6 +9,8 @@ import { apiBaseUrl, createHttpClient } from '@/shared/api/httpClient';
 import { SESSION_KEY, secureValue } from '@/shared/storage/tokenStore';
 
 import { AuthService } from './features/auth/application/authService';
+import { BudgetsService } from './features/budgets/application/budgetsService';
+import { ApiBudgetsRepository } from './features/budgets/data/apiBudgetsRepository';
 import { ApiAuthRepository } from './features/auth/data/apiAuthRepository';
 import { SecureTokenStore } from './features/auth/data/secureTokenStore';
 import { HomeService } from './features/home/application/homeService';
@@ -18,6 +20,7 @@ import { ApiHomeRepository } from './features/home/data/apiHomeRepository';
 export type Container = {
   auth: AuthService;
   home: HomeService;
+  budgets: BudgetsService;
 };
 
 export function createContainer(): Container {
@@ -34,7 +37,9 @@ export function createContainer(): Container {
 
   const home = new HomeService(new ApiHomeRepository(http));
 
-  return { auth, home };
+  const budgets = new BudgetsService(new ApiBudgetsRepository(http));
+
+  return { auth, home, budgets };
 }
 
 let instance: Container | null = null;

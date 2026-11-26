@@ -1,5 +1,6 @@
 export { AppText, type AppTextProps, type FontKind, type FontWeight } from './AppText';
 export { Button, type ButtonProps } from './Button';
+export { Chip } from './Chip';
 export { Icon, LineIcon, iconNames, type IconName, type IconProps, type LineIconName, type LineIconProps } from './Icon';
 export { Crease, DashedLine, DoubleRule, PaperSheet, Perforation, TornEdge, tears, type PaperSheetProps, type Tear } from './paper';
 export { PlaceholderScreen } from './PlaceholderScreen';

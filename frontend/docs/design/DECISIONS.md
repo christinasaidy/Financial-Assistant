@@ -652,6 +652,31 @@ considered, so the reasoning can be explained later.
   Settings. The wordmark is no longer a button.
 - **Consequences:** One icon the design does not have; it follows the bell's style exactly.
 
+## D046: Budgets, and the budget form as a sheet
+
+- **Status:** Accepted, 2026-11-26. Built from design/screens/06-budgets.png. Christina chose the form as a
+  sheet from the bottom and a blank budget sheet for no budgets; the rest are my calls.
+- **Decision:**
+  - **Budgets** follows screen 06: title, ‹ month ›, the black +; the budget sheet; one creased slip per budget
+    (over-budget first, then by % used); the dashed Everything else box. Next is disabled on the current month;
+    earlier months can be browsed.
+  - **The sheet** adds the budgets up in dollars, pound budgets at today's rate. "N days left" counts the days
+    after today; on the last day "Last day"; earlier months say "Month ended" and show no pace.
+  - **Pace** ("$2.13 a day") = left ÷ days left (DESIGN.md §5), "$0.00 a day" when over; on the last day, all
+    that is left.
+  - **Everything else** = the month's dollar spending outside every budget. Shown when above zero, and always
+    while there are no budgets.
+  - **No budgets:** a blank sheet, $0.00 in grey and "No budgets yet. Set a monthly limit for a category."
+  - **The form** is an iOS sheet on the sign-in form's clean paper. New (from + or Set budget): NEW BUDGET and the
+    month, "Set a monthly limit.", "It applies from November 2026 onwards." (the backend sets a limit from a
+    month onwards), CATEGORY as the Assistant's chips (only categories without a budget; the chosen chip is ink
+    with light text, like the user's chat bubble), MONTHLY LIMIT, CURRENCY (USD / LBP, the segmented switch),
+    Save budget. Edit (tap a slip): EDIT BUDGET, the category as the heading, the same fields filled in, and an
+    outlined Remove budget, which asks first (iOS alert) because it removes the budget for every month.
+  - Limits: positive, dollars with at most two decimals, pounds whole; commas are fine.
+- **Consequences:** New icons in the design's line style: the month chevrons and the + (copied from reference 06).
+  Creating a category from the form is not designed yet.
+
 ## Open (not decided)
 
 From Christina, to discuss later:

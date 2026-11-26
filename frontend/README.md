@@ -85,14 +85,16 @@ frontend/
     (auth)/sign-up.tsx         create account (features/auth/ui/SignUpScreen)
     (tabs)/_layout.tsx         the five tabs with Fatourati's tab bar
     (tabs)/index.tsx           Home (features/home/ui/HomeScreen)
-    (tabs)/receipts|scan|budgets|assistant.tsx   placeholders
+    (tabs)/budgets.tsx         Budgets (features/budgets/ui/BudgetsScreen)
+    (tabs)/receipts|scan|assistant.tsx   placeholders
+    budget-form.tsx            the budget form, a sheet over Budgets (features/budgets/ui/BudgetFormScreen)
     settings.tsx               settings, pushed over the tabs from the account button (features/settings/ui/SettingsScreen)
   src/
     container.ts               composition root
     shared/
       theme/                   tokens.ts: design/theme.ts re-exported, plus the reference screens' extra colours
       ui/                      AppText, paper (PaperSheet, Crease, TornEdge, Perforation, DashedLine, DoubleRule),
-                               Wordmark, Icon + LineIcon, Button, TextField, SegmentedChoice, TextLink, TabBar,
+                               Wordmark, Icon + LineIcon, Button, Chip, TextField, SegmentedChoice, TextLink, TabBar,
                                PlaceholderScreen; art/ = the five tab icons, converted
       api/httpClient.ts        fetch wrapper: base URL, JSON, bearer token, ApiError, NetworkError
       storage/tokenStore.ts    one value in the Keychain (expo-secure-store): the session
@@ -101,6 +103,7 @@ frontend/
       auth/{domain,application,data,ui}
       launch/ui                LaunchScreen (the creased launch sheet); no other layers
       home/{domain,application,data,ui}     Home: the month's invoice and recent receipts
+      budgets/{domain,application,data,ui}  Budgets and the budget form
       settings/ui              Settings: the account and sign out
   tests/                       mirrors src/; plus architecture.test.ts and routes.test.tsx
   assets/                      icons (the five kept), paper/crease.jpg (fonts come from @expo-google-fonts)
