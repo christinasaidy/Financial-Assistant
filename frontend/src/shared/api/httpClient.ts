@@ -65,9 +65,52 @@ export type HttpClientConfig = {
   getToken: () => string | null;
   onUnauthorized: () => void;
   fetchFn?: typeof fetch;
+  /** Makes the XMLHttpRequest that sends forms (see sendForm); tests pass a fake. */
+  xhrFn?: () => XMLHttpRequest;
   /** DEFAULT_TIMEOUT_MS unless given. */
   timeoutMs?: number;
 };
+
+type Answer = { ok: boolean; status: number; text: string };
+
+/**
+ * Sends a form (a receipt photo) with React Native's own XMLHttpRequest. Expo replaces `fetch` with its own,
+ * which cannot send React Native's `{ uri, name, type }` file parts, so a photo upload failed on the phone before
+ * leaving it ("Can't reach Fatourati"). XMLHttpRequest still uploads them.
+ */
+function sendForm(
+  makeXhr: () => XMLHttpRequest,
+  url: string,
+  init: { method: string; headers: Record<string, string>; body: FormData; timeoutMs: number; signal?: AbortSignal },
+): Promise<Answer> {
+  return new Promise((resolve, reject) => {
+    const xhr = makeXhr();
+    xhr.open(init.method, url);
+    for (const [name, value] of Object.entries(init.headers)) xhr.setRequestHeader(name, value);
+    xhr.timeout = init.timeoutMs;
+    const abort = () => xhr.abort();
+    init.signal?.addEventListener('abort', abort);
+    const done = () => init.signal?.removeEventListener('abort', abort);
+    xhr.onload = () => {
+      done();
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, text: xhr.responseText ?? '' });
+    };
+    xhr.onerror = () => {
+      done();
+      reject(new Error('Network request failed'));
+    };
+    xhr.ontimeout = () => {
+      done();
+      reject(new Error(`No answer within ${init.timeoutMs / 1000} s`));
+    };
+    xhr.onabort = () => {
+      done();
+      reject(new Error('Aborted'));
+    };
+    if (init.signal?.aborted) xhr.abort();
+    else xhr.send(init.body);
+  });
+}
 
 export type HttpClient = {
   request<T>(path: string, options?: RequestOptions): Promise<T>;
@@ -102,6 +145,7 @@ function buildUrl(baseUrl: string, path: string, query: RequestOptions['query'])
 
 export function createHttpClient(config: HttpClientConfig): HttpClient {
   const fetchFn = config.fetchFn ?? fetch;
+  const makeXhr = config.xhrFn ?? (() => new XMLHttpRequest());
 
   return {
     async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -112,9 +156,7 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
       if (token) headers.Authorization = `Bearer ${token}`;
 
       let payload: BodyInit | undefined;
-      if (body instanceof FormData) {
-        payload = body;
-      } else if (body !== undefined) {
+      if (body !== undefined && !(body instanceof FormData)) {
         headers['Content-Type'] = 'application/json';
         payload = JSON.stringify(body);
       }
@@ -126,12 +168,16 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
       if (signal?.aborted) forward();
       else signal?.addEventListener('abort', forward);
 
-      let response: Response;
-      let text: string;
+      let response: Answer;
       try {
         const baseUrl = typeof config.baseUrl === 'function' ? config.baseUrl() : config.baseUrl;
-        response = await fetchFn(buildUrl(baseUrl, path, query), { method, headers, body: payload, signal: controller.signal });
-        text = await response.text();
+        const url = buildUrl(baseUrl, path, query);
+        if (body instanceof FormData) {
+          response = await sendForm(makeXhr, url, { method, headers, body, timeoutMs, signal: controller.signal });
+        } else {
+          const answer = await fetchFn(url, { method, headers, body: payload, signal: controller.signal });
+          response = { ok: answer.ok, status: answer.status, text: await answer.text() };
+        }
       } catch (error) {
         throw new NetworkError(controller.signal.aborted && !signal?.aborted ? controller.signal.reason : error);
       } finally {
@@ -139,6 +185,7 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
         signal?.removeEventListener('abort', forward);
       }
 
+      const text = response.text;
       let parsed: unknown = undefined;
       if (text.length > 0) {
         try {

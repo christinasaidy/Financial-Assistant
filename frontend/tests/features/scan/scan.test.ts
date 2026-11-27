@@ -4,7 +4,7 @@ import { addsUp, checkDraft, checksFor, draftFrom, filedNumbers, parseDate, payl
 import { readingRows, saveLabel } from '@/features/scan/ui/scanText';
 import { createHttpClient } from '@/shared/api/httpClient';
 
-import { fetchMock } from '../../fetchMock';
+import { fetchMock, xhrMock } from '../../fetchMock';
 import { receipt } from '../receipts/fakes';
 import { FakeScanRepository, readSpinneys } from './fakes';
 
@@ -134,22 +134,35 @@ describe('ScanService', () => {
 });
 
 describe('ApiScanUploader', () => {
-  it('posts the photo as multipart form data, with a longer time limit', async () => {
-    const { fetchFn, requests } = fetchMock({ status: 202, body: { id: 55, status: 'uploaded' } });
-    const http = createHttpClient({ baseUrl: 'http://192.168.1.23:8000', getToken: () => 'jwt', onUnauthorized: jest.fn(), fetchFn });
-    await expect(new ApiScanUploader(http).upload({ uri: 'file:///r.png', mimeType: 'image/png' })).resolves.toBe(55);
-    expect(requests[0]).toMatchObject({ url: 'http://192.168.1.23:8000/receipts', method: 'POST' });
-    expect(requests[0]?.body).toBeInstanceOf(FormData);
-    expect(requests[0]?.headers['Content-Type']).toBeUndefined();
+  function uploaderWith(reply: Parameters<typeof xhrMock>[0]) {
+    const { xhrFn, sent } = xhrMock(reply);
+    const { fetchFn } = fetchMock();
+    const http = createHttpClient({ baseUrl: 'http://192.168.1.23:8000', getToken: () => 'jwt', onUnauthorized: jest.fn(), fetchFn, xhrFn });
+    return { uploader: new ApiScanUploader(http), sent, fetchFn };
+  }
+
+  it('posts the photo as multipart form data through XMLHttpRequest, with the token and a longer time limit', async () => {
+    const { uploader, sent, fetchFn } = uploaderWith({ status: 202, body: { id: 55, status: 'uploaded' } });
+    await expect(uploader.upload({ uri: 'file:///r.png', mimeType: 'image/png' })).resolves.toBe(55);
+    expect(sent[0]).toMatchObject({ method: 'POST', url: 'http://192.168.1.23:8000/receipts', timeout: UPLOAD_TIMEOUT_MS });
+    expect(sent[0]?.headers).toMatchObject({ Authorization: 'Bearer jwt', Accept: 'application/json' });
+    expect(sent[0]?.headers['Content-Type']).toBeUndefined();
+    expect(sent[0]?.body).toBeInstanceOf(FormData);
+    // Expo's fetch cannot send React Native file parts, so a form never goes through it.
+    expect(fetchFn).not.toHaveBeenCalled();
     expect(UPLOAD_TIMEOUT_MS).toBeGreaterThan(15_000);
   });
 
   it('passes on the backend’s reason for refusing a photo', async () => {
-    const { fetchFn } = fetchMock({ status: 415, body: { detail: 'Only JPEG, PNG and WebP photos can be read' } });
-    const http = createHttpClient({ baseUrl: 'http://192.168.1.23:8000', getToken: () => 'jwt', onUnauthorized: jest.fn(), fetchFn });
-    await expect(new ApiScanUploader(http).upload({ uri: 'file:///r.heic', mimeType: 'image/heic' })).rejects.toMatchObject({
+    const { uploader } = uploaderWith({ status: 415, body: { detail: 'Only JPEG, PNG and WebP photos can be read' } });
+    await expect(uploader.upload({ uri: 'file:///r.heic', mimeType: 'image/heic' })).rejects.toMatchObject({
       code: 'refused',
       message: 'Only JPEG, PNG and WebP photos can be read',
     });
+  });
+
+  it('says it cannot reach the backend when the upload fails', async () => {
+    const { uploader } = uploaderWith({ networkError: true });
+    await expect(uploader.upload({ uri: 'file:///r.jpg', mimeType: 'image/jpeg' })).rejects.toMatchObject({ code: 'network' });
   });
 });

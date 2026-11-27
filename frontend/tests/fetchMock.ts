@@ -30,3 +30,43 @@ export function fetchMock(...replies: Reply[]) {
   });
   return { fetchFn: fetchFn as unknown as typeof fetch, requests };
 }
+
+/** A fake XMLHttpRequest for form uploads: records the request and answers with `reply` (or a network error). */
+export function xhrMock(reply: { status: number; body?: unknown } | { networkError: true }) {
+  const sent: { method: string; url: string; headers: Record<string, string>; body: unknown; timeout: number }[] = [];
+  const xhrFn = () => {
+    const xhr = {
+      status: 0,
+      responseText: '',
+      timeout: 0,
+      method: '',
+      url: '',
+      headers: {} as Record<string, string>,
+      onload: null as null | (() => void),
+      onerror: null as null | (() => void),
+      ontimeout: null as null | (() => void),
+      onabort: null as null | (() => void),
+      open(method: string, url: string) {
+        xhr.method = method;
+        xhr.url = url;
+      },
+      setRequestHeader(name: string, value: string) {
+        xhr.headers[name] = value;
+      },
+      abort() {
+        xhr.onabort?.();
+      },
+      send(body: unknown) {
+        sent.push({ method: xhr.method, url: xhr.url, headers: xhr.headers, body, timeout: xhr.timeout });
+        setTimeout(() => {
+          if ('networkError' in reply) return xhr.onerror?.();
+          xhr.status = reply.status;
+          xhr.responseText = reply.body === undefined ? '' : JSON.stringify(reply.body);
+          xhr.onload?.();
+        }, 0);
+      },
+    };
+    return xhr as unknown as XMLHttpRequest;
+  };
+  return { xhrFn, sent };
+}
