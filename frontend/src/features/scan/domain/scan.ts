@@ -109,6 +109,33 @@ export function addsUp(draft: Draft): boolean | null {
   return Math.abs(linesTotal(draft.lines) - total) < (draft.currency === 'USD' ? 0.005 : 0.5);
 }
 
+/** An amount converted and written for its currency: dollars with cents, pounds whole. */
+function converted(value: string | null, from: Currency, to: Currency, lbpPerUsd: number): string | null {
+  if (value === null || value.trim() === '') return value;
+  const amount = number(value);
+  if (Number.isNaN(amount)) return value;
+  const result = convert(amount, from, to, lbpPerUsd);
+  return to === 'USD' ? (Math.round(result * 100) / 100).toFixed(2) : String(Math.round(result));
+}
+
+/**
+ * The USD / LBP switch (D052): the receipt shown and saved in the other currency, the total and every item
+ * converted at the rate. If the items added up before, the total becomes the converted items' sum, so rounding
+ * never makes them disagree.
+ */
+export function convertDraft(draft: Draft, to: Currency, lbpPerUsd: number): Draft {
+  if (draft.currency === to || lbpPerUsd <= 0) return { ...draft, currency: to };
+  const fitted = addsUp(draft) === true;
+  const lines = draft.lines.map((line) => ({
+    ...line,
+    lineTotal: converted(line.lineTotal, draft.currency, to, lbpPerUsd) ?? line.lineTotal,
+    unitPrice: converted(line.unitPrice, draft.currency, to, lbpPerUsd),
+  }));
+  const sum = linesTotal(lines);
+  const total = fitted ? (to === 'USD' ? sum.toFixed(2) : String(Math.round(sum))) : (converted(draft.total, draft.currency, to, lbpPerUsd) ?? draft.total);
+  return { ...draft, currency: to, lines, total };
+}
+
 export type DraftProblems = { store?: string; date?: string; total?: string; category?: string };
 
 /** What must be fixed before saving: a store, a real date, a positive total, a category. */

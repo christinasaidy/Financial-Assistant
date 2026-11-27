@@ -769,9 +769,9 @@ considered, so the reasoning can be explained later.
     Check the total." in red. CHECK THIS (cobalt tint, cap, dashed cobalt underline on the amount) marks: the
     store, date or total when the backend flagged them missing (or the date in the future), and items the reader
     could not name. Category chips (the backend's suggestion chosen, "Suggested from the store" while it is);
-    "Save to <month> invoice". It needs a store, a real date, a total and a category. USD / LBP says which currency
-    the receipt is printed in (to correct the reader); it never converts. A pound total shows "≈ $" under it at
-    the receipt's rate (else today's), as pound amounts do everywhere (DESIGN.md §5). Items are not edited here
+    "Save to <month> invoice". It needs a store, a real date, a total and a category. USD / LBP converts the
+    receipt (D052). A pound total shows "≈ $" under it at the receipt's rate (else today's), as pound amounts do
+    everywhere (DESIGN.md §5). Items are not edited here
     yet (Split items on the receipt's page changes their categories).
   - **Filed** (screen 12): "Filed under <category>", the receipt in a sentence, and the mini invoice: the category's
     budget before (struck through) and after, the receipt's part of the bar in cobalt, "+X from this receipt",
@@ -779,6 +779,18 @@ considered, so the reasoning can be explained later.
     another, Done.
   - Retake, Back and Cancel delete the unsaved receipt (DELETE /receipts/{id}), so drafts don't pile up.
 - **Consequences:** expo-camera and expo-image-picker (both run in Expo Go) are dependencies. Photo uploads get 60 s.
+
+## D052: Review's USD / LBP switch converts the receipt
+
+- **Status:** Accepted, 2026-11-27. Christina scanned a 130,000 LBP receipt and pressed USD, which relabelled it
+  $130,000 (the switch meant "printed in"). She chose conversion.
+- **Decision:** Picking the other currency converts the total and every item at the receipt's rate (else today's):
+  130,000 LBP becomes $1.45; dollars keep cents, pounds are whole. If the items added up, the total becomes the
+  converted items' sum, so rounding never trips the warning. Switching back to the currency it was read in
+  restores the printed amounts exactly. A converted receipt says "Converted from LBP at 89,500 LBP per $" under the
+  total, and is saved in the currency shown. A pound total shows "≈ $" under it.
+- **Consequences:** A receipt the reader got wrong (dollars read as pounds) is now fixed by editing the amounts, not
+  by the switch.
 
 ## Open (not decided)
 

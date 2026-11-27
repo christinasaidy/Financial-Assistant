@@ -127,14 +127,19 @@ describe('review (screen 11)', () => {
     expect(repository.saved).toBeNull();
   });
 
-  it('shows a pound total’s dollar value, and the switch only says which currency it is printed in', async () => {
+  it('shows a pound total’s dollar value, and USD converts the receipt to dollars (D052)', async () => {
     const repository = new FakeScanRepository();
     repository.read = readSpinneys({ currency: 'LBP', total: '130000.00', lines: [], lbpPerUsd: '89500.00' });
     await openReview(repository);
     expect(screen.getByTestId('total-approx').props.children).toBe('≈ $1.45');
     await fireEvent.press(screen.getByRole('radio', { name: 'USD' }));
+    expect(screen.getByLabelText('Total').props.value).toBe('1.45');
     expect(screen.queryByTestId('total-approx')).toBeNull();
+    expect(screen.getByTestId('converted-note')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('radio', { name: 'LBP' }));
+    // Back to pounds: the printed amount exactly, not a converted round trip (129,775).
     expect(screen.getByLabelText('Total').props.value).toBe('130000.00');
+    expect(screen.queryByTestId('converted-note')).toBeNull();
   });
 
   it('saves to the month’s invoice and opens Filed', async () => {

@@ -1,11 +1,11 @@
 import { ScanError, ScanService } from '@/features/scan/application/scanService';
 import { ApiScanUploader, UPLOAD_TIMEOUT_MS } from '@/features/scan/data/apiScanUploader';
-import { addsUp, checkDraft, checksFor, draftFrom, filedNumbers, parseDate, payloadFrom, readingState } from '@/features/scan/domain';
+import { addsUp, checkDraft, checksFor, convertDraft, draftFrom, filedNumbers, parseDate, payloadFrom, readingState } from '@/features/scan/domain';
 import { readingRows, saveLabel } from '@/features/scan/ui/scanText';
 import { createHttpClient } from '@/shared/api/httpClient';
 
 import { fetchMock, xhrMock } from '../../fetchMock';
-import { receipt } from '../receipts/fakes';
+import { line, receipt } from '../receipts/fakes';
 import { FakeScanRepository, readSpinneys } from './fakes';
 
 const NOV_26 = new Date(2026, 10, 26, 10);
@@ -67,6 +67,18 @@ describe('Review’s checks (D051)', () => {
     });
     expect(checkDraft({ ...draft, currency: 'LBP', total: '450000.5' }).total).toBe('Pounds have no decimals.');
     expect(payloadFrom({ ...draft, shopName: ' Spinneys ', total: '1,234.50' })).toMatchObject({ shopName: 'Spinneys', receiptDate: '2026-11-18', total: '1234.50' });
+  });
+
+  it('converts the whole receipt with the USD / LBP switch, keeping the items adding up (D052)', () => {
+    const lbp = { ...draftFrom(readSpinneys(), NOV_26), currency: 'LBP' as const, total: '450000', lines: [line('Manakish', '300000'), line('Ayran', '150000')] };
+    const usd = convertDraft(lbp, 'USD', 89500);
+    expect(usd.currency).toBe('USD');
+    expect(usd.lines.map((item) => item.lineTotal)).toEqual(['3.35', '1.68']);
+    expect(usd.total).toBe('5.03');
+    expect(addsUp(usd)).toBe(true);
+    // Items that did not add up keep their own total, converted.
+    expect(convertDraft({ ...lbp, total: '500000' }, 'USD', 89500).total).toBe('5.59');
+    expect(convertDraft(usd, 'USD', 89500)).toEqual(usd);
   });
 
   it('names the invoice the receipt is saved to', () => {

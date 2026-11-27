@@ -4,7 +4,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { itemName, quantityLabel } from '@/features/receipts/domain';
-import { formatApproxUsd } from '@/shared/format/money';
+import { formatApproxUsd, formatCell } from '@/shared/format/money';
 import { colors, fonts, radius, touchTarget } from '@/shared/theme';
 import { AppText, Button, Chip, DashedLine, DoubleRule, LineIcon, PaperSheet, TextLink } from '@/shared/ui';
 
@@ -12,6 +12,7 @@ import type { ScanService } from '../application/scanService';
 import {
   addsUp,
   checkDraft,
+  convertDraft,
   checksFor,
   draftFrom,
   FIRST_ITEMS,
@@ -132,6 +133,14 @@ export function ReviewScreen({ service, today = () => new Date() }: Props) {
             problems={problems}
             invoiceNumber={loaded.invoiceNumber}
             lbpPerUsd={loaded.lbpPerUsd}
+            readCurrency={loaded.receipt.currency}
+            onCurrency={(currency) => {
+              if (draft.currency === currency) return;
+              // Back to the currency it was read in: the printed amounts exactly, not a converted round trip.
+              const printed = draftFrom(loaded.receipt, today());
+              if (currency === printed.currency) change({ currency, total: printed.total, lines: printed.lines });
+              else change(convertDraft(draft, currency, Number.parseFloat(loaded.lbpPerUsd) || 0));
+            }}
             allItems={allItems}
             onAllItems={() => setAllItems(true)}
             onChange={change}
@@ -211,6 +220,10 @@ function Field({ label, check, error, mono = false, ...input }: { label: string;
 
 type SheetProps = {
   draft: Draft;
+  /** USD / LBP: converts the receipt (D052). */
+  onCurrency: (currency: 'USD' | 'LBP') => void;
+  /** The currency the receipt was read in, to say "Converted from" after switching. */
+  readCurrency: 'USD' | 'LBP' | null;
   /** For "≈ $" under a pound total. */
   lbpPerUsd: string;
   checks: Checks;
@@ -221,7 +234,7 @@ type SheetProps = {
   onChange: (patch: Partial<Draft>) => void;
 };
 
-function ReceiptSheet({ draft, lbpPerUsd, checks, problems, invoiceNumber, allItems, onAllItems, onChange }: SheetProps) {
+function ReceiptSheet({ draft, onCurrency, readCurrency, lbpPerUsd, checks, problems, invoiceNumber, allItems, onAllItems, onChange }: SheetProps) {
   const shown = allItems ? draft.lines : draft.lines.slice(0, FIRST_ITEMS);
   const hidden = draft.lines.slice(shown.length);
   const fits = addsUp(draft);
@@ -253,7 +266,7 @@ function ReceiptSheet({ draft, lbpPerUsd, checks, problems, invoiceNumber, allIt
                   accessibilityRole="radio"
                   accessibilityLabel={currency}
                   accessibilityState={{ checked: chosen }}
-                  onPress={() => onChange({ currency })}
+                  onPress={() => onCurrency(currency)}
                   style={[styles.smallSegment, chosen ? styles.smallChosen : null]}
                   testID={`currency-${currency}`}
                 >
@@ -351,6 +364,11 @@ function ReceiptSheet({ draft, lbpPerUsd, checks, problems, invoiceNumber, allIt
         {draft.currency === 'LBP' && Number.parseFloat(draft.total.replace(/,/g, '')) > 0 ? (
           <AppText font="mono" size={11.5} color="inkSoft" style={styles.approx} testID="total-approx">
             {formatApproxUsd(draft.total.replace(/,/g, ''), lbpPerUsd)}
+          </AppText>
+        ) : null}
+        {readCurrency && draft.currency !== readCurrency ? (
+          <AppText font="mono" size={11.5} color="inkSoft" style={styles.approx} testID="converted-note">
+            Converted from {readCurrency} at {formatCell(lbpPerUsd, 'LBP')} LBP per $
           </AppText>
         ) : null}
         {problems.total ? <ErrorLine text={problems.total} /> : null}
