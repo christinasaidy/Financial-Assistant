@@ -85,8 +85,8 @@ def sign_in(engine):
 def add(client, headers, total, vendor="Spinneys", currency="USD", lines=(), day=None, category=None):
     body = {"vendor_name": vendor, "receipt_date": (day or THIS_MONTH).isoformat(), "currency": currency,
             "total": total, "primary_category_id": category, "lbp_per_usd": "89500",
-            "lines": [{"description": name, "normalized_name": name.lower(), "line_total": amount}
-                      for name, amount in lines]}  # fmt: skip
+            "lines": [{"description": name, "normalized_name": name.lower(), "line_total": amount} | (extra[0] if extra else {})
+                      for name, amount, *extra in lines]}  # fmt: skip
     response = client.post("/receipts/manual", json=body, headers=headers)
     assert response.status_code == 201, response.text
     return response.json()["id"]
@@ -297,6 +297,33 @@ def test_similar_shop_names_are_suggestions_and_a_loose_spelling_is_refused(tool
     outcome, body = call(tools, user_id, "query_receipts", {"sql": "SELECT SUM(total) FROM receipts "
                                                                    "WHERE vendor = 'spinneys'"})  # fmt: skip
     assert outcome.is_error and "'spinneys'" in body["error"]  # never matched loosely
+
+
+def test_an_item_named_by_its_brand_is_found_as_the_brand(tools, make_client, sign_in):
+    """Christina asked about "terea": the receipt saved it as the item tobacco, brand terea (2026-11-27)."""
+    client, _ = make_client(ScriptedChatModel())
+    headers, user_id = sign_in(client)
+    add(client, headers, "3.57", vendor="New Foodies", lines=[
+        ("TEREA Oasis", "3.02", {"normalized_name": "tobacco", "brand": "terea"}),
+        ("RIM Sparklin Water 0.33 L", "0.55", {"normalized_name": "water", "brand": "rim"}),
+    ])  # fmt: skip
+
+    _, body = call(tools, user_id, "find_names", {"kind": "item", "name": "Terea"})
+    assert (body["status"], [n["name"] for n in body["names"]]) == ("brand", ["terea"])
+    assert "brand = '<name>'" in body["note"]
+    _, body = call(tools, user_id, "query_receipts",
+                   {"sql": "SELECT item_name, SUM(line_total) FROM purchases WHERE brand = 'terea' GROUP BY item_name"})
+    assert body["rows"] == [["tobacco", "3.02"]]
+
+    _, body = call(tools, user_id, "find_names", {"kind": "item", "name": "terrea"})  # her other spelling
+    assert body["status"] == "suggestions" and [n["name"] for n in body["brand_suggestions"]] == ["terea"]
+    assert "not confirmed" in body["note"]
+
+    _, body = call(tools, user_id, "find_names", {"kind": "item", "name": "water"})  # an item name stays an item
+    assert (body["status"], [n["name"] for n in body["names"]]) == ("found", ["water"])
+    assert "brand_suggestions" not in body
+    _, body = call(tools, user_id, "find_names", {"kind": "vendor", "name": "terea"})  # brands are only for items
+    assert body["status"] == "not_found"
 
 
 # --- the other tools reuse the screens' services ---

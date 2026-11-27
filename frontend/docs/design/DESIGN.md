@@ -8,7 +8,7 @@ description: A receipt-first expense tracker for Lebanon. Scan receipts, track s
 colors:
   primary: "#2443a8"        # pen blue: main button, links, things the user can change
   primary-dark: "#9db0ff"
-  paper: "#f3f4f1"          # thermal paper (background)
+  paper: "#ffffff"          # plain white paper, no texture (D042)
   paper-dark: "#17181b"
   ink: "#1c1d21"            # text and fine budgets
   ink-dark: "#e6e6e1"
@@ -22,6 +22,8 @@ colors:
   near-limit-dark: "#e0a43a"
   limit-reached: "#b0241b"  # budget at 100% or more
   limit-reached-dark: "#e0524f"
+  highlight: "#f5e54a"      # brand highlighter yellow: behind the wordmark and the selected tab only (D038)
+  highlight-dark: "#e8d84a"
 typography:
   body:            # D006, D013: sentences
     fontFamily: DejaVu Sans
@@ -94,6 +96,11 @@ spacing:
   screen-margin: 20px
 ---
 
+> **Superseded (D044, 2026-11-26).** The app now follows the invoice design in `frontend/design/`
+> (`DESIGN.md`, `theme.ts`, `screens/`, `reference/`). This file is kept as the record of the first design;
+> only Christina's five tab icons (Home, Receipts, Scan, Budgets, Assistant) carry over from it.
+
+
 # Fatourati design system
 
 Figma file (icons, wordmark, design work):
@@ -146,6 +153,12 @@ blood-bright reds.
 Every text colour passes WCAG 2.2 AA on its paper in both themes; bars pass 3:1 against their track. Values and
 contrast ratios: front matter and D022.
 
+**Brand yellow** (D038). Highlighter yellow (`highlight`), only as a swipe behind the wordmark and the selected
+tab's label, always with ink text on it. The launch screen is a full page of it (D039).
+
+**Paper** (D042). Screens are plain: flat white #ffffff in light mode and flat #17181b in dark mode, with no
+grain and no crease. Only the launch screen keeps a texture: yellow paper with the fine grain (D039).
+
 ## Typography
 
 **Families** (D006). DejaVu 2.37, bundled with the app (with its LICENSE):
@@ -191,12 +204,15 @@ Budgets, Assistant, Back; then (D030) Notifications, Close, Settings, Add, Flash
 Mono characters, the width of a real receipt. 8 px between a label and its content, 16 px between rows, 24 px
 above and below a rule between sections.
 
-**Home** (D035, D036), top to bottom: header (small wordmark, bell); "Hello, <first name>" as the screen title;
+**Home** (D035, D036, D043), top to bottom: header (small wordmark; gear and bell on the right); "Hello, <first name>" as the screen title;
 THIS MONTH label, month total, combined-currency line; rule; BUDGETS (three closest to their limit) with "See all";
 rule; RECENT (two newest in the first view, the rest scroll); tab bar.
 
 **Home before any receipts** (D037): $0.00 and "No receipts yet this month"; one sentence on scanning and the
 **Scan a receipt** button; Budgets and Recent each say in one grey sentence what will appear there.
+
+**Settings** (D043), opened from the gear: header with Back; SETTINGS; APPEARANCE (Phone, Light, Dark as three
+square options, Phone following the iPhone); rule; ACCOUNT (the email, SIGN OUT as a pen-blue link).
 
 **Money** (D034). `$6.60`, `450,000 LBP`. A mixed total is shown in dollars and says how it was combined:
 "$412.60 + 3,150,000 LBP at 89,500 LBP per $".

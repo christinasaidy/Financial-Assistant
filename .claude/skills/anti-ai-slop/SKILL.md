@@ -12,12 +12,15 @@ Your job is to surface the choices, not to fill them in.
 
 ## 1. Before touching anything visual
 
-1. Read `frontend/docs/design/DESIGN.md` (the current values) and `frontend/docs/design/DECISIONS.md` (why, and
-   what is still open).
-2. Use only values that are recorded there. If the task needs one that is not (a color, a size, a spacing, a
+1. Read `frontend/design/DESIGN.md` (the spec, since D044), `frontend/design/theme.ts` (the tokens), the
+   matching image in `frontend/design/screens/` and, for exact values, `frontend/design/reference/<screen>.html`.
+   Then `frontend/docs/design/DECISIONS.md` (why, what is still open; D044 lists what was decided around the
+   design). The old `frontend/docs/design/DESIGN.md` is superseded.
+2. Use only values that are recorded there (the reference HTML counts). If the task needs one that is not (a color, a size, a spacing, a
    radius, a shadow, an icon, a word of copy), **stop and ask Christina**. Do not pick "for now".
 3. After she decides, record it the same turn: a new numbered entry in DECISIONS.md (status, context, options
-   considered, decision, consequences) and the value in DESIGN.md's front matter or section.
+   considered, decision, consequences). After building a screen, compare it with its screenshot in
+   `frontend/design/screens/` and fix the differences.
 
 ## 2. Ask a lot of design questions
 

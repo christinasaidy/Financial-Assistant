@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scan, review details</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+
+<style>
+/* Fonts: Geist, Geist Mono, Noto Naskh Arabic (Google Fonts) */
+body{margin:0}
+.crease{position:absolute;inset:0;background:url(../assets/crease.jpg) center/300px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+.tear{-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x}
+.m{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
+.cap{font:500 10.5px/1 'Geist Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#4A4944}
+.fld{display:flex;flex-direction:column;gap:5px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.25)}
+.fld input{border:0;background:transparent;font:500 16px Geist,sans-serif;color:#1A1A1A;padding:0;height:26px;outline:none;width:100%}
+.tr{display:grid;grid-template-columns:minmax(0,1fr) 58px 70px;min-height:34px}
+.tr>*{display:flex;align-items:center}
+.tr>*+*{border-left:1px solid rgba(0,0,0,.13);justify-content:flex-end;padding-right:2px}
+.chip{min-height:40px;padding:0 14px;border-radius:20px;font:500 14px Geist,sans-serif;cursor:pointer}
+.ib{width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:#1A1A1A;display:grid;place-items:center;cursor:pointer}
+</style>
+
+<div style="width:390px;height:844px;box-sizing:border-box;background:#E3E4E6;color:#1A1A1A;font-family:Geist,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 8px 0">
+    <a href="A3-ScanCamera.dc.html" class="ib" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg></a>
+    <span style="font-weight:600;font-size:16px">Check the details</span>
+    <a href="A3-ScanCamera.dc.html" style="min-height:44px;padding:0 10px;display:flex;align-items:center;font-size:14px;font-weight:500;color:#2340C8;text-decoration:none">Retake</a>
+  </div>
+
+  <div style="margin:8px 14px 0;filter:drop-shadow(0 10px 14px rgba(40,35,25,.14)) drop-shadow(0 1px 1px rgba(40,35,25,.1))">
+    <form class="tear" style="position:relative;isolation:isolate;background:#EFEEEB;padding:14px 16px 20px;margin:0;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between"><span class="cap" style="color:#2340C8">New receipt · for Nº 0447</span><span class="cap">Tap to edit</span></div>
+      <div class="fld"><label for="st" class="cap">Store</label><input id="st" value="Spinneys Achrafieh"></div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:14px">
+        <div class="fld"><label for="dt" class="cap">Date</label><input id="dt" class="m" value="18/11/2026 18:42" style="font:500 15px 'Geist Mono',monospace"></div>
+        <div style="display:flex;flex-direction:column;gap:5px"><span class="cap">Currency</span>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:2px;border-radius:9px;background:rgba(0,0,0,.08)">
+            <button type="button" aria-pressed="true" style="min-height:32px;border:0;border-radius:7px;background:#FCFBF8;box-shadow:0 1px 2px rgba(0,0,0,.15);font:600 13px 'Geist Mono',monospace;color:#1A1A1A">USD</button>
+            <button type="button" aria-pressed="false" style="min-height:32px;border:0;border-radius:7px;background:transparent;font:500 13px 'Geist Mono',monospace;color:#46453F">LBP</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #1A1A1A">
+        <div class="tr" style="min-height:26px"><span class="cap">Item</span><span class="cap">Qty</span><span class="cap">Amount</span></div>
+        <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)"><span style="font-size:14.5px">Labneh</span><span class="m" style="font-size:13px;color:#46453F">1 kg</span><span class="m" style="font-size:14px">6.20</span></div>
+        <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)"><span style="font-size:14.5px">Khubz arabi</span><span class="m" style="font-size:13px;color:#46453F">1</span><span class="m" style="font-size:14px">1.10</span></div>
+        <div class="tr" style="border-top:1px solid rgba(0,0,0,.13)"><span style="font-size:14.5px">Tomatoes</span><span class="m" style="font-size:13px;color:#46453F">1.5 kg</span><span class="m" style="font-size:14px">2.85</span></div>
+        <div class="tr" style="border-top:1px solid rgba(0,0,0,.13);background:rgba(35,64,200,.07);margin:0 -6px;padding:0 6px">
+          <span style="display:flex;flex-direction:column;align-items:flex-start;gap:1px"><span style="font-size:14.5px">Olive oil</span><span class="cap" style="font-size:9.5px;color:#2340C8">Check this</span></span>
+          <span class="m" style="font-size:13px;color:#46453F">1 L</span>
+          <span class="m" style="font-size:14px;border-bottom:1.5px dashed #2340C8">14.50</span>
+        </div>
+        <button type="button" style="width:100%;min-height:36px;border:0;border-top:1px solid rgba(0,0,0,.13);background:none;display:flex;justify-content:space-between;align-items:center;padding:0 2px;cursor:pointer;font:500 13.5px Geist,sans-serif;color:#2340C8"><span>+ 5 more items</span><span class="m" style="color:#46453F">13.75</span></button>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-top:3px double #1A1A1A;padding-top:9px">
+          <span class="cap" style="color:#1A1A1A">Total</span><span class="m" style="font-size:18px;font-weight:600">$38.40</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12.5px;color:#3A3934">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2340C8" stroke-width="2.6" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Items add up to the total
+        </div>
+      </div>
+      <div class="crease" style="opacity:0.6"></div>
+    </form>
+  </div>
+
+  <div style="margin:16px 16px 0">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="cap" style="color:#1A1A1A">Category</span><span style="font-size:12.5px;color:#55544F">Suggested from the store</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      
+        <button type="button" class="chip" onClick="" aria-pressed="true" style="border:1px solid #1A1A1A;background:#1A1A1A;color:#F6F6F5">Groceries</button>
+      
+        <button type="button" class="chip" onClick="" aria-pressed="false" style="border:1px solid #B7B9BE;background:transparent;color:#1A1A1A">Eating out</button>
+      
+        <button type="button" class="chip" onClick="" aria-pressed="false" style="border:1px solid #B7B9BE;background:transparent;color:#1A1A1A">Transport</button>
+      
+        <button type="button" class="chip" onClick="" aria-pressed="false" style="border:1px solid #B7B9BE;background:transparent;color:#1A1A1A">Other</button>
+      
+    </div>
+  </div>
+
+  <a href="A3-ScanFiled.dc.html" style="margin:auto 16px 30px;height:52px;border-radius:12px;background:#2340C8;color:#fff;display:flex;align-items:center;justify-content:center;font:600 16px Geist,sans-serif;text-decoration:none">Save to November invoice</a>
+</div>
+
+
+</body>
+</html>

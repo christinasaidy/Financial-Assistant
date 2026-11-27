@@ -107,6 +107,9 @@ class NameRepository(Protocol):
     def inventory(self, kind: NameKind, limit: int) -> list[KnownName]:
         """Every name of that kind, most recently used first, at most `limit`."""
 
+    def brands(self, limit: int) -> list[KnownName]:
+        """Every brand on the user's items (lower case), most recently used first, at most `limit`."""
+
 
 class MemoryRepository(Protocol):
     def list_all(self) -> list[Memory]:

@@ -9,6 +9,8 @@ refused), it reuses the services the screens use, and its output is bounded. The
   ALL the user's confirmed receipts, not the 100 newest vendors the Beta prompt lists (a model-written name is never
   trusted: only a name found in the user's own data is let through).
 - find_names: the user's exact spelling of a vendor, item or category, or similar names to ask about.
+  An item that is not one of the user's item names is looked up among their brands too (2026-11-27): "terea"
+  is saved as the item tobacco with the brand terea.
 - get_receipt: one receipt and its lines.
 - get_spending_summary: a month's totals by currency and category (SpendingService, as the Home screen shows them).
 - get_budgets: a month's budgets and how much of each is used (BudgetService, as the Budgets screen shows them).
@@ -115,7 +117,8 @@ SPECS = (
         "find_names",
         "Find the user's exact spelling of a shop (vendor), item or category among all their confirmed receipts. "
         "Returns status found (with the exact name), ambiguous, suggestions (similar names to ask the user about; "
-        "never treat one as found) or not_found.",
+        "never treat one as found) or not_found. An item that is no item name but one of the user's brands returns "
+        "status brand (with the exact brand), and similar brands come as brand_suggestions.",
         _schema(
             {
                 "kind": {"type": "string", "enum": [kind.value for kind in NameKind]},
@@ -348,9 +351,26 @@ class StandardTools:
             return _error(f"The name must be 1 to {MAX_NAME_LENGTH} characters", sources_listed=None)
         with self._uow(user_id) as work:
             known = work.names.inventory(kind, INVENTORY_LIMIT + 1)
-        partial = len(known) > INVENTORY_LIMIT
+            brands = work.names.brands(INVENTORY_LIMIT + 1) if kind is NameKind.ITEM else []
+        partial = len(known) > INVENTORY_LIMIT or len(brands) > INVENTORY_LIMIT
         match = match_name(name, known[:INVENTORY_LIMIT])
-        payload: dict = {"status": match.status.value, "names": [_known(entry) for entry in match.names]}
+        brand = None
+        if match.status not in (MatchStatus.FOUND, MatchStatus.AMBIGUOUS) and brands:
+            brand = match_name(name, brands[:INVENTORY_LIMIT])
+        if brand is not None and brand.status in (MatchStatus.FOUND, MatchStatus.AMBIGUOUS):
+            payload = {"status": "brand", "names": [_known(entry) for entry in brand.names],
+                       "note": "No item has this name, but it is a brand the user bought: filter purchases on "
+                       "brand = '<name>' (item_name says what the product is)"}  # fmt: skip
+            if partial:
+                payload["partial"] = f"Only the {INVENTORY_LIMIT} most recently used names were searched"
+            record = {"status": "brand", "names": len(brand.names), "partial": partial}
+            return ToolOutcome(_json(payload), False, (), (), None, record)
+        status = match.status
+        payload: dict = {"names": [_known(entry) for entry in match.names]}
+        if brand is not None and brand.status is MatchStatus.SUGGESTIONS:
+            payload["brand_suggestions"] = [_known(entry) for entry in brand.names]
+            status = MatchStatus.SUGGESTIONS
+        payload = {"status": status.value} | payload
         notes = {
             MatchStatus.FOUND: "This is the user's exact spelling: use it in queries",
             MatchStatus.AMBIGUOUS: "More than one name has this spelling: ask the user which they mean",
@@ -359,10 +379,13 @@ class StandardTools:
             MatchStatus.NOT_FOUND: "No name with this or a similar spelling among the user's confirmed receipts. "
             "That does not prove they never bought there: it may be spelled differently or not confirmed yet",
         }
-        payload["note"] = notes[match.status]
+        payload["note"] = notes[status]
+        if "brand_suggestions" in payload:
+            payload["note"] += ". brand_suggestions are brands, filtered on with brand = '<name>'"
         if partial:
             payload["partial"] = f"Only the {INVENTORY_LIMIT} most recently used names were searched"
-        record = {"status": match.status.value, "names": len(match.names), "partial": partial}
+        record = {"status": status.value, "names": len(payload["names"]) + len(payload.get("brand_suggestions", ())),
+                  "partial": partial}  # fmt: skip
         return ToolOutcome(_json(payload), False, (), (), None, record)
 
     def _get_receipt(self, user_id: int, args: dict, context: ToolContext) -> ToolOutcome:

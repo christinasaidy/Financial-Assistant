@@ -513,7 +513,298 @@ considered, so the reasoning can be explained later.
     (D027). Contrast 7.8 : 1 light, 8.5 : 1 dark. One main button per screen.
   - Helper sentences are DejaVu Sans (they are sentences, D006), grey (`ink-2`) where they only explain.
 
+## D038: The brand colour is highlighter yellow, on the wordmark
+
+- **Status:** Accepted, 2026-11-23. Chosen by Christina from the Home canvas ("Yellow A, highlighted wordmark").
+- **Context:** Christina found the screens dull and wanted a pop of colour tied to Fatourati itself, not to the data.
+- **Options considered:** highlighter yellow on the total; an end-of-roll pink stripe; yellow on the wordmark
+  (A); a yellow top band (B).
+- **Decision:** Highlighter yellow, `highlight` #f5e54a (light) / `highlight-dark` #e8d84a (dark), drawn as a
+  flat swipe with slightly uneven edges **behind the wordmark**, and behind the selected tab's label (it replaces
+  D033's 2 px ink bar). Text on yellow is always ink #1c1d21, in both themes (13.0 : 1 and 11.5 : 1). Nowhere else.
+- **Consequences:** Pen blue keeps meaning "you can tap this" (D018); yellow means "Fatourati". The app icon
+  should use the same yellow (not designed yet).
+
+## D039: Paper by screen: yellow launch, lightly creased everywhere else
+
+- **Status:** Accepted, 2026-11-23; the creased paper is replaced by D042 (plain white). Chosen by Christina from the canvas (launch "Yellow", sign in and Home "Lightly
+  creased"). She rejected the heavily crumpled experiment for every screen.
+- **Decision:**
+  - **Launch screen:** a full page of yellow paper (`highlight` #f5e54a with the fine grain) and the large wordmark
+    in ink, centred. Same in dark mode (no dark version).
+  - **Sign in, create account, Home:** "lightly creased" paper: the light paper becomes milky **#f7f8f6** (was
+    #f3f4f1), with a fine grain (`assets/paper/grain-light.png`, 256 px tile) and soft crease shading
+    (`assets/paper/wrinkle-light.png`, stretched once over the screen). Dark mode keeps paper-dark **#17181b**
+    with `grain-dark.png` and `wrinkle-dark.png`.
+  - The textures are images, not gradients (D007 stands).
+- **Consequences:** Contrast on #f7f8f6 is slightly higher than before (ink 15.8, ink-2 6.5, pen blue 8.1,
+  near-limit 5.6, limit-reached 6.3). Dark paper stays #17181b because the dark "limit reached" red (#e0524f) has no
+  margin (4.6 : 1; on a lighter #1a1b1e it would be 4.5). The crease shadows are faint (at most 7% ink) and only
+  darken the paper, so light-mode contrast does not drop.
+
+## D040: Sign in and create account
+
+- **Status:** Accepted, 2026-11-23 (design from the canvas; Apple and password reset left out by Christina).
+- **Decision:**
+  - Layout from the mockups: large highlighted wordmark, the screen title (SIGN IN / CREATE ACCOUNT), one grey
+    sentence, the fields, the main button (D037), a link to the other screen at the bottom.
+  - **Fields are fill-in lines**, like "Signature: ____" on a receipt: a section-label caption above, a single 1 px
+    ink line under the value, no box, square everything. Value text in receipt-line style. Password has a
+    pen-blue SHOW / HIDE.
+  - **Not built yet:** "Continue with Apple" and "Forgot password?" (the backend supports neither). They come back
+    as their own features.
+- **Consequences:** The "or" divider and the outlined secondary button wait for Apple sign-in.
+
+## D041: Accounts have a first name and a gender
+
+- **Status:** Accepted, 2026-11-23. Asked for by Christina.
+- **Decision:**
+  - Sign-up asks for **first name** (required; Home greets with it, D036) and **gender**: Female, Male, or Prefer
+    not to say (required choice; "Prefer not to say" is a real answer).
+  - Gender control: three equal square options in one row under a GENDER caption, 48 px tall, 1 px `rule` border,
+    labels in section-label style (capitals, may wrap to two lines); the chosen one has a 2 px pen-blue border and
+    pen-blue label (it is something the user changes, D018).
+  - Backend: `users` gain `first_name` and `gender` (`female` | `male` | `prefer_not_to_say`); register takes them,
+    `/auth/me` and login return them.
+- **Consequences:** Existing accounts have no name or gender until they set them (no profile screen yet). The
+  assistant could use gender to address the user correctly in Arabizi; that is a separate change.
+
 ---
+
+## D042: Plain white paper, no crease
+
+- **Status:** Accepted, 2026-11-25; replaced by D044 (the invoice design). Asked for by Christina after trying the app on her iPhone ("remove the creasing
+  and make it just white, all pages"). Replaces the lightly creased paper of D039.
+- **Decision:**
+  - Sign in, create account, Home and every other app screen sit on flat paper: **#ffffff** in light mode, the
+    same **#17181b** in dark mode. No grain, no crease shading. `wrinkle-light.png`, `wrinkle-dark.png` and
+    `grain-dark.png` are deleted; `grain-light.png` stays for the yellow launch.
+  - The launch screen stays yellow with its grain (D039); it never had a crease.
+- **Consequences:** Contrast on white is a little higher than on #f7f8f6 (ink 16.8, ink-2 6.9, pen blue 8.6,
+  near-limit 5.9, limit-reached 6.7). The main button's label uses the `paper` token, so it is now white on pen
+  blue. Dark mode keeps its colour, only its textures go.
+
+## D043: Settings: appearance and sign out, from a gear on Home
+
+- **Status:** Accepted, 2026-11-25; replaced by D044 (light only, settings from the wordmark). Christina chose where settings open from and what the appearance setting
+  offers, after finding no way to leave dark mode or to sign out on her iPhone. The rest are my calls, on her
+  standing instruction to decide small details myself.
+- **Options considered:** the gear in Home's header (chosen), a SETTINGS link at the bottom of Home, or tapping the
+  wordmark. For appearance: Phone / Light / Dark (chosen), Light / Dark only, or dropping dark mode.
+- **Decision:**
+  - **Home's header:** the gear (D030) to the left of the bell. Their 44 pt touch areas sit side by side, so the
+    two 24 px icons are 20 px apart. The gear opens Settings, pushed over the tabs (iOS slide), with Back.
+  - **Settings screen**, laid out like Home on plain paper (D042): a 44 px header with Back (left, 12 px padding),
+    the SETTINGS screen title, then sections 24 px apart with a dashed rule between them:
+    - **APPEARANCE:** Phone, Light, Dark, as three equal square options (the gender control of D041, now the
+      shared `OptionRow`). Phone is the default and follows the iPhone (D003). The choice applies at once to the
+      whole app, status bar included, and is kept on the phone (it survives signing out).
+    - **ACCOUNT:** the email in `meta` style, then SIGN OUT as a pen-blue link (section-label style). Signing out
+      needs no confirmation and goes straight to sign in.
+  - The temporary SIGN OUT link at the bottom of Home is removed.
+- **Consequences:** D003 ("follow the phone") stays the default, with an override. The bell still does nothing.
+
+## D044: The invoice design replaces the first design
+
+- **Status:** Accepted, 2026-11-26. Christina brought a new design (`frontend/design/`, from her design handoff)
+  and asked to follow it absolutely, keeping only her five tab icons from the first design.
+- **Decision:**
+  - `frontend/design/` is the source of truth: `DESIGN.md` (the spec), `theme.ts` (the tokens, re-exported by
+    `src/shared/theme/tokens.ts` untouched), `screens/` and `reference/` (exact values). Colours the reference
+    screens use that `theme.ts` does not name are added in `tokens.ts`, each with its screen; a test checks
+    each one appears in `reference/`.
+  - Kept from the first design: the printed icons for Home, Receipts, Scan, Budgets and Assistant (tab bar,
+    and the empty Recent box). Everything else (DejaVu, pen blue, yellow, the wordmark artwork, plain paper,
+    the yellow launch, D002-D043's looks) gives way to the invoice design.
+  - Christina's answers (2026-11-26):
+    - This round rebuilds the screens that exist: launch, sign in, create account, Home and empty Home, the tab
+      bar, settings. Receipt detail, Budgets and the two Assistant screens come next, as their own features.
+    - **Light only.** The design has no dark colours, so dark mode and the Phone / Light / Dark setting of D043
+      are removed; the status bar is always dark.
+    - **Forgot? and Continue with Apple** are left out until the backend supports them.
+    - **Create account and Settings** are built from the design's parts. Create account is the sign-in frame
+      with the four fields; gender uses the Assistant's segmented switch. Settings opens from the Fatourati
+      wordmark on Home (the design's header has only the bell; D045 moves it to an account button): the receipt screen's top bar, an ACCOUNT sheet
+      (name, email) and an outlined Sign out.
+  - My calls, on her standing instruction to decide small details:
+    - **Invoice number:** one invoice a month, counted from the month of the first receipt (Nº 0001 is that
+      month, and a new user's).
+    - **The table** lists the three budgets closest to their limit (every budget since D048), then "Everything else" = the dollar total
+      minus those categories, so the rows add up to TOTAL. A budget is red once spent passes its limit.
+    - **The older months** behind the invoice are the two months before this one, shown once the user has a
+      receipt from before this month. They are not tappable yet (switching months is not designed).
+    - **The note** says "Set your first monthly budget" (opens Budgets) until there is a budget, then
+      "Ask me — “adey sarafet 3al akel?”" (opens the Assistant; the design's "addeh sraft 3al akl" is
+      wrong Arabizi, corrected by Christina on 2026-11-26, as is the Beta placeholder: "S2al bel arabizi… e.g.
+      adey dafa3et?").
+    - Create account's heading: "Start a fresh invoice."; field errors are 13 px `redText` under the line;
+      the button shows a spinner while busy and turns `cobaltPressed` while pressed.
+    - The torn teeth are part of the creased sheet (the gaps are painted in the colour behind), as the
+      design's CSS mask does; slips lying on other slips keep plain teeth under them.
+- **Consequences:** The fonts are Geist, Geist Mono and Noto Naskh Arabic (only the weights used are
+  bundled). The crease needs `mixBlendMode`, which Expo SDK 58's New Architecture has. Loading and error looks
+  are still not designed (a spinner, and a sentence with Try again).
+
+## D045: An account button by the bell opens Settings
+
+- **Status:** Accepted, 2026-11-26. Christina found Sign out hidden behind the wordmark (D044) and chose an
+  account icon by the bell (over a gear, or a Settings link at the bottom of Home).
+- **Decision:** Home's header has a person icon left of the bell, drawn in the design's line style (24 view
+  box, 1.7 stroke, 20 px in a 44 px button), labelled "Account and settings" for VoiceOver. It opens
+  Settings. The wordmark is no longer a button.
+- **Consequences:** One icon the design does not have; it follows the bell's style exactly.
+
+## D046: Budgets, and the budget form as a sheet
+
+- **Status:** Accepted, 2026-11-26. Built from design/screens/06-budgets.png. Christina chose the form as a
+  sheet from the bottom and a blank budget sheet for no budgets; the rest are my calls.
+- **Decision:**
+  - **Budgets** follows screen 06: title, ‹ month ›, the black +; the budget sheet; one creased slip per budget
+    (over-budget first, then by % used); the dashed Everything else box. Next is disabled on the current month;
+    earlier months can be browsed.
+  - **The sheet** adds the budgets up in dollars, pound budgets at today's rate. "N days left" counts the days
+    after today; on the last day "Last day"; earlier months say "Month ended" and show no pace.
+  - **Pace** ("$2.13 a day") = left ÷ days left (DESIGN.md §5), "$0.00 a day" when over; on the last day, all
+    that is left.
+  - **Everything else** = the month's dollar spending outside every budget. Shown when above zero, and always
+    while there are no budgets.
+  - **No budgets:** a blank sheet, $0.00 in grey and "No budgets yet. Set a monthly limit for a category."
+  - **The form** is an iOS sheet on the sign-in form's clean paper. New (from + or Set budget): NEW BUDGET and the
+    month, "Set a monthly limit.", "It applies from November 2026 onwards." (the backend sets a limit from a
+    month onwards), CATEGORY as the Assistant's chips (only categories without a budget; the chosen chip is ink
+    with light text, like the user's chat bubble), MONTHLY LIMIT, CURRENCY (USD / LBP, the segmented switch),
+    Save budget. Edit (tap a slip): EDIT BUDGET, the category as the heading, the same fields filled in, and an
+    outlined Remove budget, which asks first (iOS alert) because it removes the budget for every month.
+  - Limits: positive, dollars with at most two decimals, pounds whole; commas are fine.
+- **Consequences:** New icons in the design's line style: the month chevrons and the + (copied from reference 06).
+  Creating a category from the form is not designed yet.
+
+## D047: The Assistant, with text answer cards for now
+
+- **Status:** Accepted, 2026-11-26. Built from design/screens/07 and 08 on the two assistant modes merged from main
+  (Standard with Claude Sonnet, Beta with the fine-tuned Qwen). Christina chose text cards for now; the rest are
+  my calls.
+- **Decision:**
+  - The screen follows 07 / 08: title and + (new conversation), the two-line segmented switch (Assistant ·
+    Claude Sonnet / Arabizi BETA · Fine-tuned Qwen), day separators ("Today · 26 Nov"), ink question bubbles
+    (Arabizi questions in Geist Mono), creased answer cards with ASSISTANT or ARABIZI · BETA, and the message
+    field with the cobalt send button and each mode's placeholder.
+  - **Answer cards are text for now:** the answer's sentence with amounts in bold Geist Mono (Markdown **bold**
+    kept as bold), or its table when the backend sends one. The design's budget bar and Beta's category header
+    with a big amount wait until the backend sends what an answer is about.
+  - **Beta:** the dashed BETA note; Show / Hide query on answers with SQL; "Was this right?" ✓ / ✗ on the
+    latest data answer, stored as the answer's rating (training data); a chosen button turns ink with a white
+    mark; choosing it again clears it.
+  - Each mode opens its newest conversation and keeps it while switching; + starts an empty one (created by its
+    first question).
+  - **Asking:** the question shows at once, then a card with a spinner ("Thinking…", Beta "Reading your
+    receipts…"). If the backend refuses (today's Standard limit, still answering), its sentence shows above the
+    field and the question goes back into the field. Answers may take up to 90 s.
+  - **Suggestions** in Standard only, under the conversation: "Where can I cut back?" and "Compare to <last
+    month>", asked with one tap.
+  - When a mode cannot answer (not set up, today's limit, the monthly cap), a sentence says so and Send is off.
+- **Consequences:** New line icons from the reference: send, the query chevron, ✓, ✗, and + for a new
+  conversation. Conversation history (older conversations) is not designed yet.
+
+## D048: Home's invoice lists every budget
+
+- **Status:** Accepted, 2026-11-26. Christina's fourth budget (Transport, set through the assistant) was missing
+  from Home: the invoice listed only the three budgets closest to their limit, and unused budgets tied at 0% were
+  cut by name.
+- **Decision:** The invoice table lists every budget of the month, closest to its limit first (then by name),
+  then Everything else, which is now only spending with no budget. More budgets make a longer invoice.
+- **Consequences:** Replaces D044's "three closest" rule. Everything else no longer includes budgeted categories.
+
+## D049: Pound budgets in the invoice table: short amounts with LBP under the limit
+
+- **Status:** Accepted, 2026-11-26. Christina's Shopping budget of 150,000,000 LBP barely fit the invoice's fixed
+  LIMIT (60 px) and SPENT (84 px) columns. She chose short amounts and asked for the currency to show.
+- **Decision:** In Home's invoice table, pound amounts from a million up are short: "150M", "1.25M" (two decimals
+  at most), "2.5B" from a billion; below a million they stay exact ("450,000"). The same goes for "148.75M left"
+  and "+600,000 over". Every pound budget shows a small LBP cap label under its limit; dollar budgets show none
+  (the invoice is in dollars). Budgets and the budget form keep the full numbers.
+- **Consequences:** Only the invoice table shortens amounts; totals and receipts are exact everywhere.
+
+## D050: The Receipts tab and a receipt's page
+
+- **Status:** Accepted, 2026-11-26. Built from design/screens/13-receipts.png and 05-receipt-detail.png (the new
+  handoff in frontend/design). Christina asked for simple versions of the parts with no screen yet (search, the
+  month picker, Split items); the details are my calls.
+- **Decision:**
+  - **Receipts tab** (screen 13): the month and its total ("Total $447.80"; "N receipts shown" while narrowed),
+    the filter chips (All, the month's categories by number of receipts, Other for receipts with no category),
+    and one long creased roll grouped "This week" (since Monday) and "Earlier in November" ("In October" for a
+    month with nothing this week), ending with the month before and "Older receipts →". Only confirmed
+    receipts. Rows are the same as Home's (now one shared ReceiptRow), and open the receipt.
+  - **Search** (simple): the search button opens a field over the list, matching shops and categories.
+  - **Month** (simple): the calendar button opens the Budgets-style ‹ November 2026 › switcher.
+  - **A receipt's page** (screen 05): Back, RECEIPT, share (the receipt as text); the creased receipt with its
+    category and "18 Nov · 18:42" (the printed date, the time it was added), the shop and total, ITEM / QTY /
+    AMOUNT (QTY is the size when known, "1 kg", else the count), TOTAL · N ITEMS (the payment method is not
+    read, so "card" is left out), and "Groceries after this" when the category has a budget that month.
+  - **Change category** (a sheet): category chips; every item follows the new category.
+  - **Split items** (simple, a sheet): each item with a row of category chips; an item in the receipt's own
+    category is saved as following it. On the page, an item in another category shows that category in small
+    cobalt capitals under its name.
+  - Both save through the backend's confirm, which corrects a confirmed receipt; every value is kept.
+- **Consequences:** The list opens each receipt of the month to count its items (the list endpoint leaves items
+  out). Dashed lines are now drawn at 100% width, never from a measured width.
+
+## D051: The scan flow
+
+- **Status:** Accepted, 2026-11-27. Built from design/screens/09-12. Christina chose the fixed tip and no Long receipt
+  (Expo Go has no live receipt detection; the backend reads one photo per receipt) and CHECK THIS from the
+  backend's flags; the rest are my calls.
+- **Decision:**
+  - The Scan tab opens the flow full screen over the tabs (it is not a tab to stay on).
+  - **Camera** (screen 09): dark; Close, "Scan receipt", flash; the viewfinder with white corner brackets; the pill
+    is a fixed tip, "Hold the phone steady"; Upload (photo library) and the shutter; no Long receipt. Without
+    camera access it says so and offers "Allow the camera"; Upload still works.
+  - **Reading** (screen 10): the photo as a creased slip with a moving cobalt scan line and tint; the app sends it
+    (POST /receipts) and asks every 1.5 s until it is read (up to 90 s). The backend reads everything at once, so
+    the rows (Store, Date, Items, Total) tick off one after another as soon as it has, then Review opens. If the
+    photo cannot be read: Retake, or "Fill it in by hand" (Review with empty fields).
+  - **Review** (screen 11): Store, Date (dd/mm/yyyy) and USD / LBP to edit; the first four items, "+ N more items";
+    the total to edit; "✓ Items add up to the total" or, when they don't, "The items add up to $X, not the total.
+    Check the total." in red. CHECK THIS (cobalt tint, cap, dashed cobalt underline on the amount) marks: the
+    store, date or total when the backend flagged them missing (or the date in the future), and items the reader
+    could not name. Category chips (the backend's suggestion chosen, "Suggested from the store" while it is);
+    "Save to <month> invoice". It needs a store, a real date, a total and a category. USD / LBP converts the
+    receipt (D052). A pound total shows "≈ $" under it at the receipt's rate (else today's), as pound amounts do
+    everywhere (DESIGN.md §5). Items are not edited here
+    yet (Split items on the receipt's page changes their categories).
+  - **Filed** (screen 12): "Filed under <category>", the receipt in a sentence, and the mini invoice: the category's
+    budget before (struck through) and after, the receipt's part of the bar in cobalt, "+X from this receipt",
+    what is left, and the month's total before and after; without a budget, just the amount. View receipt, Scan
+    another, Done.
+  - Retake, Back and Cancel delete the unsaved receipt (DELETE /receipts/{id}), so drafts don't pile up.
+- **Consequences:** expo-camera, expo-image-picker and expo-image-manipulator (all run in Expo Go) are dependencies.
+  Photo uploads get 60 s and go through React Native's XMLHttpRequest (Expo's fetch cannot send file parts).
+  Photos are shrunk to 1200 px on their short side before upload: measured 2026-11-27 on Christina's receipt,
+  Gemini took 42-62 s for the full 4032 x 2868 photo and 6 s for a 1600 px copy (same image tokens, no thinking
+  tokens either way; a lower thinking setting did not help).
+
+## D052: Review's USD / LBP switch converts the receipt
+
+- **Status:** Accepted, 2026-11-27. Christina scanned a 130,000 LBP receipt and pressed USD, which relabelled it
+  $130,000 (the switch meant "printed in"). She chose conversion.
+- **Decision:** Picking the other currency converts the total and every item at the receipt's rate (else today's):
+  130,000 LBP becomes $1.45; dollars keep cents, pounds are whole. If the items added up, the total becomes the
+  converted items' sum, so rounding never trips the warning. Switching back to the currency it was read in
+  restores the printed amounts exactly. A converted receipt says "Converted from LBP at 89,500 LBP per $" under the
+  total, and is saved in the currency shown. A pound total shows "≈ $" under it.
+- **Consequences:** A receipt the reader got wrong (dollars read as pounds) is now fixed by editing the amounts, not
+  by the switch.
+
+## D053: Items show their printed name, not the reader's clean name
+
+- **Status:** Accepted, 2026-11-27. Christina saw "RIM SPARKLING WATER" shown as "water" and "TEREA" as "tobacco".
+- **Decision:** The receipt page, Split items and Review show an item's printed text (`description`) in sentence
+  case when printed in capitals ("Rim sparkling water"), without a size the QTY column shows ("LABNEH 1KG" ->
+  "Labneh", "EGGS X12" -> "Eggs"). Arabic and mixed-case names stay as printed. The reader's `normalized_name`
+  ("water") is unchanged and stays what the assistant uses to compare products across shops and brands; it is
+  shown only when nothing was printed.
+- **Consequences:** None for saved data; display only.
 
 ## Open (not decided)
 
@@ -527,4 +818,3 @@ From Christina, to discuss later:
 
 Proposed earlier, still to discuss:
 - Interface language: English screens, Arabizi in the assistant only (proposed).
-- Theme switch: follow the phone, with an override in settings (proposed).

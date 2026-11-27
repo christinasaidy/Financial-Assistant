@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Fatourati launch, invoice</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+
+<style>
+/* Fonts: Geist, Geist Mono, Noto Naskh Arabic (Google Fonts) */
+body{margin:0}
+.shade{position:absolute;inset:0;background:url(../assets/crease.jpg) center/300px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+.tear{-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 7px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 7px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 7px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 7px repeat-x}
+.cap{font:500 10.5px/1 'Geist Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#3F3E3A}
+</style>
+
+<div style="position:relative;width:390px;height:844px;background:#FFFFFF;overflow:hidden;font-family:Geist,sans-serif;color:#1A1A1A">
+  <div style="position:absolute;inset:0 0 34px 0;filter:drop-shadow(0 10px 16px rgba(30,30,35,.18))">
+    <div class="tear" style="position:absolute;inset:0;isolation:isolate;background:#C9C9C6;padding:64px 26px 40px;box-sizing:border-box;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between"><span class="cap" style="color:#1F37AE">Invoice Nº 0001</span><span class="cap">USD · LBP</span></div>
+      <div style="border-top:1px solid #1A1A1A;margin-top:14px"></div>
+
+      <div lang="ar" style="margin-top:auto;font:700 108px/1.15 'Noto Naskh Arabic',serif;letter-spacing:0;text-align:right;margin-right:-6px">فاتورتي</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:3px double #1A1A1A;padding-top:14px;margin-top:18px">
+        <span style="font-weight:600;font-size:30px;letter-spacing:-.02em">Fatourati</span>
+        <span class="cap" style="color:#1A1A1A">Total · $0.00</span>
+      </div>
+      <div style="font:400 13px/1.5 'Geist Mono',monospace;color:#45443F;margin-top:10px">Every crumpled receipt, flattened out and accounted for.</div>
+      <div class="shade" style="opacity:0.69"></div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

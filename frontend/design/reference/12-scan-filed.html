@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scan, filed</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+
+
+<style>
+/* Fonts: Geist, Geist Mono, Noto Naskh Arabic (Google Fonts) */
+body{margin:0}
+.crease{position:absolute;inset:0;background:url(../assets/crease.jpg) center/300px auto repeat;mix-blend-mode:overlay;pointer-events:none;z-index:20}
+.tear{-webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x;mask:linear-gradient(#000 0 0) top/100% calc(100% - 6px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/12px 6px repeat-x}
+.m{font-family:'Geist Mono',monospace;font-variant-numeric:tabular-nums}
+.cap{font:500 10.5px/1 'Geist Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#4A4944}
+.bar{height:4px;background:rgba(0,0,0,.12);position:relative}
+</style>
+
+<div style="width:390px;height:844px;box-sizing:border-box;background:#E3E4E6;color:#1A1A1A;font-family:Geist,sans-serif;display:flex;flex-direction:column;overflow:hidden">
+
+  <div style="margin-top:96px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 28px">
+    <span style="width:56px;height:56px;border-radius:50%;background:#2340C8;color:#fff;display:grid;place-items:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    <h1 style="margin:18px 0 6px;font-weight:600;font-size:26px;letter-spacing:-.02em">Filed under Groceries</h1>
+    <p style="margin:0;font-size:15px;line-height:1.45;color:#46453F">Spinneys Achrafieh, <span class="m" style="color:#1A1A1A">$38.40</span>, added to this month’s invoice.</p>
+  </div>
+
+  <div style="margin:30px 14px 0;filter:drop-shadow(0 10px 14px rgba(40,35,25,.14)) drop-shadow(0 1px 1px rgba(40,35,25,.1))">
+    <div class="tear" style="position:relative;isolation:isolate;background:#EFEEEB;padding:14px 16px 22px">
+      <div style="display:flex;justify-content:space-between"><span class="cap" style="color:#2340C8">Invoice Nº 0447</span><span class="cap">Nov 2026</span></div>
+
+      <div style="margin-top:14px;padding:12px 10px;margin-left:-10px;margin-right:-10px;background:rgba(35,64,200,.07);border-top:1px solid #1A1A1A">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-weight:600;font-size:15px">Groceries</span>
+          <span class="m" style="font-size:15px"><span style="color:#6E6D68;text-decoration:line-through;font-size:13px">148.00</span>&nbsp; 186.40 <span style="color:#46453F">/ 250</span></span>
+        </div>
+        <div class="bar" style="margin-top:10px"><span style="position:absolute;left:0;top:0;height:4px;width:59%;background:#1A1A1A"></span><span style="position:absolute;left:59%;top:0;height:4px;width:16%;background:#2340C8"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:12.5px;color:#3A3934"><span><span class="m" style="color:#2340C8;font-weight:600">+38.40</span> from this receipt</span><span class="m">63.60 left</span></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:3px double #1A1A1A;padding-top:9px;margin-top:12px">
+        <span class="cap" style="color:#1A1A1A">Total</span>
+        <span class="m" style="font-size:17px;font-weight:600"><span style="color:#6E6D68;text-decoration:line-through;font-size:13px;font-weight:400">409.40</span>&nbsp; $447.80</span>
+      </div>
+      <div class="crease" style="opacity:0.6"></div>
+    </div>
+  </div>
+
+  <a href="A3-Receipt.dc.html" style="align-self:center;margin-top:16px;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:500;color:#2340C8;text-decoration:none">View receipt</a>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:auto 16px 30px">
+    <a href="A3-ScanCamera.dc.html" style="height:52px;border:1px solid #1A1A1A;border-radius:12px;display:flex;align-items:center;justify-content:center;font:600 15px Geist,sans-serif;color:#1A1A1A;text-decoration:none">Scan another</a>
+    <a href="A3-WhiteCrease.dc.html" style="height:52px;border-radius:12px;background:#2340C8;color:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Geist,sans-serif;text-decoration:none">Done</a>
+  </div>
+</div>
+
+
+</body>
+</html>
