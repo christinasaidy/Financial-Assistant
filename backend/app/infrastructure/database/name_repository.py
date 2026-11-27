@@ -29,6 +29,14 @@ _INVENTORY = {
     """,
 }
 
+# The brands printed on the user's items ("TEREA Oasis" is saved as the item tobacco, brand terea).
+_BRANDS = """
+    SELECT ri.brand AS name, count(DISTINCT r.id) AS receipts, max(r.receipt_date) AS last_used
+    FROM receipt_items ri JOIN receipts r ON r.id = ri.receipt_id AND r.status = 'confirmed'
+    WHERE ri.brand IS NOT NULL
+    GROUP BY ri.brand
+"""
+
 
 class SqlNameRepository:
     """The user's vendor, item and category names over all their confirmed receipts (the Standard mode's lookups)."""
@@ -50,11 +58,17 @@ class SqlNameRepository:
         return found
 
     def inventory(self, kind: NameKind, limit: int) -> list[KnownName]:
-        rows = self._conn.execute(
-            text(f"SELECT * FROM ({_INVENTORY[kind]}) known ORDER BY last_used DESC NULLS LAST, name LIMIT :limit"),
-            {"limit": limit},
-        ).all()
-        known = [KnownName(row.name, row.receipts, row.last_used) for row in rows]
+        known = self._newest_first(_INVENTORY[kind], limit)
         if kind is NameKind.CATEGORY:
             known += [KnownName(name, 0, None) for name in VIEW_CATEGORIES if name not in {k.name for k in known}]
         return known
+
+    def brands(self, limit: int) -> list[KnownName]:
+        return self._newest_first(_BRANDS, limit)
+
+    def _newest_first(self, names_sql: str, limit: int) -> list[KnownName]:
+        rows = self._conn.execute(
+            text(f"SELECT * FROM ({names_sql}) known ORDER BY last_used DESC NULLS LAST, name LIMIT :limit"),
+            {"limit": limit},
+        ).all()
+        return [KnownName(row.name, row.receipts, row.last_used) for row in rows]
