@@ -43,9 +43,14 @@ export function CameraScreen() {
   };
 
   const upload = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+    // iPhone photos are often HEIC, which the backend does not read: "Compatible" hands them over as JPEG.
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+    });
     const asset = result.canceled ? null : result.assets[0];
-    if (asset) openReading({ uri: asset.uri, mimeType: asset.mimeType ?? 'image/jpeg' });
+    if (asset) openReading({ uri: asset.uri, mimeType: asset.mimeType === 'image/png' ? 'image/png' : 'image/jpeg' });
   };
 
   return (
