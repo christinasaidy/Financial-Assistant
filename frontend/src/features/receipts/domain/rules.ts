@@ -100,10 +100,22 @@ function plain(value: number): string {
   return String(Math.round(value * 1000) / 1000);
 }
 
-/** An item's name for the table: the reader's clean name ("labneh") with a capital, else the printed text. */
+/** A size or count printed after a name: "1KG", "1.5 kg", "250G", "1L", "330ML", "X12", "12X". QTY shows it. */
+const PRINTED_SIZE = /\s+(?:\d+(?:[.,]\d+)?\s?(?:kg|g|gr|mg|l|lt|ml|cl)|x\s?\d+|\d+\s?x|\d+\s?(?:pcs|pc))(?=\s|$)/gi;
+
+/**
+ * An item's name in a table (D053): the text printed on the receipt ("RIM SPARKLING WATER" -> "Rim sparkling
+ * water"), in sentence case, without the size QTY already shows ("LABNEH 1KG" -> "Labneh"). Not the reader's
+ * clean name ("water"): that one is generic on purpose, for the assistant's questions across shops and brands.
+ */
 export function itemName(line: ReceiptLine): string {
-  const name = (line.normalizedName ?? line.description).trim();
-  return name ? name.charAt(0).toUpperCase() + name.slice(1) : 'Item';
+  const printed = line.description.replace(PRINTED_SIZE, '').replace(/\s+/g, ' ').trim();
+  const name = printed || line.description.trim() || line.normalizedName?.trim() || '';
+  if (!name) return 'Item';
+  // Sentence case only for text printed in capitals; Arabic and mixed-case names stay as printed.
+  const shouted = name === name.toUpperCase() && /[A-Z]/.test(name);
+  const cased = shouted ? name.toLowerCase() : name;
+  return cased.charAt(0).toUpperCase() + cased.slice(1);
 }
 
 /** QTY (screen 05): the size when known ("1 kg", "250 g", "1 L"), else the count ("1", "12"). */

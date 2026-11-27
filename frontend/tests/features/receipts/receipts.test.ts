@@ -52,8 +52,18 @@ describe('the Receipts roll (design/screens/13-receipts.png)', () => {
 
 describe('a receipt’s items', () => {
   it('names them cleanly and shows sizes as QTY', () => {
+    // The printed name, not the generic clean name the assistant uses (D053).
+    expect(itemName(line('RIM SPARKLING WATER', '0.60', { normalizedName: 'water' }))).toBe('Rim sparkling water');
+    expect(itemName(line('TEREA', '5.00', { normalizedName: 'tobacco' }))).toBe('Terea');
     expect(itemName(line('LABNEH 1KG', '6.20', { normalizedName: 'labneh' }))).toBe('Labneh');
-    expect(itemName(line('MINT BUNCH', '0.90'))).toBe('MINT BUNCH');
+    expect(itemName(line('TOMATOES 1.5KG', '2.85'))).toBe('Tomatoes');
+    expect(itemName(line('EGGS X12', '3.95'))).toBe('Eggs');
+    expect(itemName(line('PEPSI 330ML', '0.80'))).toBe('Pepsi');
+    expect(itemName(line('MINT BUNCH', '0.90'))).toBe('Mint bunch');
+    expect(itemName(line('Pain au chocolat', '1.20'))).toBe('Pain au chocolat');
+    expect(itemName(line('خبز عربي', '1.10', { normalizedName: 'bread' }))).toBe('خبز عربي');
+    expect(itemName(line('7UP', '0.50'))).toBe('7up');
+    expect(itemName(line('', '1.00', { normalizedName: 'bread' }))).toBe('Bread');
     expect(quantityLabel(line('x', '1', { sizeAmount: '1.500', sizeUnit: 'kg' }))).toBe('1.5 kg');
     expect(quantityLabel(line('x', '1', { sizeAmount: '1', sizeUnit: 'l' }))).toBe('1 L');
     expect(quantityLabel(line('x', '1', { quantity: '12.000' }))).toBe('12');

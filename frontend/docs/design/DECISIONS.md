@@ -796,6 +796,16 @@ considered, so the reasoning can be explained later.
 - **Consequences:** A receipt the reader got wrong (dollars read as pounds) is now fixed by editing the amounts, not
   by the switch.
 
+## D053: Items show their printed name, not the reader's clean name
+
+- **Status:** Accepted, 2026-11-27. Christina saw "RIM SPARKLING WATER" shown as "water" and "TEREA" as "tobacco".
+- **Decision:** The receipt page, Split items and Review show an item's printed text (`description`) in sentence
+  case when printed in capitals ("Rim sparkling water"), without a size the QTY column shows ("LABNEH 1KG" ->
+  "Labneh", "EGGS X12" -> "Eggs"). Arabic and mixed-case names stay as printed. The reader's `normalized_name`
+  ("water") is unchanged and stays what the assistant uses to compare products across shops and brands; it is
+  shown only when nothing was printed.
+- **Consequences:** None for saved data; display only.
+
 ## Open (not decided)
 
 From Christina, to discuss later:
