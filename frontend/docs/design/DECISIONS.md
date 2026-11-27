@@ -778,7 +778,11 @@ considered, so the reasoning can be explained later.
     what is left, and the month's total before and after; without a budget, just the amount. View receipt, Scan
     another, Done.
   - Retake, Back and Cancel delete the unsaved receipt (DELETE /receipts/{id}), so drafts don't pile up.
-- **Consequences:** expo-camera and expo-image-picker (both run in Expo Go) are dependencies. Photo uploads get 60 s.
+- **Consequences:** expo-camera, expo-image-picker and expo-image-manipulator (all run in Expo Go) are dependencies.
+  Photo uploads get 60 s and go through React Native's XMLHttpRequest (Expo's fetch cannot send file parts).
+  Photos are shrunk to 1200 px on their short side before upload: measured 2026-11-27 on Christina's receipt,
+  Gemini took 42-62 s for the full 4032 x 2868 photo and 6 s for a 1600 px copy (same image tokens, no thinking
+  tokens either way; a lower thinking setting did not help).
 
 ## D052: Review's USD / LBP switch converts the receipt
 

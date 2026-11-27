@@ -150,7 +150,12 @@ describe('ApiScanUploader', () => {
     const { xhrFn, sent } = xhrMock(reply);
     const { fetchFn } = fetchMock();
     const http = createHttpClient({ baseUrl: 'http://192.168.1.23:8000', getToken: () => 'jwt', onUnauthorized: jest.fn(), fetchFn, xhrFn });
-    return { uploader: new ApiScanUploader(http), sent, fetchFn };
+    const shrunk: string[] = [];
+    const shrink = async (photo: { uri: string; mimeType: string }) => {
+      shrunk.push(photo.uri);
+      return { uri: `${photo.uri}.small.jpg`, mimeType: 'image/jpeg' };
+    };
+    return { uploader: new ApiScanUploader(http, shrink), sent, fetchFn, shrunk };
   }
 
   it('posts the photo as multipart form data through XMLHttpRequest, with the token and a longer time limit', async () => {
@@ -163,6 +168,25 @@ describe('ApiScanUploader', () => {
     // Expo's fetch cannot send React Native file parts, so a form never goes through it.
     expect(fetchFn).not.toHaveBeenCalled();
     expect(UPLOAD_TIMEOUT_MS).toBeGreaterThan(15_000);
+  });
+
+  it('shrinks the photo before sending it, and sends the original if shrinking fails', async () => {
+    const append = jest.spyOn(FormData.prototype, 'append');
+    const attached = () => (append.mock.calls.at(-1)?.[1] as unknown as { uri: string }).uri;
+
+    const { uploader, shrunk } = uploaderWith({ status: 202, body: { id: 56 } });
+    await uploader.upload({ uri: 'file:///big.jpg', mimeType: 'image/jpeg' });
+    expect(shrunk).toEqual(['file:///big.jpg']);
+    expect(attached()).toBe('file:///big.jpg.small.jpg');
+
+    const { xhrFn } = xhrMock({ status: 202, body: { id: 57 } });
+    const http = createHttpClient({ baseUrl: 'http://x', getToken: () => null, onUnauthorized: jest.fn(), xhrFn });
+    const failing = new ApiScanUploader(http, async () => {
+      throw new Error('no memory');
+    });
+    await expect(failing.upload({ uri: 'file:///big.jpg', mimeType: 'image/jpeg' })).resolves.toBe(57);
+    expect(attached()).toBe('file:///big.jpg');
+    append.mockRestore();
   });
 
   it('passes on the backend’s reason for refusing a photo', async () => {
