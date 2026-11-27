@@ -769,7 +769,9 @@ considered, so the reasoning can be explained later.
     Check the total." in red. CHECK THIS (cobalt tint, cap, dashed cobalt underline on the amount) marks: the
     store, date or total when the backend flagged them missing (or the date in the future), and items the reader
     could not name. Category chips (the backend's suggestion chosen, "Suggested from the store" while it is);
-    "Save to <month> invoice". It needs a store, a real date, a total and a category. Items are not edited here
+    "Save to <month> invoice". It needs a store, a real date, a total and a category. USD / LBP says which currency
+    the receipt is printed in (to correct the reader); it never converts. A pound total shows "≈ $" under it at
+    the receipt's rate (else today's), as pound amounts do everywhere (DESIGN.md §5). Items are not edited here
     yet (Split items on the receipt's page changes their categories).
   - **Filed** (screen 12): "Filed under <category>", the receipt in a sentence, and the mini invoice: the category's
     budget before (struck through) and after, the receipt's part of the bar in cobalt, "+X from this receipt",

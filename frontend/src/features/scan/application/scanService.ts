@@ -66,11 +66,15 @@ export class ScanService {
     }
   }
 
-  /** Review's receipt, the categories to choose from, and the invoice it goes into. */
-  async loadReview(id: number, today: Date): Promise<{ receipt: Receipt; categories: Category[]; invoiceNumber: number }> {
+  /**
+   * Review's receipt, the categories to choose from, the invoice it goes into, and the rate for "≈ $" under a
+   * pound total: the receipt's own, else today's (the one the backend saves with a new receipt).
+   */
+  async loadReview(id: number, today: Date): Promise<{ receipt: Receipt; categories: Category[]; invoiceNumber: number; lbpPerUsd: string }> {
     const [receipt, categories, all] = await Promise.all([this.repository.receipt(id), this.repository.categories(), this.repository.receipts()]);
     const month = receipt.receiptDate ? firstOfMonth(receipt.receiptDate) : today;
-    return { receipt, categories, invoiceNumber: invoiceNumber(month, all) };
+    const lbpPerUsd = receipt.lbpPerUsd ?? (await this.repository.monthTotal(toApiMonth(today))).lbpPerUsd;
+    return { receipt, categories, invoiceNumber: invoiceNumber(month, all), lbpPerUsd };
   }
 
   /** Deletes a scanned receipt that was not saved; a failure here is not worth an error on screen. */

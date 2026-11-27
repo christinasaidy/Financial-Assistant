@@ -127,6 +127,16 @@ describe('review (screen 11)', () => {
     expect(repository.saved).toBeNull();
   });
 
+  it('shows a pound total’s dollar value, and the switch only says which currency it is printed in', async () => {
+    const repository = new FakeScanRepository();
+    repository.read = readSpinneys({ currency: 'LBP', total: '130000.00', lines: [], lbpPerUsd: '89500.00' });
+    await openReview(repository);
+    expect(screen.getByTestId('total-approx').props.children).toBe('≈ $1.45');
+    await fireEvent.press(screen.getByRole('radio', { name: 'USD' }));
+    expect(screen.queryByTestId('total-approx')).toBeNull();
+    expect(screen.getByLabelText('Total').props.value).toBe('130000.00');
+  });
+
   it('saves to the month’s invoice and opens Filed', async () => {
     const { router, repository } = await openReview();
     await fireEvent.press(screen.getByRole('button', { name: 'Save to November invoice' }));

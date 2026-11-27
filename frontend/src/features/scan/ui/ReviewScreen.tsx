@@ -4,6 +4,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { itemName, quantityLabel } from '@/features/receipts/domain';
+import { formatApproxUsd } from '@/shared/format/money';
 import { colors, fonts, radius, touchTarget } from '@/shared/theme';
 import { AppText, Button, Chip, DashedLine, DoubleRule, LineIcon, PaperSheet, TextLink } from '@/shared/ui';
 
@@ -27,7 +28,7 @@ import { cell, money, newReceiptLabel, saveLabel, scanErrorSentence } from './sc
 
 type Props = { service?: ScanService; today?: () => Date };
 
-type Loaded = { receipt: Receipt; categories: Category[]; invoiceNumber: number };
+type Loaded = { receipt: Receipt; categories: Category[]; invoiceNumber: number; lbpPerUsd: string };
 
 /**
  * Review (design/screens/11-scan-review.png): "Check the details", Back and Retake; the creased sheet with the
@@ -130,6 +131,7 @@ export function ReviewScreen({ service, today = () => new Date() }: Props) {
             checks={checksFor(loaded.receipt)}
             problems={problems}
             invoiceNumber={loaded.invoiceNumber}
+            lbpPerUsd={loaded.lbpPerUsd}
             allItems={allItems}
             onAllItems={() => setAllItems(true)}
             onChange={change}
@@ -209,6 +211,8 @@ function Field({ label, check, error, mono = false, ...input }: { label: string;
 
 type SheetProps = {
   draft: Draft;
+  /** For "≈ $" under a pound total. */
+  lbpPerUsd: string;
   checks: Checks;
   problems: DraftProblems;
   invoiceNumber: number;
@@ -217,7 +221,7 @@ type SheetProps = {
   onChange: (patch: Partial<Draft>) => void;
 };
 
-function ReceiptSheet({ draft, checks, problems, invoiceNumber, allItems, onAllItems, onChange }: SheetProps) {
+function ReceiptSheet({ draft, lbpPerUsd, checks, problems, invoiceNumber, allItems, onAllItems, onChange }: SheetProps) {
   const shown = allItems ? draft.lines : draft.lines.slice(0, FIRST_ITEMS);
   const hidden = draft.lines.slice(shown.length);
   const fits = addsUp(draft);
@@ -344,6 +348,11 @@ function ReceiptSheet({ draft, checks, problems, invoiceNumber, allItems, onAllI
             ) : null}
           </View>
         </View>
+        {draft.currency === 'LBP' && Number.parseFloat(draft.total.replace(/,/g, '')) > 0 ? (
+          <AppText font="mono" size={11.5} color="inkSoft" style={styles.approx} testID="total-approx">
+            {formatApproxUsd(draft.total.replace(/,/g, ''), lbpPerUsd)}
+          </AppText>
+        ) : null}
         {problems.total ? <ErrorLine text={problems.total} /> : null}
         {fits === true ? (
           <View style={styles.fits}>
@@ -403,6 +412,7 @@ const styles = StyleSheet.create({
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 9 },
   totalInput: { flexDirection: 'row', alignItems: 'center' },
   total: { padding: 0, textAlign: 'right', fontFamily: fonts.mono.semibold, fontSize: 18, color: colors.ink },
+  approx: { textAlign: 'right', marginTop: 3 },
   fits: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
   error: { marginTop: 4 },
   category: { marginTop: 16, marginHorizontal: 16 },
