@@ -1,6 +1,6 @@
-// TODO(scan): placeholder. Replace with the Scan screen from src/features/scan/ui.
-import { PlaceholderScreen } from '@/shared/ui';
+import { Redirect } from 'expo-router';
 
-export default function ScanRoute() {
-  return <PlaceholderScreen title="Scan" owner="scan" />;
+/** The Scan tab never shows: pressing it opens the scan flow (app/scan) over the tabs. Here in case of a link. */
+export default function ScanTabRoute() {
+  return <Redirect href="/scan" />;
 }

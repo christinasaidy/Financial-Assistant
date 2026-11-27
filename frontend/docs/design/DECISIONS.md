@@ -750,6 +750,34 @@ considered, so the reasoning can be explained later.
 - **Consequences:** The list opens each receipt of the month to count its items (the list endpoint leaves items
   out). Dashed lines are now drawn at 100% width, never from a measured width.
 
+## D051: The scan flow
+
+- **Status:** Accepted, 2026-11-27. Built from design/screens/09-12. Christina chose the fixed tip and no Long receipt
+  (Expo Go has no live receipt detection; the backend reads one photo per receipt) and CHECK THIS from the
+  backend's flags; the rest are my calls.
+- **Decision:**
+  - The Scan tab opens the flow full screen over the tabs (it is not a tab to stay on).
+  - **Camera** (screen 09): dark; Close, "Scan receipt", flash; the viewfinder with white corner brackets; the pill
+    is a fixed tip, "Hold the phone steady"; Upload (photo library) and the shutter; no Long receipt. Without
+    camera access it says so and offers "Allow the camera"; Upload still works.
+  - **Reading** (screen 10): the photo as a creased slip with a moving cobalt scan line and tint; the app sends it
+    (POST /receipts) and asks every 1.5 s until it is read (up to 90 s). The backend reads everything at once, so
+    the rows (Store, Date, Items, Total) tick off one after another as soon as it has, then Review opens. If the
+    photo cannot be read: Retake, or "Fill it in by hand" (Review with empty fields).
+  - **Review** (screen 11): Store, Date (dd/mm/yyyy) and USD / LBP to edit; the first four items, "+ N more items";
+    the total to edit; "✓ Items add up to the total" or, when they don't, "The items add up to $X, not the total.
+    Check the total." in red. CHECK THIS (cobalt tint, cap, dashed cobalt underline on the amount) marks: the
+    store, date or total when the backend flagged them missing (or the date in the future), and items the reader
+    could not name. Category chips (the backend's suggestion chosen, "Suggested from the store" while it is);
+    "Save to <month> invoice". It needs a store, a real date, a total and a category. Items are not edited here
+    yet (Split items on the receipt's page changes their categories).
+  - **Filed** (screen 12): "Filed under <category>", the receipt in a sentence, and the mini invoice: the category's
+    budget before (struck through) and after, the receipt's part of the bar in cobalt, "+X from this receipt",
+    what is left, and the month's total before and after; without a budget, just the amount. View receipt, Scan
+    another, Done.
+  - Retake, Back and Cancel delete the unsaved receipt (DELETE /receipts/{id}), so drafts don't pile up.
+- **Consequences:** expo-camera and expo-image-picker (both run in Expo Go) are dependencies. Photo uploads get 60 s.
+
 ## Open (not decided)
 
 From Christina, to discuss later:

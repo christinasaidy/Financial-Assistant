@@ -47,7 +47,8 @@ export default function RootLayout() {
 /**
  * Who may see which routes. While the saved session is checked, only the launch route (index) exists.
  * Signed out: the (auth) screens. Signed in: the (tabs), settings pushed over them from the account button,
- * the budget form as a sheet over Budgets, a receipt's page, and its Change category and Split items sheets.
+ * the budget form as a sheet over Budgets, a receipt's page, its Change category and Split items sheets, and the
+ * scan flow full screen.
  * When the session ends (sign out, or a 401), the signed-in routes disappear and the router goes back to
  * index, which sends the user to sign in.
  */
@@ -66,6 +67,7 @@ function Routes() {
         <Stack.Screen name="receipt/[id]" />
         <Stack.Screen name="receipt-category" options={{ presentation: 'modal' }} />
         <Stack.Screen name="receipt-split" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal' }} />
       </Stack.Protected>
     </Stack>
   );

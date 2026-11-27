@@ -18,6 +18,8 @@ import { SecureTokenStore } from './features/auth/data/secureTokenStore';
 import { HomeService } from './features/home/application/homeService';
 import { ReceiptsService } from './features/receipts/application/receiptsService';
 import { ApiReceiptsRepository } from './features/receipts/data/apiReceiptsRepository';
+import { ScanService } from './features/scan/application/scanService';
+import { ApiScanUploader } from './features/scan/data/apiScanUploader';
 import { ApiHomeRepository } from './features/home/data/apiHomeRepository';
 
 /** The services screens may use. Repositories and the HTTP client stay inside this file. */
@@ -27,6 +29,7 @@ export type Container = {
   budgets: BudgetsService;
   assistant: AssistantService;
   receipts: ReceiptsService;
+  scan: ScanService;
 };
 
 export function createContainer(): Container {
@@ -47,9 +50,23 @@ export function createContainer(): Container {
 
   const assistant = new AssistantService(new ApiAssistantRepository(http));
 
-  const receipts = new ReceiptsService(new ApiReceiptsRepository(http));
+  const receiptsRepository = new ApiReceiptsRepository(http);
+  const receipts = new ReceiptsService(receiptsRepository);
 
-  return { auth, home, budgets, assistant, receipts };
+  // Scan sends photos with its own uploader and reads, saves and checks receipts like the Receipts feature.
+  const uploader = new ApiScanUploader(http);
+  const scan = new ScanService({
+    upload: (photo) => uploader.upload(photo),
+    remove: (id) => uploader.remove(id),
+    receipt: (id) => receiptsRepository.receipt(id),
+    receipts: () => receiptsRepository.receipts(),
+    categories: () => receiptsRepository.categories(),
+    confirm: (id, payload) => receiptsRepository.confirm(id, payload),
+    budgets: (month) => receiptsRepository.budgets(month),
+    monthTotal: (month) => receiptsRepository.monthTotal(month),
+  });
+
+  return { auth, home, budgets, assistant, receipts, scan };
 }
 
 let instance: Container | null = null;

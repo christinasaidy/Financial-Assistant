@@ -88,7 +88,8 @@ frontend/
     (tabs)/budgets.tsx         Budgets (features/budgets/ui/BudgetsScreen)
     (tabs)/assistant.tsx       the Assistant, both modes (features/assistant/ui/AssistantScreen)
     (tabs)/receipts.tsx        Receipts (features/receipts/ui/ReceiptsScreen)
-    (tabs)/scan.tsx            placeholder
+    (tabs)/scan.tsx            redirects to app/scan: the Scan tab opens the flow instead
+    scan/                      the scan flow, full screen: index (camera), reading, review, filed
     receipt/[id].tsx           a receipt's page; receipt-category.tsx and receipt-split.tsx are its sheets
     budget-form.tsx            the budget form, a sheet over Budgets (features/budgets/ui/BudgetFormScreen)
     settings.tsx               settings, pushed over the tabs from the account button (features/settings/ui/SettingsScreen)
@@ -109,6 +110,7 @@ frontend/
       budgets/{domain,application,data,ui}  Budgets and the budget form
       assistant/{domain,application,data,ui} the Assistant: Standard (Sonnet) and Arabizi Beta (Qwen)
       receipts/{domain,application,data,ui}  the Receipts tab, a receipt's page, Change category, Split items
+      scan/{domain,application,data,ui}      the scan flow: camera, reading, review, filed
       settings/ui              Settings: the account and sign out
   tests/                       mirrors src/; plus architecture.test.ts and routes.test.tsx
   assets/                      icons (the five kept), paper/crease.jpg (fonts come from @expo-google-fonts)

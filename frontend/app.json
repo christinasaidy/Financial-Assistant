@@ -14,6 +14,20 @@
       "expo-font",
       "expo-secure-store",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Fatourati uses the camera to scan your receipts.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Fatourati reads the receipt photos you choose.",
+          "cameraPermission": "Fatourati uses the camera to scan your receipts."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFFFF"

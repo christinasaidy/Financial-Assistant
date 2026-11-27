@@ -55,6 +55,11 @@ const lineIcons = {
   calendar: { strokeWidth: 1.8, paths: ['M4 10h16M9 3v4M15 3v4', 'M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z'] },
   /** Receipt: share (20 px). */
   share: { strokeWidth: 1.8, paths: ['M12 4v11M7 9l5-5 5 5M5 14v5h14v-5'] },
+  /** Scan: flash (20 px) and upload from the photo library (24 px). */
+  flash: { strokeWidth: 1.8, paths: ['M13 3L5 14h6l-1 7 8-11h-6z'] },
+  photo: { strokeWidth: 1.7, paths: ['M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z', 'M3 16l5-5 4 4 3-3 6 6'] },
+  /** Scan: close the camera (20 px). */
+  close: { strokeWidth: 2, paths: ['M6 6l12 12M18 6L6 18'] },
   /** Assistant: new conversation (20 px). */
   newConversation: { strokeWidth: 1.8, paths: ['M12 5v14M5 12h14'] },
   /** Assistant: send, white on cobalt (18 px). */

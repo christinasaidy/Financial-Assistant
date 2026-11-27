@@ -43,6 +43,19 @@ export const colors = {
   betaLine: '#A9ABB0',
   /** Assistant, Beta: the query's text on its dark block. */
   codeText: '#E9E9E6',
+  /** Scan camera: the dark screen, the viewfinder's frame, its light text and icons, the hint. */
+  cameraBg: '#161718',
+  cameraFrame: '#232426',
+  cameraInk: '#F2F2F0',
+  cameraHint: '#A9AAAD',
+  /** Scan: the cobalt tint over what is already read, and over a value to check (rgba(35,64,200,.07)). */
+  cobaltTint: 'rgba(35,64,200,0.07)',
+  /** Scan, Filed: the value before, struck through. */
+  struck: '#6E6D68',
+  /** Scan, Review: the line under a field. */
+  fieldRule: 'rgba(0,0,0,0.25)',
+  /** Scan, Review: the small USD / LBP switch's track. */
+  smallTrack: 'rgba(0,0,0,0.08)',
   /** Empty Home: the faint ring around Scan. */
   scanRing: 'rgba(35,64,200,0.14)',
 } as const;
